@@ -1,30 +1,50 @@
-use std::net::SocketAddr;
+use axum::{extract::Path, headers::UserAgent, routing::get, Router, TypedHeader};
 use std::fmt::Write;
-use axum::{Router, routing::get, extract::Path, TypedHeader, headers::UserAgent};
-use tracing::{info, instrument};
+use std::net::SocketAddr;
+use tower_http::trace::TraceLayer;
 
-#[instrument]
-async fn handler(Path((owner, repo)): Path<(String, String)>, TypedHeader(agent): TypedHeader<UserAgent>) -> String {
-    info!("");
+async fn handler(
+    Path((owner, repo)): Path<(String, String)>,
+    TypedHeader(agent): TypedHeader<UserAgent>,
+) -> String {
     let mut response = String::new();
 
     let octocrab = octocrab::instance();
-    let rel = octocrab.repos(&owner, &repo).releases().get_latest().await.unwrap();
+    let rel = octocrab
+        .repos(&owner, &repo)
+        .releases()
+        .get_latest()
+        .await
+        .unwrap();
+        
     let name = rel.name.clone().unwrap();
-    write!(&mut response, "Project name: {repo}\nLatest Release: {name}\nAssets:\n").unwrap();
+    write!(
+        &mut response,
+        "Project name: {repo}\nLatest Release: {name}\nAssets:\n"
+    )
+    .unwrap();
+
     for asset in rel.assets {
-        write!(&mut response, "{} - {}\n", asset.name, asset.browser_download_url.as_str()).unwrap();
+        write!(
+            &mut response,
+            "{} - {}\n",
+            asset.name,
+            asset.browser_download_url.as_str()
+        )
+        .unwrap();
     }
-    write!(&mut response,"\n\nUser Agent: {agent}").unwrap();
+    write!(&mut response, "\n\nUser Agent: {agent}").unwrap();
 
     response
 }
 
 #[tokio::main]
 async fn main() {
-    let subscriber = tracing_subscriber::FmtSubscriber::builder().finish();
-    tracing::subscriber::set_global_default(subscriber).unwrap();
-    let app = Router::new().route("/apt/github/:owner/:repo", get(handler));
+    tracing_subscriber::fmt::init();
+
+    let app = Router::new()
+        .route("/apt/github/:owner/:repo", get(handler))
+        .layer(TraceLayer::new_for_http());
 
     // run it
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
