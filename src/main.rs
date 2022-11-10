@@ -1,7 +1,9 @@
 use axum::{extract::Path, headers::UserAgent, routing::get, Router, TypedHeader};
 use std::fmt::Write;
 use std::net::SocketAddr;
-use tower_http::trace::TraceLayer;
+use tower_http::trace::{DefaultMakeSpan, TraceLayer};
+
+mod detect;
 
 async fn handler(
     Path((owner, repo)): Path<(String, String)>,
@@ -16,7 +18,7 @@ async fn handler(
         .get_latest()
         .await
         .unwrap();
-        
+
     let name = rel.name.clone().unwrap();
     write!(
         &mut response,
@@ -44,7 +46,9 @@ async fn main() {
 
     let app = Router::new()
         .route("/apt/github/:owner/:repo", get(handler))
-        .layer(TraceLayer::new_for_http());
+        .layer(
+            TraceLayer::new_for_http().make_span_with(DefaultMakeSpan::new().include_headers(true)),
+        );
 
     // run it
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
