@@ -1,9 +1,11 @@
+use semver::Version;
+use lenient_semver::parse;
 
 #[derive(Debug, PartialEq)]
 enum Dist {
-    Ubuntu(Option<String>),
-    Debian(Option<String>),
-    Fedora(Option<String>)
+    Ubuntu(Option<Version>),
+    Debian(Option<Version>),
+    Fedora(Option<Version>)
 }
 
 #[derive(Debug, PartialEq)]
@@ -42,9 +44,9 @@ impl Package {
         for section in sections {
             match section {
                 "amd64" => arch = Some(Arch::Amd64),
-                dst if dst.contains("ubuntu") => dist = Some(Dist::Ubuntu(split_at_numeric(dst))),
-                dst if dst.contains("debian") => dist = Some(Dist::Debian(split_at_numeric(dst))),
-                dst if dst.contains("fedora") => dist = Some(Dist::Fedora(split_at_numeric(dst))),
+                dst if dst.contains("ubuntu") => dist = Some(Dist::Ubuntu(parse_version(dst))),
+                dst if dst.contains("debian") => dist = Some(Dist::Debian(parse_version(dst))),
+                dst if dst.contains("fedora") => dist = Some(Dist::Fedora(parse_version(dst))),
                 _ => ()
             }
         }
@@ -53,14 +55,22 @@ impl Package {
     }
 }
 
+/// Parses the version from the distribution identifier `dist`.
+/// 
+/// For instance, for a distribution identifier `ubuntu22.10` it will
+/// parse the version as `22.10`.
+fn parse_version(dist: &str) -> Option<Version> {
+    parse(split_at_numeric(dist)?).ok()
+}
+
 /// Splits the string `s` at the first occurence of a numeric digit.
 /// 
 /// It is used to extract version number from strings, such as for "ubuntu24.10" it would
 /// return "24.10".
-fn split_at_numeric(s: &str) -> Option<String> {
+fn split_at_numeric(s: &str) -> Option<&str> {
     for (curr, (index, next)) in s.chars().zip(s.char_indices().skip(1)) {
         if curr.is_ascii_alphabetic() && next.is_ascii_digit() {
-            return Some(s[index..].to_owned());
+            return Some(&s[index..]);
         }
     }
 
@@ -104,12 +114,12 @@ mod tests {
     fn test_package() {
         let pack = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb", String::new()).unwrap();
         assert_eq!(pack.arch, None);
-        assert_eq!(pack.dist, Some(Dist::Ubuntu(Some("22.04".to_owned()))));
+        assert_eq!(pack.dist, Some(Dist::Ubuntu(Some(parse("22.04").unwrap()))));
         assert_eq!(pack.tipe, Type::Deb);
 
         let pack = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora36.rpm", String::new()).unwrap();
         assert_eq!(pack.arch, None);
-        assert_eq!(pack.dist, Some(Dist::Fedora(Some("36".to_owned()))));
+        assert_eq!(pack.dist, Some(Dist::Fedora(Some(parse("36").unwrap()))));
         assert_eq!(pack.tipe, Type::Rpm);
 
         let pack = Package::detect_package("caprine_2.56.1_amd64.deb", String::new()).unwrap();
@@ -128,7 +138,13 @@ mod tests {
 
     #[test]
     fn test_split_test() {
-        assert_eq!(split_at_numeric("ubuntu24.10"), Some("24.10".to_owned()));
+        assert_eq!(split_at_numeric("ubuntu24.10"), Some("24.10"));
         assert_eq!(split_at_numeric("ubuntu"), None);
+    }
+
+    #[test]
+    fn test_parse_version() {
+        assert_eq!(parse_version("ubuntu22.10").unwrap(), Version::new(22, 10, 0));
+        assert_eq!(parse_version("fedora37").unwrap(), Version::new(37, 0, 0));
     }
 }
