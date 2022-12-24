@@ -4,6 +4,7 @@ use std::net::SocketAddr;
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 
 mod detect;
+mod platform;
 
 async fn handler(
     Path((owner, repo)): Path<(String, String)>,
