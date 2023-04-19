@@ -32,7 +32,7 @@ static DEBIAN_VERSIONS: Lazy<HashMap<VersionReq, Dist>> = Lazy::new(|| {
 });
 
 /// Returns the Ubuntu version matching to the `apt` version it comes with.
-fn match_ubuntu_for_apt(ver: &str) -> Dist {
+pub(crate) fn match_ubuntu_for_apt(ver: &str) -> Dist {
     // TODO: handle cases like `1.0.1ubuntu2` which parses as `1.2.0-10ubuntu1`.
     let mut dist = Dist::Ubuntu(None);
 

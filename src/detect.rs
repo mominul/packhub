@@ -22,7 +22,7 @@ enum Type {
 #[derive(Debug, PartialEq)]
 pub(crate) struct Package {
     tipe: Type,
-    dist: Option<Dist>,
+    pub(crate) dist: Option<Dist>,
     arch: Option<Arch>,
     url: String,
 }
@@ -30,7 +30,7 @@ pub(crate) struct Package {
 struct DetectError;
 
 impl Package {
-    fn detect_package(name: &str, url: String) -> Result<Package, ()> {
+    pub fn detect_package(name: &str, url: String) -> Result<Package, ()> {
         // Split the extension first.
         // If we don't recognise it, then return error.
         let Some((tipe, splitted)) = split_extention(name) else {
@@ -57,6 +57,20 @@ impl Package {
             arch,
             url,
         })
+    }
+
+    pub fn is_deb(&self) -> bool {
+        self.tipe == Type::Deb
+    }
+
+    /// Check if the package is for Ubuntu
+    pub fn for_ubuntu(&self) -> bool {
+        matches!(self.dist, Some(Dist::Ubuntu(_)))
+    }
+
+    /// Return the distribution for which it was packaged
+    pub fn distribution(&self) -> &Dist {
+        self.dist.as_ref().unwrap()
     }
 }
 

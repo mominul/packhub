@@ -5,6 +5,7 @@ use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 mod detect;
 mod platform;
 mod repository;
+mod selector;
 
 async fn handler(
     Path((owner, repo)): Path<(String, String)>,
@@ -30,12 +31,13 @@ async fn handler(
     for asset in rel.assets {
         write!(
             &mut response,
-            "{} - {} - {:?}\n{}\n{}\n\n",
+            // "{} - {} - {:?}\n{}\n{}\n\n",
+            "{},\n",
             asset.name,
-            asset.browser_download_url.as_str(),
-            asset.updated_at.cmp(&asset.created_at),
-            asset.created_at,
-            asset.updated_at
+            // asset.browser_download_url.as_str(),
+            // asset.updated_at.cmp(&asset.created_at),
+            // asset.created_at,
+            // asset.updated_at
         )
         .unwrap();
     }
