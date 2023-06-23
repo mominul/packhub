@@ -8,3 +8,34 @@
 2022-11-10T17:27:06.076345Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/dists/stable/Release version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "accept": "text/*", "user-agent": "Debian APT-HTTP/1.3 (2.5.3)"}}: tower_http::trace::on_request: started processing request
 
 2022-11-10T17:27:06.076442Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/dists/stable/Release version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "accept": "text/*", "user-agent": "Debian APT-HTTP/1.3 (2.5.3)"}}: tower_http::trace::on_response: finished processing request latency=0 ms status=404
+
+
+# For
+# deb [trusted=yes] http://127.0.0.1:3000/apt/github/sindresorhus/caprine ./
+
+2023-06-23T09:14:46.752720Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./InRelease version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "accept": "text/*", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_request: started processing request
+2023-06-23T09:14:46.752874Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./InRelease version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "accept": "text/*", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_response: finished processing request latency=0 ms status=404
+
+2023-06-23T09:14:46.753885Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Release version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "accept": "text/*", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_request: started processing request
+2023-06-23T09:14:46.754050Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Release version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "accept": "text/*", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_response: finished processing request latency=0 ms status=404
+
+2023-06-23T09:14:46.755000Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Packages.gz version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_request: started processing request
+2023-06-23T09:14:46.755071Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Packages.gz version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_response: finished processing request latency=0 ms status=404
+
+2023-06-23T09:14:46.755840Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Packages.xz version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_request: started processing request
+2023-06-23T09:14:46.755913Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Packages.xz version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_response: finished processing request latency=0 ms status=404
+
+2023-06-23T09:14:46.756718Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Packages.bz2 version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_request: started processing request
+2023-06-23T09:14:46.756794Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Packages.bz2 version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_response: finished processing request latency=0 ms status=404
+
+2023-06-23T09:14:46.757474Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Packages.lzma version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_request: started processing request
+2023-06-23T09:14:46.757541Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Packages.lzma version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_response: finished processing request latency=0 ms status=404
+
+2023-06-23T09:14:46.758287Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Packages.lz4 version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_request: started processing request
+2023-06-23T09:14:46.758360Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Packages.lz4 version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_response: finished processing request latency=0 ms status=404
+
+2023-06-23T09:14:46.759109Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Packages.zst version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_request: started processing request
+2023-06-23T09:14:46.759178Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Packages.zst version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_response: finished processing request latency=0 ms status=404
+
+2023-06-23T09:14:46.760272Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Packages version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "accept": "text/*", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_request: started processing request
+2023-06-23T09:14:46.760369Z DEBUG request{method=GET uri=/apt/github/sindresorhus/caprine/./Packages version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "cache-control": "max-age=0", "accept": "text/*", "user-agent": "Debian APT-HTTP/1.3 (2.4.8)"}}: tower_http::trace::on_response: finished processing request latency=0 ms status=404
