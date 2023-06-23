@@ -35,6 +35,7 @@ mod tests {
         ].into()
     }
 
+    /// A shorthand for `Package::detect_package()`
     fn package(p: &str) -> Package {
         Package::detect_package(p,  String::new()).unwrap()
     }
