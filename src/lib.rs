@@ -10,6 +10,7 @@ mod detect;
 mod platform;
 mod repository;
 mod selector;
+mod deb;
 
 async fn handler(
     Path((owner, repo)): Path<(String, String)>,

@@ -19,3 +19,6 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 askama = "0.12"
 reqwest = { version = "0.11", features = ["stream"] }
+ar = "0.9"
+libflate = "1.4"
+tar = "0.4"

@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use lenient_semver::parse;
 use semver::Version;
 
@@ -9,8 +11,19 @@ pub(crate) enum Dist {
 }
 
 #[derive(Debug, PartialEq)]
-enum Arch {
+pub enum Arch {
     Amd64,
+}
+
+impl FromStr for Arch {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "amd64" => Ok(Arch::Amd64),
+            _ => Err(())
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
