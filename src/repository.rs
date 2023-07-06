@@ -4,11 +4,11 @@ use chrono::{DateTime, Utc};
 use octocrab::Octocrab;
 use once_cell::sync::Lazy;
 
-use crate::detect::Package;
+use crate::{detect::Package, platform::get_apt_version, selector::select_package_ubuntu};
 
 static OCTOCRAB: Lazy<Arc<Octocrab>> = Lazy::new(|| octocrab::instance());
 
-struct Repository {
+pub struct Repository {
     // project: String,
     // updated: DateTime<Utc>,
     packages: Vec<Package>,
@@ -17,19 +17,25 @@ struct Repository {
 impl Repository {
     pub async fn from_github(owner: String, repo: String) -> Self {
         let mut packages = Vec::new();
-        let assets = OCTOCRAB
+        let release = OCTOCRAB
             .repos(owner, repo)
             .releases()
             .get_latest()
             .await
-            .unwrap()
-            .assets;
+            .unwrap();
 
-        for asset in assets {
-            let package = Package::detect_package(&asset.name, asset.url.to_string()).unwrap();
-            packages.push(package);
+        for asset in release.assets {
+            let package = Package::detect_package(&asset.name, release.tag_name.clone(), asset.url.to_string());
+            if let Ok(package) = package {
+                packages.push(package);
+            }
         }
 
         Repository { packages }
+    }
+
+    pub fn select_package_ubuntu(&self, agent: &str) -> &Package {
+        let apt = get_apt_version(agent);
+        select_package_ubuntu(&self.packages, apt)
     }
 }

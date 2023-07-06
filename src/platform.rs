@@ -77,7 +77,7 @@ fn matcher_debian(req: &str, ver: &str) -> (VersionReq, Dist) {
 }
 
 /// Retrieve the `apt` version from the user-agent string.
-fn get_apt_version(agent: &str) -> &str {
+pub fn get_apt_version(agent: &str) -> &str {
     APT.captures(agent).unwrap().get(1).unwrap().as_str()
 }
 

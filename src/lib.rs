@@ -1,7 +1,8 @@
 use std::fmt::Write;
 
+use apt::apt_routes;
 use axum::{
-    body::StreamBody, extract::Path, headers::UserAgent, response::IntoResponse, routing::get,
+    extract::Path, headers::UserAgent, routing::get,
     Router, TypedHeader,
 };
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
@@ -11,6 +12,7 @@ mod platform;
 mod repository;
 mod selector;
 mod deb;
+mod apt;
 
 async fn handler(
     Path((owner, repo)): Path<(String, String)>,
@@ -27,9 +29,10 @@ async fn handler(
         .unwrap();
 
     let name = rel.name.clone().unwrap();
+    let ver = rel.tag_name.clone();
     write!(
         &mut response,
-        "Project name: {repo}\nLatest Release: {name}\nAssets:\n"
+        "Project name: {repo}\nLatest Release: {name}\nVersion: {ver}\nAssets:\n"
     )
     .unwrap();
 
@@ -51,27 +54,10 @@ async fn handler(
     response
 }
 
-async fn apt_pool(
-    Path((owner, repo, ver, file)): Path<(String, String, String, String)>,
-) -> impl IntoResponse {
-    let url = format!("https://github.com/{owner}/{repo}/releases/download/{ver}/{file}");
-
-    let res = reqwest::get(url).await.unwrap();
-
-    let stream = res.bytes_stream();
-
-    let stream = StreamBody::new(stream);
-
-    stream
-}
-
 pub fn app() -> Router {
     Router::new()
-        .route("/apt/github/:owner/:repo", get(handler))
-        .route(
-            "/apt/github/:owner/:repo/pool/stable/:ver/:file",
-            get(apt_pool),
-        )
+        .route("/test/github/:owner/:repo", get(handler))
+        .nest("/apt", apt_routes())
         .layer(
             TraceLayer::new_for_http().make_span_with(DefaultMakeSpan::new().include_headers(true)),
         )

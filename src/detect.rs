@@ -4,7 +4,7 @@ use lenient_semver::parse;
 use semver::Version;
 
 #[derive(Debug, PartialEq, Clone)]
-pub(crate) enum Dist {
+pub enum Dist {
     Ubuntu(Option<Version>),
     Debian(Option<Version>),
     Fedora(Option<Version>),
@@ -33,17 +33,17 @@ enum Type {
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) struct Package {
+pub struct Package {
     tipe: Type,
     pub(crate) dist: Option<Dist>,
-    arch: Option<Arch>,
     url: String,
+    ver: String,
 }
 
 struct DetectError;
 
 impl Package {
-    pub fn detect_package(name: &str, url: String) -> Result<Package, ()> {
+    pub fn detect_package(name: &str, ver: String, url: String) -> Result<Package, ()> {
         // Split the extension first.
         // If we don't recognise it, then return error.
         let Some((tipe, splitted)) = split_extention(name) else {
@@ -51,12 +51,10 @@ impl Package {
         };
 
         let mut dist: Option<Dist> = None;
-        let mut arch: Option<Arch> = None;
         let sections: Vec<&str> = splitted.split(['-', '_']).collect();
 
         for section in sections {
             match section {
-                "amd64" => arch = Some(Arch::Amd64),
                 dst if dst.contains("ubuntu") => dist = Some(Dist::Ubuntu(parse_version(dst))),
                 dst if dst.contains("debian") => dist = Some(Dist::Debian(parse_version(dst))),
                 dst if dst.contains("fedora") => dist = Some(Dist::Fedora(parse_version(dst))),
@@ -67,8 +65,8 @@ impl Package {
         Ok(Package {
             tipe,
             dist,
-            arch,
             url,
+            ver,
         })
     }
 
@@ -84,6 +82,11 @@ impl Package {
     /// Return the distribution for which it was packaged
     pub fn distribution(&self) -> &Dist {
         self.dist.as_ref().unwrap()
+    }
+
+    /// Version of the package
+    pub fn version(&self) -> &str {
+        &self.ver
     }
 }
 
@@ -145,20 +148,20 @@ mod tests {
     #[test]
     fn test_package() {
         let pack =
-            Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb", String::new())
+            Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb", "2.0.0".to_owned(), String::new())
                 .unwrap();
-        assert_eq!(pack.arch, None);
+        assert_eq!(pack.version(), "2.0.0");
         assert_eq!(pack.dist, Some(Dist::Ubuntu(Some(parse("22.04").unwrap()))));
         assert_eq!(pack.tipe, Type::Deb);
 
-        let pack = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora36.rpm", String::new())
+        let pack = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora36.rpm", "2.0.0".to_owned(), String::new())
             .unwrap();
-        assert_eq!(pack.arch, None);
+        assert_eq!(pack.version(), "2.0.0");
         assert_eq!(pack.dist, Some(Dist::Fedora(Some(parse("36").unwrap()))));
         assert_eq!(pack.tipe, Type::Rpm);
 
-        let pack = Package::detect_package("caprine_2.56.1_amd64.deb", String::new()).unwrap();
-        assert_eq!(pack.arch, Some(Arch::Amd64));
+        let pack = Package::detect_package("caprine_2.56.1_amd64.deb", "v2.56.1".to_owned(), String::new()).unwrap();
+        assert_eq!(pack.version(), "v2.56.1");
         assert_eq!(pack.dist, None);
         assert_eq!(pack.tipe, Type::Deb);
     }
