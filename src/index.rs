@@ -2,12 +2,12 @@ use std::fmt::Write as _;
 use std::io::Write as _;
 
 use chrono::Utc;
-use libflate::gzip::Encoder;
+use libflate::gzip::{Encoder, HeaderBuilder, EncodeOptions};
 use askama::Template;
 
 use crate::{detect::Package, deb::DebAnalyzer};
 
-struct AptIndices<'a> {
+pub struct AptIndices<'a> {
     data: &'a [u8],
     package: &'a Package,
 }
@@ -26,18 +26,18 @@ struct Files {
 }
 
 impl<'a> AptIndices<'a> {
-    fn new(package: &'a Package, data: &'a [u8]) -> Self {
+    pub fn new(package: &'a Package, data: &'a [u8]) -> Self {
         AptIndices { data, package }
     }
 
-    fn get_package_index(&self) -> String {
+    pub fn get_package_index(&self) -> String {
         let deb = DebAnalyzer::new(self.data);
         let mut control_data = deb.get_control_data().trim_end().to_string();
         write!(&mut control_data, "\nFilename: pool/stable/{}/{}\n\n", self.package.version(), self.package.file_name()).unwrap();
         control_data
     }
 
-    fn get_release_index(&self) -> String {
+    pub fn get_release_index(&self) -> String {
         let date = Utc::now().to_rfc2822();
 
         let packages = self.get_package_index();
@@ -56,8 +56,10 @@ impl<'a> AptIndices<'a> {
     }
 }
 
-fn gzip_compression(data: &[u8]) -> Vec<u8> {
-    let mut encoder = Encoder::new(Vec::new()).unwrap();
+pub fn gzip_compression(data: &[u8]) -> Vec<u8> {
+    let header = HeaderBuilder::new().modification_time(0).finish();
+    let options = EncodeOptions::new().header(header);
+    let mut encoder = Encoder::with_options(Vec::new(), options).unwrap();
     encoder.write_all(data).unwrap();
 
     let gzip = encoder.finish();
@@ -68,7 +70,7 @@ fn gzip_compression(data: &[u8]) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use std::fs::{write, self};
+    use std::fs;
 
     use super::*;
 

@@ -2,8 +2,9 @@ use axum::{
     body::StreamBody, extract::Path, headers::UserAgent, response::IntoResponse, routing::get,
     Router, TypedHeader,
 };
+use tracing::debug;
 
-use crate::{repository::Repository, deb::DebAnalyzer};
+use crate::{repository::Repository, index::{AptIndices, gzip_compression}};
 
 async fn release_file(
     Path((owner, repo)): Path<(String, String)>,
@@ -13,10 +14,31 @@ async fn release_file(
 
     let package = repo.select_package_ubuntu(agent.as_str());
 
+    debug!("Package selected {:?}", package);
+
     let data = reqwest::get(package.download_url()).await.unwrap().bytes().await.unwrap();
 
-    let deb = DebAnalyzer::new(&data);
-    todo!()
+    debug!("Downloaded package length {}", data.len());
+
+    let index = AptIndices::new(package, &data);
+    
+    index.get_release_index()
+}
+
+async fn packages_file(Path((owner, repo, file)): Path<(String, String, String)>, TypedHeader(agent): TypedHeader<UserAgent>) -> Vec<u8> {
+    let repo = Repository::from_github(owner, repo).await;
+
+    let package = repo.select_package_ubuntu(agent.as_str());
+
+    let data = reqwest::get(package.download_url()).await.unwrap().bytes().await.unwrap();
+
+    let index = AptIndices::new(package, &data);
+    
+    match file.as_str() {
+        "Packages" => index.get_package_index().as_bytes().to_owned(),
+        "Packages.gz" => gzip_compression(index.get_package_index().as_bytes()),
+        _ => panic!()
+    }
 }
 
 async fn pool(
@@ -39,5 +61,6 @@ pub fn apt_routes() -> Router {
             "/github/:owner/:repo/dists/stable/Release",
             get(release_file),
         )
+        .route("/github/:owner/:repo/dists/stable/main/binary-amd64/:index", get(packages_file))
         .route("/github/:owner/:repo/pool/stable/:ver/:file", get(pool))
 }
