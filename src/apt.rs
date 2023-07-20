@@ -3,13 +3,19 @@ use axum::{
     Router, TypedHeader,
 };
 
-use crate::repository::Repository;
+use crate::{repository::Repository, deb::DebAnalyzer};
 
 async fn release_file(
     Path((owner, repo)): Path<(String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> String {
     let repo = Repository::from_github(owner, repo).await;
+
+    let package = repo.select_package_ubuntu(agent.as_str());
+
+    let data = reqwest::get(package.download_url()).await.unwrap().bytes().await.unwrap();
+
+    let deb = DebAnalyzer::new(&data);
     todo!()
 }
 

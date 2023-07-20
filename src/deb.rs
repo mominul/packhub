@@ -9,7 +9,7 @@ use crate::detect::Arch;
 static ARCH: Lazy<Regex> = Lazy::new(|| Regex::new(r#"Architecture: (\w+)"#).unwrap());
 
 /// Debian package (.deb) file analyzer
-struct DebAnalyzer {
+pub struct DebAnalyzer {
     control: String,
 }
 

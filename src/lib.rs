@@ -13,6 +13,7 @@ mod repository;
 mod selector;
 mod deb;
 mod apt;
+mod index;
 
 async fn handler(
     Path((owner, repo)): Path<(String, String)>,
@@ -40,8 +41,9 @@ async fn handler(
         write!(
             &mut response,
             // "{} - {} - {:?}\n{}\n{}\n\n",
-            "{},\n",
+            "{} - {},\n",
             asset.name,
+            asset.browser_download_url.as_str(),
             // asset.browser_download_url.as_str(),
             // asset.updated_at.cmp(&asset.created_at),
             // asset.created_at,

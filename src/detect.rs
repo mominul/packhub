@@ -88,6 +88,14 @@ impl Package {
     pub fn version(&self) -> &str {
         &self.ver
     }
+
+    pub fn download_url(&self) -> &str {
+        &self.url
+    }
+
+    pub fn file_name(&self) -> &str {
+        &self.url.split('/').last().unwrap()
+    }
 }
 
 /// Parses the version from the distribution identifier `dist`.
