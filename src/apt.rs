@@ -44,6 +44,8 @@ async fn packages_file(Path((owner, repo, file)): Path<(String, String, String)>
 async fn pool(
     Path((owner, repo, ver, file)): Path<(String, String, String, String)>,
 ) -> impl IntoResponse {
+    debug!("Pool request {ver} {file}");
+    
     let url = format!("https://github.com/{owner}/{repo}/releases/download/{ver}/{file}");
 
     let res = reqwest::get(url).await.unwrap();

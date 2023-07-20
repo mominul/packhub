@@ -1,0 +1,4 @@
+{{ control }}
+SHA256: {{ sum256 }}
+Size: {{ size }}
+Filename: {{ filename }}
