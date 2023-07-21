@@ -12,7 +12,7 @@ pub struct AptIndices<'a> {
 }
 
 #[derive(Template)]
-#[template(path = "RELEASE")] 
+#[template(path = "Release")] 
 struct ReleaseIndex {
     date: String,
     files: Vec<Files>,
@@ -85,6 +85,8 @@ pub fn gzip_compression(data: &[u8]) -> Vec<u8> {
 mod tests {
     use std::fs;
 
+    use insta::assert_snapshot;
+
     use super::*;
 
     #[test]
@@ -94,6 +96,17 @@ mod tests {
 
         let indices = AptIndices::new(&package, &data);
 
-        assert_eq!(indices.get_package_index(), "Architecture: amd64\nDepends: ibus (>= 1.5.1), libc6 (>= 2.29), libgcc-s1 (>= 4.2), libglib2.0-0 (>= 2.12.0), libibus-1.0-5 (>= 1.5.1), libqt5core5a (>= 5.12.2), libqt5gui5 (>= 5.0.2) | libqt5gui5-gles (>= 5.0.2), libqt5network5 (>= 5.0.2), libqt5widgets5 (>= 5.0.2), libstdc++6 (>= 5.2), libzstd1 (>= 1.3.2)\nDescription: OpenSource Bengali input method\n OpenBangla Keyboard is an OpenSource, Unicode compliant Bengali Input Method for GNU/Linux systems. It&apos;s a full fledged Bengali input method with typing automation tools, includes many famous typing methods such as Avro Phonetic, Probhat, Munir Optima, National (Jatiya) etc.\n .\n Most of the features of Avro Keyboard are present in OpenBangla Keyboard. So Avro Keyboard users will feel at home with OpenBangla Keyboard in Linux.\n .\nHomepage: https://openbangla.github.io/\nMaintainer: OpenBangla Team <openbanglateam@gmail.com>\nPackage: openbangla-keyboard\nPriority: optional\nSection: utils\nVersion: 2.0.0\nInstalled-Size: 12263\nSHA256: d368f56f14d07d0f32482d9e56e68750ed1b4f68157fc53f6574c6fde6c4457e\nSize: 5332906\nFilename: pool/stable/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb");
+        // Packages
+        let packages = indices.get_package_index();
+        assert_snapshot!(packages);
+        
+        // Release
+        let release = indices.get_release_index();
+        insta::with_settings!({filters => vec![
+            // Date is a changing value, so replace it with a hardcoded value.
+            (r"Date: .+", "Date: [DATE]"),
+        ]}, {
+            assert_snapshot!(release);
+        });
     }
 }

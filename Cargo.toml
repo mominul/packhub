@@ -23,3 +23,12 @@ ar = "0.9"
 libflate = "1.4"
 tar = "0.4"
 sha256 = "1.2"
+
+[dev-dependencies]
+insta = { version = "1.31", features = ["filters"] }
+
+[profile.dev.package.insta]
+opt-level = 3
+
+[profile.dev.package.similar]
+opt-level = 3
