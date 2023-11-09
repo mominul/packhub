@@ -16,7 +16,8 @@ static UBUNTU_VERSIONS: Lazy<HashMap<VersionReq, Dist>> = Lazy::new(|| {
         matcher_ubuntu(">=2.0.2, <=2.0.9", "20.04"),
         matcher_ubuntu(">=2.4.5, <=2.4.8", "22.04"),
         matcher_ubuntu("=2.5.3", "22.10"),
-        matcher_ubuntu("=2.5.4", "23.04"),
+        matcher_ubuntu(">=2.5.4, <=2.6.0", "23.04"),
+        matcher_ubuntu("=2.7.3", "23.10"),
     ]
     .into()
 });
@@ -26,7 +27,8 @@ static DEBIAN_VERSIONS: Lazy<HashMap<VersionReq, Dist>> = Lazy::new(|| {
         matcher_debian(">=1.4.10, <=1.4.11", "9"),
         matcher_debian("=1.8.2+3", "10"),
         matcher_debian("=2.2.4", "11"),
-        matcher_debian("=2.5.4", "12"),
+        matcher_debian(">=2.5.4, <=2.6.1", "12"),
+        matcher_debian("=2.7.6", "13"),
     ]
     .into()
 });
@@ -99,6 +101,8 @@ mod tests {
         assert_eq!(match_ubuntu_for_apt("2.4.8"), Dist::Ubuntu(parse("22.04").ok()));
         assert_eq!(match_ubuntu_for_apt("2.5.3"), Dist::Ubuntu(parse("22.10").ok()));
         assert_eq!(match_ubuntu_for_apt("2.5.4"), Dist::Ubuntu(parse("23.04").ok()));
+        assert_eq!(match_ubuntu_for_apt("2.6.0"), Dist::Ubuntu(parse("23.04").ok()));
+        assert_eq!(match_ubuntu_for_apt("2.7.3"), Dist::Ubuntu(parse("23.10").ok()));
 
         assert_eq!(match_debian_for_apt("1.0.9"), Dist::Debian(parse("8").ok()));
         assert_eq!(match_debian_for_apt("1.4.10"), Dist::Debian(parse("9").ok()));
@@ -106,6 +110,8 @@ mod tests {
         assert_eq!(match_debian_for_apt("1.8.2.3"), Dist::Debian(parse("10").ok()));
         assert_eq!(match_debian_for_apt("2.2.4"), Dist::Debian(parse("11").ok()));
         assert_eq!(match_debian_for_apt("2.5.4"), Dist::Debian(parse("12").ok()));
+        assert_eq!(match_debian_for_apt("2.6.1"), Dist::Debian(parse("12").ok()));
+        assert_eq!(match_debian_for_apt("2.7.6"), Dist::Debian(parse("13").ok()));
     }
 
     #[test]
