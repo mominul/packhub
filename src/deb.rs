@@ -7,6 +7,7 @@ use regex::Regex;
 use crate::detect::Arch;
 
 static ARCH: Lazy<Regex> = Lazy::new(|| Regex::new(r#"Architecture: (\w+)"#).unwrap());
+static PACKAGE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"Package: (.+)"#).unwrap());
 
 /// Debian package (.deb) file analyzer
 pub struct DebAnalyzer {
@@ -28,6 +29,11 @@ impl DebAnalyzer {
     /// Get the architecture for which the package is built for.
     pub fn get_arch(&self) -> Result<Arch, ()> {
         ARCH.captures(&self.control).unwrap().get(1).unwrap().as_str().parse()
+    }
+
+    /// Get the package name.
+    pub fn get_package(&self) -> &str {
+        PACKAGE.captures(&self.control).unwrap().get(1).unwrap().as_str()
     }
 }
 
@@ -76,5 +82,6 @@ mod tests {
         let data = include_bytes!("../data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb");
         let deb = DebAnalyzer::new(data);
         assert_eq!(deb.get_arch(), Ok(Arch::Amd64));
+        assert_eq!(deb.get_package(), "openbangla-keyboard");
     }
 }

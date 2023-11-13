@@ -9,11 +9,14 @@ use crate::{detect::Package, deb::DebAnalyzer};
 pub struct AptIndices<'a> {
     data: &'a [u8],
     package: &'a Package,
+    deb: DebAnalyzer,
 }
 
 #[derive(Template)]
 #[template(path = "Release")] 
-struct ReleaseIndex {
+struct ReleaseIndex<'a> {
+    origin: &'a str,
+    label: &'a str,
     date: String,
     files: Vec<Files>,
 }
@@ -35,13 +38,12 @@ struct Files {
 
 impl<'a> AptIndices<'a> {
     pub fn new(package: &'a Package, data: &'a [u8]) -> Self {
-        AptIndices { data, package }
+        let deb = DebAnalyzer::new(data);
+        AptIndices { data, package, deb }
     }
 
     pub fn get_package_index(&self) -> String {
-        let deb = DebAnalyzer::new(self.data);
-
-        let control = deb.get_control_data().trim_end();
+        let control = self.deb.get_control_data().trim_end();
         let filename= format!("pool/stable/{}/{}", self.package.version(), self.package.file_name());
         let size = self.data.len();
         let sum256 = sha256::digest(self.data);
@@ -56,6 +58,8 @@ impl<'a> AptIndices<'a> {
         let packages = self.get_package_index();
         let packages = packages.as_bytes();
 
+        let name = self.deb.get_package();
+
         let packages_gz = gzip_compression(packages);
 
         let files = vec![
@@ -63,7 +67,7 @@ impl<'a> AptIndices<'a> {
             Files { sum256: sha256::digest(&packages_gz), size: packages_gz.len(), path: "main/binary-amd64/Packages.gz".to_string() }
         ];
 
-        let index = ReleaseIndex { date, files };
+        let index = ReleaseIndex { date, files, origin: name, label: name };
 
         index.render().unwrap()
     }

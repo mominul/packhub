@@ -2,6 +2,8 @@
 source: src/index.rs
 expression: release
 ---
+Origin: openbangla-keyboard
+Label: openbangla-keyboard
 Suite: stable
 Codename: stable
 Date: [DATE]

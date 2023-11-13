@@ -41,6 +41,14 @@ async fn packages_file(Path((owner, repo, file)): Path<(String, String, String)>
     }
 }
 
+async fn empty_packages_file(Path((owner, repo, file)): Path<(String, String, String)>, TypedHeader(agent): TypedHeader<UserAgent>) -> Vec<u8> {
+    match file.as_str() {
+        "Packages" => Vec::new(),
+        "Packages.gz" => gzip_compression(&Vec::new()),
+        _ => panic!()
+    }
+}
+
 async fn pool(
     Path((owner, repo, ver, file)): Path<(String, String, String, String)>,
 ) -> impl IntoResponse {
@@ -64,5 +72,6 @@ pub fn apt_routes() -> Router {
             get(release_file),
         )
         .route("/github/:owner/:repo/dists/stable/main/binary-amd64/:index", get(packages_file))
+        .route("/github/:owner/:repo/dists/stable/main/binary-all/:index", get(empty_packages_file))
         .route("/github/:owner/:repo/pool/stable/:ver/:file", get(pool))
 }

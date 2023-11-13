@@ -1,17 +1,21 @@
 use packhub::app;
-use tracing::{Level, info};
-use tracing_subscriber::FmtSubscriber;
 use std::net::SocketAddr;
+use tracing::{info, Level};
+use tracing_subscriber::{filter::Targets, prelude::*};
 
 #[tokio::main]
 async fn main() {
-    let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::DEBUG)
-        .finish();
+    let filter = Targets::new()
+        .with_target("tower_http::trace::on_response", Level::TRACE)
+        .with_target("tower_http::trace::on_request", Level::TRACE)
+        .with_target("tower_http::trace::make_span", Level::DEBUG)
+        .with_default(Level::INFO);
 
-    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::fmt::layer())
+        .with(filter)
+        .init();
 
-    
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
 
     info!("listening on {}", addr);

@@ -1,3 +1,5 @@
+Origin: {{ origin }}
+Label: {{ label }}
 Suite: stable
 Codename: stable
 Date: {{ date }}
