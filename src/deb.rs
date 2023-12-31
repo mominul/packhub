@@ -17,7 +17,7 @@ pub struct DebAnalyzer {
 impl DebAnalyzer {
     pub fn new(data: &[u8]) -> Self {
         let control = read_control_file(data);
-        
+
         Self { control }
     }
 
@@ -28,12 +28,22 @@ impl DebAnalyzer {
 
     /// Get the architecture for which the package is built for.
     pub fn get_arch(&self) -> Result<Arch, ()> {
-        ARCH.captures(&self.control).unwrap().get(1).unwrap().as_str().parse()
+        ARCH.captures(&self.control)
+            .unwrap()
+            .get(1)
+            .unwrap()
+            .as_str()
+            .parse()
     }
 
     /// Get the package name.
     pub fn get_package(&self) -> &str {
-        PACKAGE.captures(&self.control).unwrap().get(1).unwrap().as_str()
+        PACKAGE
+            .captures(&self.control)
+            .unwrap()
+            .get(1)
+            .unwrap()
+            .as_str()
     }
 }
 

@@ -1,19 +1,16 @@
 use std::fmt::Write;
 
 use apt::apt_routes;
-use axum::{
-    extract::Path, headers::UserAgent, routing::get,
-    Router, TypedHeader,
-};
+use axum::{extract::Path, headers::UserAgent, routing::get, Router, TypedHeader};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 
+mod apt;
+mod deb;
 mod detect;
+mod index;
 mod platform;
 mod repository;
 mod selector;
-mod deb;
-mod apt;
-mod index;
 
 async fn handler(
     Path((owner, repo)): Path<(String, String)>,

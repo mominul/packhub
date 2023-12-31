@@ -21,7 +21,7 @@ impl FromStr for Arch {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "amd64" => Ok(Arch::Amd64),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -155,20 +155,32 @@ mod tests {
 
     #[test]
     fn test_package() {
-        let pack =
-            Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb", "2.0.0".to_owned(), String::new())
-                .unwrap();
+        let pack = Package::detect_package(
+            "OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb",
+            "2.0.0".to_owned(),
+            String::new(),
+        )
+        .unwrap();
         assert_eq!(pack.version(), "2.0.0");
         assert_eq!(pack.dist, Some(Dist::Ubuntu(Some(parse("22.04").unwrap()))));
         assert_eq!(pack.tipe, Type::Deb);
 
-        let pack = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora36.rpm", "2.0.0".to_owned(), String::new())
-            .unwrap();
+        let pack = Package::detect_package(
+            "OpenBangla-Keyboard_2.0.0-fedora36.rpm",
+            "2.0.0".to_owned(),
+            String::new(),
+        )
+        .unwrap();
         assert_eq!(pack.version(), "2.0.0");
         assert_eq!(pack.dist, Some(Dist::Fedora(Some(parse("36").unwrap()))));
         assert_eq!(pack.tipe, Type::Rpm);
 
-        let pack = Package::detect_package("caprine_2.56.1_amd64.deb", "v2.56.1".to_owned(), String::new()).unwrap();
+        let pack = Package::detect_package(
+            "caprine_2.56.1_amd64.deb",
+            "v2.56.1".to_owned(),
+            String::new(),
+        )
+        .unwrap();
         assert_eq!(pack.version(), "v2.56.1");
         assert_eq!(pack.dist, None);
         assert_eq!(pack.tipe, Type::Deb);

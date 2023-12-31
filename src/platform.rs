@@ -89,31 +89,97 @@ mod tests {
 
     #[test]
     fn test_match_platform() {
-        assert_eq!(match_ubuntu_for_apt("1.0.1"), Dist::Ubuntu(parse("14.04").ok()));
-        assert_eq!(match_ubuntu_for_apt("1.2.1"), Dist::Ubuntu(parse("16.04").ok()));
-        assert_eq!(match_ubuntu_for_apt("1.2.10"), Dist::Ubuntu(parse("16.04").ok()));
-        assert_eq!(match_ubuntu_for_apt("1.2.35"), Dist::Ubuntu(parse("16.04").ok()));
-        assert_eq!(match_ubuntu_for_apt("1.6.1"), Dist::Ubuntu(parse("18.04").ok()));
-        assert_eq!(match_ubuntu_for_apt("1.6.14"), Dist::Ubuntu(parse("18.04").ok()));
-        assert_eq!(match_ubuntu_for_apt("2.0.2"), Dist::Ubuntu(parse("20.04").ok()));
-        assert_eq!(match_ubuntu_for_apt("2.0.9"), Dist::Ubuntu(parse("20.04").ok()));
-        assert_eq!(match_ubuntu_for_apt("2.4.5"), Dist::Ubuntu(parse("22.04").ok()));
-        assert_eq!(match_ubuntu_for_apt("2.4.8"), Dist::Ubuntu(parse("22.04").ok()));
-        assert_eq!(match_ubuntu_for_apt("2.4.10"), Dist::Ubuntu(parse("22.04").ok()));
-        assert_eq!(match_ubuntu_for_apt("2.5.3"), Dist::Ubuntu(parse("22.10").ok()));
-        assert_eq!(match_ubuntu_for_apt("2.5.4"), Dist::Ubuntu(parse("23.04").ok()));
-        assert_eq!(match_ubuntu_for_apt("2.6.0"), Dist::Ubuntu(parse("23.04").ok()));
+        assert_eq!(
+            match_ubuntu_for_apt("1.0.1"),
+            Dist::Ubuntu(parse("14.04").ok())
+        );
+        assert_eq!(
+            match_ubuntu_for_apt("1.2.1"),
+            Dist::Ubuntu(parse("16.04").ok())
+        );
+        assert_eq!(
+            match_ubuntu_for_apt("1.2.10"),
+            Dist::Ubuntu(parse("16.04").ok())
+        );
+        assert_eq!(
+            match_ubuntu_for_apt("1.2.35"),
+            Dist::Ubuntu(parse("16.04").ok())
+        );
+        assert_eq!(
+            match_ubuntu_for_apt("1.6.1"),
+            Dist::Ubuntu(parse("18.04").ok())
+        );
+        assert_eq!(
+            match_ubuntu_for_apt("1.6.14"),
+            Dist::Ubuntu(parse("18.04").ok())
+        );
+        assert_eq!(
+            match_ubuntu_for_apt("2.0.2"),
+            Dist::Ubuntu(parse("20.04").ok())
+        );
+        assert_eq!(
+            match_ubuntu_for_apt("2.0.9"),
+            Dist::Ubuntu(parse("20.04").ok())
+        );
+        assert_eq!(
+            match_ubuntu_for_apt("2.4.5"),
+            Dist::Ubuntu(parse("22.04").ok())
+        );
+        assert_eq!(
+            match_ubuntu_for_apt("2.4.8"),
+            Dist::Ubuntu(parse("22.04").ok())
+        );
+        assert_eq!(
+            match_ubuntu_for_apt("2.4.10"),
+            Dist::Ubuntu(parse("22.04").ok())
+        );
+        assert_eq!(
+            match_ubuntu_for_apt("2.5.3"),
+            Dist::Ubuntu(parse("22.10").ok())
+        );
+        assert_eq!(
+            match_ubuntu_for_apt("2.5.4"),
+            Dist::Ubuntu(parse("23.04").ok())
+        );
+        assert_eq!(
+            match_ubuntu_for_apt("2.6.0"),
+            Dist::Ubuntu(parse("23.04").ok())
+        );
         // FIXME: assert_eq!(match_ubuntu_for_apt("2.6.0ubuntu0.1"), Dist::Ubuntu(parse("23.04").ok()));
-        assert_eq!(match_ubuntu_for_apt("2.7.3"), Dist::Ubuntu(parse("23.10").ok()));
+        assert_eq!(
+            match_ubuntu_for_apt("2.7.3"),
+            Dist::Ubuntu(parse("23.10").ok())
+        );
 
         assert_eq!(match_debian_for_apt("1.0.9"), Dist::Debian(parse("8").ok()));
-        assert_eq!(match_debian_for_apt("1.4.10"), Dist::Debian(parse("9").ok()));
-        assert_eq!(match_debian_for_apt("1.4.11"), Dist::Debian(parse("9").ok()));
-        assert_eq!(match_debian_for_apt("1.8.2.3"), Dist::Debian(parse("10").ok()));
-        assert_eq!(match_debian_for_apt("2.2.4"), Dist::Debian(parse("11").ok()));
-        assert_eq!(match_debian_for_apt("2.5.4"), Dist::Debian(parse("12").ok()));
-        assert_eq!(match_debian_for_apt("2.6.1"), Dist::Debian(parse("12").ok()));
-        assert_eq!(match_debian_for_apt("2.7.6"), Dist::Debian(parse("13").ok()));
+        assert_eq!(
+            match_debian_for_apt("1.4.10"),
+            Dist::Debian(parse("9").ok())
+        );
+        assert_eq!(
+            match_debian_for_apt("1.4.11"),
+            Dist::Debian(parse("9").ok())
+        );
+        assert_eq!(
+            match_debian_for_apt("1.8.2.3"),
+            Dist::Debian(parse("10").ok())
+        );
+        assert_eq!(
+            match_debian_for_apt("2.2.4"),
+            Dist::Debian(parse("11").ok())
+        );
+        assert_eq!(
+            match_debian_for_apt("2.5.4"),
+            Dist::Debian(parse("12").ok())
+        );
+        assert_eq!(
+            match_debian_for_apt("2.6.1"),
+            Dist::Debian(parse("12").ok())
+        );
+        assert_eq!(
+            match_debian_for_apt("2.7.6"),
+            Dist::Debian(parse("13").ok())
+        );
     }
 
     #[test]

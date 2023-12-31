@@ -24,7 +24,11 @@ impl Repository {
             .unwrap();
 
         for asset in release.assets {
-            let package = Package::detect_package(&asset.name, release.tag_name.clone(), asset.browser_download_url.to_string());
+            let package = Package::detect_package(
+                &asset.name,
+                release.tag_name.clone(),
+                asset.browser_download_url.to_string(),
+            );
             if let Ok(package) = package {
                 packages.push(package);
             }
