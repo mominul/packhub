@@ -1,8 +1,11 @@
-use std::io::Write;
+use std::{io::Write, ops::Add};
 
 use chrono::Utc;
 use libflate::gzip::{Encoder, HeaderBuilder, EncodeOptions};
 use askama::Template;
+use md5::Md5;
+use sha1::{digest::{OutputSizeUser, generic_array::ArrayLength, Digest}, Sha1};
+use sha2::{Sha256, Sha512};
 
 use crate::{detect::Package, deb::DebAnalyzer};
 
@@ -25,13 +28,19 @@ struct ReleaseIndex<'a> {
 #[template(path = "Packages")] 
 struct PackageIndex<'a> {
     control: &'a str,
-    sum256: String,
+    md5: String,
+    sha1: String,
+    sha256: String,
+    sha512: String,
     size: usize,
     filename: String,
 }
 
 struct Files {
-    sum256: String,
+    md5: String,
+    sha1: String,
+    sha256: String,
+    sha512: String,
     size: usize,
     path: String, 
 }
@@ -46,9 +55,12 @@ impl<'a> AptIndices<'a> {
         let control = self.deb.get_control_data().trim_end();
         let filename= format!("pool/stable/{}/{}", self.package.version(), self.package.file_name());
         let size = self.data.len();
-        let sum256 = sha256::digest(self.data);
+        let md5 = hashsum::<Md5>(self.data);
+        let sha1 = hashsum::<Sha1>(self.data);
+        let sha256 = hashsum::<Sha256>(self.data);
+        let sha512 = hashsum::<Sha512>(self.data);
 
-        let index = PackageIndex { control, sum256, size, filename };
+        let index = PackageIndex { control, md5, sha1, sha256, sha512, size, filename };
         index.render().unwrap()
     }
 
@@ -58,13 +70,13 @@ impl<'a> AptIndices<'a> {
         let packages = self.get_package_index();
         let packages = packages.as_bytes();
 
-        let name = self.deb.get_package();
+        let name = ". stable"; //format!("{} stable", self.deb.get_package());
 
         let packages_gz = gzip_compression(packages);
 
         let files = vec![
-            Files { sum256: sha256::digest(packages), size: packages.len(), path: "main/binary-amd64/Packages".to_string() },
-            Files { sum256: sha256::digest(&packages_gz), size: packages_gz.len(), path: "main/binary-amd64/Packages.gz".to_string() }
+            Files {sha256:hashsum::<Sha256>(packages),size:packages.len(),path:"main/binary-amd64/Packages".to_string(), md5: hashsum::<Md5>(packages), sha1: hashsum::<Sha1>(packages), sha512: hashsum::<Sha512>(packages) },
+            Files {sha256:hashsum::<Sha256>(&packages_gz),size:packages_gz.len(),path:"main/binary-amd64/Packages.gz".to_string(), md5: hashsum::<Md5>(&packages_gz), sha1: hashsum::<Sha1>(&packages_gz), sha512: hashsum::<Sha512>(&packages_gz) }
         ];
 
         let index = ReleaseIndex { date, files, origin: name, label: name };
@@ -83,6 +95,10 @@ pub fn gzip_compression(data: &[u8]) -> Vec<u8> {
     let gzip = gzip.into_result().unwrap();
 
     gzip
+}
+
+fn hashsum<T: Digest>(data: &[u8]) -> String where <T as OutputSizeUser>::OutputSize: Add, <<T as OutputSizeUser>::OutputSize as Add>::Output: ArrayLength<u8> {
+    format!("{:x}", T::digest(data))
 }
 
 #[cfg(test)]

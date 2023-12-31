@@ -13,7 +13,7 @@ static UBUNTU_VERSIONS: Lazy<HashMap<VersionReq, Dist>> = Lazy::new(|| {
         matcher_ubuntu("=1.0.1", "14.04"),
         matcher_ubuntu(">=1.2.1, <=1.2.35", "16.04"),
         matcher_ubuntu(">=1.6.1, <=1.6.14", "18.04"),
-        matcher_ubuntu(">=2.0.2, <=2.0.9", "20.04"),
+        matcher_ubuntu(">=2.0.2, <=2.0.10", "20.04"),
         matcher_ubuntu(">=2.4.5, <=2.4.10", "22.04"),
         matcher_ubuntu("=2.5.3", "22.10"),
         matcher_ubuntu(">=2.5.4, <=2.6.0", "23.04"),
@@ -103,6 +103,7 @@ mod tests {
         assert_eq!(match_ubuntu_for_apt("2.5.3"), Dist::Ubuntu(parse("22.10").ok()));
         assert_eq!(match_ubuntu_for_apt("2.5.4"), Dist::Ubuntu(parse("23.04").ok()));
         assert_eq!(match_ubuntu_for_apt("2.6.0"), Dist::Ubuntu(parse("23.04").ok()));
+        // FIXME: assert_eq!(match_ubuntu_for_apt("2.6.0ubuntu0.1"), Dist::Ubuntu(parse("23.04").ok()));
         assert_eq!(match_ubuntu_for_apt("2.7.3"), Dist::Ubuntu(parse("23.10").ok()));
 
         assert_eq!(match_debian_for_apt("1.0.9"), Dist::Debian(parse("8").ok()));

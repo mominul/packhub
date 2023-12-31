@@ -1,4 +1,7 @@
 {{ control }}
-SHA256: {{ sum256 }}
+MD5sum: {{ md5 }}
+SHA1: {{ sha1 }}
+SHA256: {{ sha256 }}
+SHA512: {{ sha512 }}
 Size: {{ size }}
 Filename: {{ filename }}

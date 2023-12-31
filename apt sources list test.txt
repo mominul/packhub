@@ -115,6 +115,7 @@
 
 # deb [trusted=yes] http://host.docker.internal:3000/apt/github/OpenBangla/OpenBangla-Keyboard stable main
 # echo "deb [trusted=yes] http://host.docker.internal:3000/apt/github/OpenBangla/OpenBangla-Keyboard stable main" > /etc/apt/sources.list.d/openbangla-keyboard.list
+# echo "deb [trusted=yes] http://127.0.0.1:3000/apt/github/OpenBangla/OpenBangla-Keyboard stable main" > /etc/apt/sources.list.d/openbangla-keyboard.list
 
 2023-11-13T19:55:35.652759Z  INFO packhub: listening on 127.0.0.1:3000
 2023-11-13T19:57:31.438914Z DEBUG request{method=GET uri=/apt/github/OpenBangla/OpenBangla-Keyboard/dists/stable/InRelease version=HTTP/1.1 headers={"host": "host.docker.internal:3000", "cache-control": "max-age=0", "accept": "text/*", "user-agent": "Debian APT-HTTP/1.3 (2.4.10)"}}: tower_http::trace::on_request: started processing request

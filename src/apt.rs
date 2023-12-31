@@ -1,6 +1,6 @@
 use axum::{
     body::StreamBody, extract::Path, headers::UserAgent, response::IntoResponse, routing::get,
-    Router, TypedHeader,
+    Router, TypedHeader, http::StatusCode,
 };
 use tracing::debug;
 
@@ -25,7 +25,7 @@ async fn release_file(
     index.get_release_index()
 }
 
-async fn packages_file(Path((owner, repo, file)): Path<(String, String, String)>, TypedHeader(agent): TypedHeader<UserAgent>) -> Vec<u8> {
+async fn packages_file(Path((owner, repo, file)): Path<(String, String, String)>, TypedHeader(agent): TypedHeader<UserAgent>) -> Result<Vec<u8>, StatusCode> {
     let repo = Repository::from_github(owner, repo).await;
 
     let package = repo.select_package_ubuntu(agent.as_str());
@@ -35,17 +35,17 @@ async fn packages_file(Path((owner, repo, file)): Path<(String, String, String)>
     let index = AptIndices::new(package, &data);
     
     match file.as_str() {
-        "Packages" => index.get_package_index().as_bytes().to_owned(),
-        "Packages.gz" => gzip_compression(index.get_package_index().as_bytes()),
-        _ => panic!()
+        "Packages" => Ok(index.get_package_index().as_bytes().to_owned()),
+        "Packages.gz" => Ok(gzip_compression(index.get_package_index().as_bytes())),
+        _ => Err(StatusCode::NOT_FOUND)
     }
 }
 
-async fn empty_packages_file(Path((owner, repo, file)): Path<(String, String, String)>, TypedHeader(agent): TypedHeader<UserAgent>) -> Vec<u8> {
+async fn empty_packages_file(Path((owner, repo, file)): Path<(String, String, String)>, TypedHeader(agent): TypedHeader<UserAgent>) -> Result<Vec<u8>, StatusCode> {
     match file.as_str() {
-        "Packages" => Vec::new(),
-        "Packages.gz" => gzip_compression(&Vec::new()),
-        _ => panic!()
+        "Packages" => Ok(Vec::new()),
+        "Packages.gz" => Ok(gzip_compression(&Vec::new())),
+        _ => Err(StatusCode::NOT_FOUND)
     }
 }
 
