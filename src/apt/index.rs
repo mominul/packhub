@@ -10,7 +10,7 @@ use sha1::{
 };
 use sha2::{Sha256, Sha512};
 
-use crate::{deb::DebAnalyzer, detect::Package};
+use crate::{apt::deb::DebAnalyzer, detect::Package};
 
 pub struct AptIndices<'a> {
     data: &'a [u8],

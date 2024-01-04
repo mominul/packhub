@@ -1,5 +1,5 @@
 ---
-source: src/index.rs
+source: src/apt/index.rs
 expression: packages
 ---
 Architecture: amd64

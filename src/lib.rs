@@ -1,13 +1,10 @@
 use std::fmt::Write;
 
-use apt::apt_routes;
 use axum::{extract::Path, headers::UserAgent, routing::get, Router, TypedHeader};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 
 mod apt;
-mod deb;
 mod detect;
-mod index;
 mod platform;
 mod repository;
 mod selector;
@@ -56,7 +53,7 @@ async fn handler(
 pub fn app() -> Router {
     Router::new()
         .route("/test/github/:owner/:repo", get(handler))
-        .nest("/apt", apt_routes())
+        .nest("/apt", apt::apt_routes())
         .layer(
             TraceLayer::new_for_http().make_span_with(DefaultMakeSpan::new().include_headers(true)),
         )

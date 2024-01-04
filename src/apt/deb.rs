@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_deb_analyzer() {
-        let data = include_bytes!("../data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb");
+        let data = include_bytes!("../../data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb");
         let deb = DebAnalyzer::new(data);
         assert_eq!(deb.get_arch(), Ok(Arch::Amd64));
         assert_eq!(deb.get_package(), "openbangla-keyboard");

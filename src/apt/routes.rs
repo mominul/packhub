@@ -5,7 +5,7 @@ use axum::{
 use tracing::debug;
 
 use crate::{
-    index::{gzip_compression, AptIndices},
+    apt::index::{gzip_compression, AptIndices},
     repository::Repository,
 };
 
