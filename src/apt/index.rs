@@ -1,16 +1,13 @@
-use std::{io::Write, ops::Add};
+use std::io::Write;
 
 use askama::Template;
 use chrono::Utc;
 use libflate::gzip::{EncodeOptions, Encoder, HeaderBuilder};
 use md5::Md5;
-use sha1::{
-    digest::{generic_array::ArrayLength, Digest, OutputSizeUser},
-    Sha1,
-};
+use sha1::Sha1;
 use sha2::{Sha256, Sha512};
 
-use crate::{apt::deb::DebAnalyzer, detect::Package};
+use crate::{apt::deb::DebAnalyzer, detect::Package, utils::hashsum};
 
 pub struct AptIndices<'a> {
     data: &'a [u8],
@@ -129,14 +126,6 @@ pub fn gzip_compression(data: &[u8]) -> Vec<u8> {
     let gzip = gzip.into_result().unwrap();
 
     gzip
-}
-
-fn hashsum<T: Digest>(data: &[u8]) -> String
-where
-    <T as OutputSizeUser>::OutputSize: Add,
-    <<T as OutputSizeUser>::OutputSize as Add>::Output: ArrayLength<u8>,
-{
-    format!("{:x}", T::digest(data))
 }
 
 #[cfg(test)]

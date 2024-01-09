@@ -4,10 +4,12 @@ use axum::{extract::Path, headers::UserAgent, routing::get, Router, TypedHeader}
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 
 mod apt;
+mod rpm;
 mod detect;
 mod platform;
 mod repository;
 mod selector;
+mod utils;
 
 async fn handler(
     Path((owner, repo)): Path<(String, String)>,
