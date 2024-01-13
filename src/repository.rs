@@ -3,7 +3,7 @@ use std::sync::Arc;
 use octocrab::Octocrab;
 use once_cell::sync::Lazy;
 
-use crate::{detect::Package, platform::get_apt_version, selector::select_package_ubuntu};
+use crate::{package::Package, platform::get_apt_version, selector::select_package_ubuntu};
 
 static OCTOCRAB: Lazy<Arc<Octocrab>> = Lazy::new(|| octocrab::instance());
 

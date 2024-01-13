@@ -4,7 +4,7 @@ use libflate::gzip::Decoder;
 use once_cell::sync::Lazy;
 use regex::Regex;
 
-use crate::detect::Arch;
+use crate::package::Arch;
 
 static ARCH: Lazy<Regex> = Lazy::new(|| Regex::new(r#"Architecture: (\w+)"#).unwrap());
 static PACKAGE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"Package: (.+)"#).unwrap());

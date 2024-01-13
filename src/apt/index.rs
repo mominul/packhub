@@ -1,5 +1,6 @@
 use std::io::Write;
 
+use anyhow::{Result, bail};
 use askama::Template;
 use chrono::Utc;
 use libflate::gzip::{EncodeOptions, Encoder, HeaderBuilder};
@@ -7,10 +8,9 @@ use md5::Md5;
 use sha1::Sha1;
 use sha2::{Sha256, Sha512};
 
-use crate::{apt::deb::DebAnalyzer, detect::Package, utils::hashsum};
+use crate::{apt::deb::DebAnalyzer, package::Package, utils::hashsum};
 
 pub struct AptIndices<'a> {
-    data: &'a [u8],
     package: &'a Package,
     deb: DebAnalyzer,
 }
@@ -46,9 +46,12 @@ struct Files {
 }
 
 impl<'a> AptIndices<'a> {
-    pub fn new(package: &'a Package, data: &'a [u8]) -> Self {
-        let deb = DebAnalyzer::new(data);
-        AptIndices { data, package, deb }
+    pub fn new(package: &'a Package) -> Result<Self> {
+        let Some(data) = package.data() else {
+            bail!("Data not found in package");
+        };
+        let deb = DebAnalyzer::new(&data);
+        Ok(AptIndices { package, deb })
     }
 
     pub fn get_package_index(&self) -> String {
@@ -58,11 +61,12 @@ impl<'a> AptIndices<'a> {
             self.package.version(),
             self.package.file_name()
         );
-        let size = self.data.len();
-        let md5 = hashsum::<Md5>(self.data);
-        let sha1 = hashsum::<Sha1>(self.data);
-        let sha256 = hashsum::<Sha256>(self.data);
-        let sha512 = hashsum::<Sha512>(self.data);
+        let data = self.package.data().unwrap();
+        let size = data.len();
+        let md5 = hashsum::<Md5>(&data);
+        let sha1 = hashsum::<Sha1>(&data);
+        let sha256 = hashsum::<Sha256>(&data);
+        let sha512 = hashsum::<Sha512>(&data);
 
         let index = PackageIndex {
             control,
@@ -140,8 +144,9 @@ mod tests {
     fn test_apt_indices() {
         let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned()).unwrap();
         let data = fs::read("data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb").unwrap();
+        package.set_data(data);
 
-        let indices = AptIndices::new(&package, &data);
+        let indices = AptIndices::new(&package).unwrap();
 
         // Packages
         let packages = indices.get_package_index();

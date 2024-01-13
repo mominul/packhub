@@ -5,9 +5,11 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use semver::VersionReq;
 
-use crate::detect::Dist;
+use crate::package::Dist;
 
 static APT: Lazy<Regex> = Lazy::new(|| Regex::new(r#"Debian APT.+\((.+)\)"#).unwrap());
+static FEDORA: Lazy<Regex> = Lazy::new(|| Regex::new(r#"libdnf \(Fedora Linux (\d+);"#).unwrap());
+
 static UBUNTU_VERSIONS: Lazy<HashMap<VersionReq, Dist>> = Lazy::new(|| {
     [
         matcher_ubuntu("=1.0.1", "14.04"),
@@ -81,6 +83,11 @@ fn matcher_debian(req: &str, ver: &str) -> (VersionReq, Dist) {
 /// Retrieve the `apt` version from the user-agent string.
 pub fn get_apt_version(agent: &str) -> &str {
     APT.captures(agent).unwrap().get(1).unwrap().as_str()
+}
+
+/// Retrieve the `apt` version from the user-agent string.
+pub fn get_fedora_version(agent: &str) -> Option<&str> {
+    Some(FEDORA.captures(agent)?.get(1)?.as_str())
 }
 
 #[cfg(test)]
@@ -185,5 +192,11 @@ mod tests {
     #[test]
     fn test_apt_version() {
         assert_eq!(get_apt_version("Debian APT-HTTP/1.3 (2.5.3)"), "2.5.3");
+    }
+
+    #[test]
+    fn test_fedora_version() {
+        assert_eq!(get_fedora_version("libdnf (Fedora Linux 38; container; Linux.x86_64)"), Some("38"));
+        assert_eq!(get_fedora_version("libdnf (Fedora Linux 39; container; Linux.x86_64)"), Some("39"));
     }
 }

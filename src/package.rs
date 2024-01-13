@@ -1,5 +1,6 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::Mutex};
 
+use anyhow::Result;
 use lenient_semver::parse;
 use semver::Version;
 
@@ -32,12 +33,19 @@ enum Type {
     Rpm,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct Package {
     tipe: Type,
     pub(crate) dist: Option<Dist>,
     url: String,
     ver: String,
+    data: Mutex<Option<Vec<u8>>>,
+}
+
+impl PartialEq for Package {
+    fn eq(&self, other: &Self) -> bool {
+        self.tipe == other.tipe && self.dist == other.dist && self.url == other.url && self.ver == other.ver && *self.data.lock().unwrap() == *other.data.lock().unwrap()
+    }
 }
 
 struct DetectError;
@@ -67,6 +75,7 @@ impl Package {
             dist,
             url,
             ver,
+            data: Mutex::new(None),
         })
     }
 
@@ -95,6 +104,31 @@ impl Package {
 
     pub fn file_name(&self) -> &str {
         &self.url.split('/').last().unwrap()
+    }
+
+    /// Download package data
+    /// 
+    /// It is required to call this function before calling the `data()` function.
+    pub async fn download(&self) -> Result<()> {
+        let data = reqwest::get(self.download_url()).await?.bytes().await?;
+        *self.data.lock().unwrap() = Some(data.to_vec());
+        Ok(())
+    }
+
+    /// Return the data of the package.
+    /// 
+    /// It is required to call the `download()` function before calling this.
+    /// Otherwise, `None` is returned. 
+    pub fn data(&self) -> Option<Vec<u8>> {
+        self.data.lock().unwrap().clone()
+    }
+
+    #[cfg(test)]
+    /// Set the internal package data.
+    /// 
+    /// It's for testing purpose.
+    pub fn set_data(&self, data: Vec<u8>) {
+        *self.data.lock().unwrap() = Some(data);
     }
 }
 

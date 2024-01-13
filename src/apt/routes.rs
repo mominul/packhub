@@ -12,25 +12,20 @@ use crate::{
 async fn release_file(
     Path((owner, repo)): Path<(String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
-) -> String {
+) -> Result<String, StatusCode> {
     let repo = Repository::from_github(owner, repo).await;
 
     let package = repo.select_package_ubuntu(agent.as_str());
 
     debug!("Package selected {:?}", package);
 
-    let data = reqwest::get(package.download_url())
-        .await
-        .unwrap()
-        .bytes()
-        .await
-        .unwrap();
+    package.download().await.unwrap();
 
-    debug!("Downloaded package length {}", data.len());
+    // debug!("Downloaded package length {}", data.len());
 
-    let index = AptIndices::new(package, &data);
+    let index = AptIndices::new(package).unwrap();
 
-    index.get_release_index()
+    Ok(index.get_release_index())
 }
 
 async fn packages_file(
@@ -41,14 +36,9 @@ async fn packages_file(
 
     let package = repo.select_package_ubuntu(agent.as_str());
 
-    let data = reqwest::get(package.download_url())
-        .await
-        .unwrap()
-        .bytes()
-        .await
-        .unwrap();
+    package.download().await.unwrap();
 
-    let index = AptIndices::new(package, &data);
+    let index = AptIndices::new(package).unwrap();
 
     match file.as_str() {
         "Packages" => Ok(index.get_package_index().as_bytes().to_owned()),
@@ -58,8 +48,7 @@ async fn packages_file(
 }
 
 async fn empty_packages_file(
-    Path((owner, repo, file)): Path<(String, String, String)>,
-    TypedHeader(agent): TypedHeader<UserAgent>,
+    Path((_, _, file)): Path<(String, String, String)>,
 ) -> Result<Vec<u8>, StatusCode> {
     match file.as_str() {
         "Packages" => Ok(Vec::new()),

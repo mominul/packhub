@@ -1,4 +1,4 @@
-use crate::{detect::Package, platform::match_ubuntu_for_apt};
+use crate::{package::Package, platform::match_ubuntu_for_apt};
 
 pub(crate) fn select_package_ubuntu<'p>(from: &'p Vec<Package>, apt: &str) -> &'p Package {
     from.iter()
