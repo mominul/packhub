@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<otherdata xmlns="http://linux.duke.edu/metadata/other" packages="{{ packages.len() }}">
+{% for package in packages %}
+<package pkgid="{{ package.sha256 }}" name="{{ package.name }}" arch="{{ package.arch }}">
+  <version epoch="{{ package.epoch }}" ver="{{ package.version }}" rel="{{ package.release }}"/>
+</package>
+{% endfor %}
+</otherdata>

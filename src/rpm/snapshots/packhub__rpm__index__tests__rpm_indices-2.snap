@@ -1,0 +1,141 @@
+---
+source: src/rpm/index.rs
+expression: get_filelists_index(packages.clone())
+---
+<?xml version="1.0" encoding="UTF-8"?>
+<filelists xmlns="http://linux.duke.edu/metadata/filelists" packages="1">
+
+<package pkgid="4ea19432c75d1b7ddc6dc2adbb10301fea142913834decd0455e1249cbaf3c14" name="openbangla-keyboard" arch="x86_64">
+  <version epoch="0" ver="2.0.0" rel="1.fc38"/>
+  
+  
+  <file type="dir">/usr/lib/.build-id</file>
+  
+  
+  
+  <file type="dir">/usr/lib/.build-id/45</file>
+  
+  
+  
+  <file>/usr/lib/.build-id/45/4f3de1c02f67096ca79f7edb9030f7b1b4d015</file>
+  
+  
+  
+  <file type="dir">/usr/lib/.build-id/b2</file>
+  
+  
+  
+  <file>/usr/lib/.build-id/b2/1aa073a506f8b918fda931c8d12912b5d164be</file>
+  
+  
+  
+  <file>/usr/share/applications/openbangla-keyboard.desktop</file>
+  
+  
+  
+  <file>/usr/share/ibus/component/openbangla.xml</file>
+  
+  
+  
+  <file>/usr/share/icons/hicolor/1024x1024/apps/openbangla-keyboard.png</file>
+  
+  
+  
+  <file>/usr/share/icons/hicolor/128x128/apps/openbangla-keyboard.png</file>
+  
+  
+  
+  <file>/usr/share/icons/hicolor/16x16/apps/openbangla-keyboard.png</file>
+  
+  
+  
+  <file>/usr/share/icons/hicolor/32x32/apps/openbangla-keyboard.png</file>
+  
+  
+  
+  <file>/usr/share/icons/hicolor/48x48/apps/openbangla-keyboard.png</file>
+  
+  
+  
+  <file>/usr/share/icons/hicolor/512x512/apps/openbangla-keyboard.png</file>
+  
+  
+  
+  <file>/usr/share/metainfo/io.github.openbangla.keyboard.metainfo.xml</file>
+  
+  
+  
+  <file type="dir">/usr/share/openbangla-keyboard</file>
+  
+  
+  
+  <file type="dir">/usr/share/openbangla-keyboard/data</file>
+  
+  
+  
+  <file>/usr/share/openbangla-keyboard/data/autocorrect.json</file>
+  
+  
+  
+  <file>/usr/share/openbangla-keyboard/data/dictionary.json</file>
+  
+  
+  
+  <file>/usr/share/openbangla-keyboard/data/regex.json</file>
+  
+  
+  
+  <file>/usr/share/openbangla-keyboard/data/suffix.json</file>
+  
+  
+  
+  <file>/usr/share/openbangla-keyboard/ibus-openbangla</file>
+  
+  
+  
+  <file type="dir">/usr/share/openbangla-keyboard/icons</file>
+  
+  
+  
+  <file>/usr/share/openbangla-keyboard/icons/OpenBangla-Keyboard.png</file>
+  
+  
+  
+  <file type="dir">/usr/share/openbangla-keyboard/layouts</file>
+  
+  
+  
+  <file>/usr/share/openbangla-keyboard/layouts/Avro_Easy.json</file>
+  
+  
+  
+  <file>/usr/share/openbangla-keyboard/layouts/Borno.json</file>
+  
+  
+  
+  <file>/usr/share/openbangla-keyboard/layouts/Munir_Optima.json</file>
+  
+  
+  
+  <file>/usr/share/openbangla-keyboard/layouts/National_Jatiya.json</file>
+  
+  
+  
+  <file>/usr/share/openbangla-keyboard/layouts/Probhat.json</file>
+  
+  
+  
+  <file>/usr/share/openbangla-keyboard/layouts/avrophonetic.json</file>
+  
+  
+  
+  <file>/usr/share/openbangla-keyboard/openbangla-gui</file>
+  
+  
+  
+  <file>/usr/share/pixmaps/openbangla-keyboard.png</file>
+  
+  
+</package>
+
+</filelists>

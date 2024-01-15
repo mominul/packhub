@@ -1,6 +1,7 @@
 use std::{str::FromStr, sync::Mutex};
 
 use anyhow::Result;
+use chrono::{DateTime, Utc};
 use lenient_semver::parse;
 use semver::Version;
 
@@ -40,20 +41,31 @@ pub struct Package {
     url: String,
     ver: String,
     data: Mutex<Option<Vec<u8>>>,
+    created: DateTime<Utc>,
 }
 
 impl PartialEq for Package {
     fn eq(&self, other: &Self) -> bool {
-        self.tipe == other.tipe && self.dist == other.dist && self.url == other.url && self.ver == other.ver && *self.data.lock().unwrap() == *other.data.lock().unwrap()
+        self.tipe == other.tipe
+            && self.dist == other.dist
+            && self.url == other.url
+            && self.ver == other.ver
+            && *self.data.lock().unwrap() == *other.data.lock().unwrap()
+            && self.created == other.created
     }
 }
 
 struct DetectError;
 
 impl Package {
-    pub fn detect_package(name: &str, ver: String, url: String) -> Result<Package, ()> {
+    pub fn detect_package(
+        name: &str,
+        ver: String,
+        url: String,
+        created: DateTime<Utc>,
+    ) -> Result<Package, ()> {
         // Split the extension first.
-        // If we don't recognise it, then return error.
+        // If we don't recognize it, then return error.
         let Some((tipe, splitted)) = split_extention(name) else {
             return Err(());
         };
@@ -76,6 +88,7 @@ impl Package {
             url,
             ver,
             data: Mutex::new(None),
+            created,
         })
     }
 
@@ -107,7 +120,7 @@ impl Package {
     }
 
     /// Download package data
-    /// 
+    ///
     /// It is required to call this function before calling the `data()` function.
     pub async fn download(&self) -> Result<()> {
         let data = reqwest::get(self.download_url()).await?.bytes().await?;
@@ -116,19 +129,23 @@ impl Package {
     }
 
     /// Return the data of the package.
-    /// 
+    ///
     /// It is required to call the `download()` function before calling this.
-    /// Otherwise, `None` is returned. 
+    /// Otherwise, `None` is returned.
     pub fn data(&self) -> Option<Vec<u8>> {
         self.data.lock().unwrap().clone()
     }
 
     #[cfg(test)]
     /// Set the internal package data.
-    /// 
+    ///
     /// It's for testing purpose.
     pub fn set_data(&self, data: Vec<u8>) {
         *self.data.lock().unwrap() = Some(data);
+    }
+
+    pub fn creation_date(&self) -> &DateTime<Utc> {
+        &self.created
     }
 }
 
@@ -193,6 +210,7 @@ mod tests {
             "OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb",
             "2.0.0".to_owned(),
             String::new(),
+            DateTime::UNIX_EPOCH,
         )
         .unwrap();
         assert_eq!(pack.version(), "2.0.0");
@@ -203,6 +221,7 @@ mod tests {
             "OpenBangla-Keyboard_2.0.0-fedora36.rpm",
             "2.0.0".to_owned(),
             String::new(),
+            DateTime::UNIX_EPOCH,
         )
         .unwrap();
         assert_eq!(pack.version(), "2.0.0");
@@ -213,6 +232,7 @@ mod tests {
             "caprine_2.56.1_amd64.deb",
             "v2.56.1".to_owned(),
             String::new(),
+            DateTime::UNIX_EPOCH,
         )
         .unwrap();
         assert_eq!(pack.version(), "v2.56.1");

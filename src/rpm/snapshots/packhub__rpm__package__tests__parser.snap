@@ -1,8 +1,8 @@
 ---
-source: src/rpm/parser.rs
+source: src/rpm/package.rs
 expression: parsed
 ---
-RPM {
+RPMPackage {
     name: "openbangla-keyboard",
     epoch: 0,
     version: "2.0.0",
@@ -316,7 +316,7 @@ RPM {
             condition: "",
         },
     ],
-    sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    sha256: "4ea19432c75d1b7ddc6dc2adbb10301fea142913834decd0455e1249cbaf3c14",
     header_start: 4504,
     header_end: 14821,
     files: [
@@ -452,4 +452,6 @@ RPM {
     pkg_size: 4615096,
     installed_size: 12106690,
     archive_size: 12112024,
+    location: "package/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm",
+    pkg_time: 0,
 }

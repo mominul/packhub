@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use askama::Template;
 use chrono::Utc;
 use libflate::gzip::{EncodeOptions, Encoder, HeaderBuilder};
@@ -136,13 +136,14 @@ pub fn gzip_compression(data: &[u8]) -> Vec<u8> {
 mod tests {
     use std::fs;
 
+    use chrono::DateTime;
     use insta::assert_snapshot;
 
     use super::*;
 
     #[test]
     fn test_apt_indices() {
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned()).unwrap();
+        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), DateTime::UNIX_EPOCH).unwrap();
         let data = fs::read("data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb").unwrap();
         package.set_data(data);
 

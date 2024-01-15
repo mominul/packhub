@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<filelists xmlns="http://linux.duke.edu/metadata/filelists" packages="{{ packages.len() }}">
+{% for package in packages %}
+<package pkgid="{{ package.sha256 }}" name="{{ package.name }}" arch="{{ package.arch }}">
+  <version epoch="{{ package.epoch }}" ver="{{ package.version }}" rel="{{ package.release }}"/>
+  {% for file in package.files %}
+  {% if file.dir %}
+  <file type="dir">{{ file.path }}</file>
+  {% else %}
+  <file>{{ file.path }}</file>
+  {% endif %}
+  {% endfor %}
+</package>
+{% endfor %}
+</filelists>

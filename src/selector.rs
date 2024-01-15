@@ -37,7 +37,13 @@ mod tests {
 
     /// A shorthand for `Package::detect_package()`
     fn package(p: &str) -> Package {
-        Package::detect_package(p, String::new(), String::new()).unwrap()
+        Package::detect_package(
+            p,
+            String::new(),
+            String::new(),
+            chrono::DateTime::UNIX_EPOCH,
+        )
+        .unwrap()
     }
 
     #[test]

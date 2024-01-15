@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://linux.duke.edu/metadata/common" xmlns:rpm="http://linux.duke.edu/metadata/rpm" packages="{{ packages.len() }}">
+{% for package in packages %}
+<package type="rpm">
+  <name>{{ package.name }}</name>
+  <arch>{{ package.arch }}</arch>
+  <version epoch="{{ package.epoch }}" ver="{{ package.version }}" rel="{{ package.release }}"/>
+  <checksum type="sha256" pkgid="YES">{{ package.sha256 }}</checksum>
+  <summary>{{ package.summary }}</summary>
+  <description>{{ package.description }}</description>
+  <packager></packager>
+  <url>{{ package.url }}</url>
+  <time file="{{ package.pkg_time }}" build="{{ package.build_time }}"/>
+  <size package="{{ package.pkg_size }}" installed="{{ package.installed_size }}" archive="{{ package.archive_size }}"/>
+  <location href="{{ package.location }}"/>
+  <format>
+    <rpm:license>{{ package.license }}</rpm:license>
+    <rpm:vendor>{{ package.vendor }}</rpm:vendor>
+    <rpm:group>{{ package.group }}</rpm:group>
+    <rpm:buildhost>{{ package.build_host }}</rpm:buildhost>
+    <rpm:sourcerpm>{{ package.source }}</rpm:sourcerpm>
+    <rpm:header-range start="{{ package.header_start }}" end="{{ package.header_end }}"/>
+    <rpm:provides>
+    {% for provide in package.provides %}
+      {% if provide.version == "" %}
+      <rpm:entry name="{{ provide.dependency }}"/>
+      {% else %}
+      <rpm:entry name="{{ provide.dependency }}" flags="{{ provide.condition }}" epoch="0" ver="{{ provide.version }}" rel="{{ package.release }}"/>
+      {% endif %}
+    {% endfor %}
+    </rpm:provides>
+    <rpm:requires>
+    {% for require in package.requires %}
+      {% if require.version == "" %}
+      <rpm:entry name="{{ require.dependency }}"/>
+      {% else %}
+      <rpm:entry name="{{ require.dependency }}" flags="{{ require.condition }}" epoch="0" ver="{{ require.version }}"/>
+      {% endif %}
+    {% endfor %}
+    </rpm:requires>
+  </format>
+</package>
+{% endfor %}
+</metadata>

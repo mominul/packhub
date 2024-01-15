@@ -28,6 +28,7 @@ impl Repository {
                 &asset.name,
                 release.tag_name.clone(),
                 asset.browser_download_url.to_string(),
+                asset.updated_at,
             );
             if let Ok(package) = package {
                 packages.push(package);

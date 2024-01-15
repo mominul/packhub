@@ -1,0 +1,12 @@
+---
+source: src/rpm/index.rs
+expression: get_other_index(packages)
+---
+<?xml version="1.0" encoding="UTF-8"?>
+<otherdata xmlns="http://linux.duke.edu/metadata/other" packages="1">
+
+<package pkgid="4ea19432c75d1b7ddc6dc2adbb10301fea142913834decd0455e1249cbaf3c14" name="openbangla-keyboard" arch="x86_64">
+  <version epoch="0" ver="2.0.0" rel="1.fc38"/>
+</package>
+
+</otherdata>

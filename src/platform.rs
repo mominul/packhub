@@ -196,7 +196,13 @@ mod tests {
 
     #[test]
     fn test_fedora_version() {
-        assert_eq!(get_fedora_version("libdnf (Fedora Linux 38; container; Linux.x86_64)"), Some("38"));
-        assert_eq!(get_fedora_version("libdnf (Fedora Linux 39; container; Linux.x86_64)"), Some("39"));
+        assert_eq!(
+            get_fedora_version("libdnf (Fedora Linux 38; container; Linux.x86_64)"),
+            Some("38")
+        );
+        assert_eq!(
+            get_fedora_version("libdnf (Fedora Linux 39; container; Linux.x86_64)"),
+            Some("39")
+        );
     }
 }
