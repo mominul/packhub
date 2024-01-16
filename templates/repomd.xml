@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<repomd xmlns="http://linux.duke.edu/metadata/repo" xmlns:rpm="http://linux.duke.edu/metadata/rpm">
+  <revision>{{ timestamp }}</revision>
+  <data type="primary">
+    <checksum type="sha256">{{ primary.sha256 }}</checksum>
+    <open-checksum type="sha256">{{ primary. open_sha256 }}</open-checksum>
+    <location href="repodata/primary.xml.zst"/>
+    <timestamp>{{ timestamp }}</timestamp>
+    <size>{{ primary.size }}</size>
+    <open-size>{{ primary.open_size }}</open-size>
+  </data>
+  <data type="filelists">
+    <checksum type="sha256">{{ filelists.sha256 }}</checksum>
+    <open-checksum type="sha256">{{ filelists.open_sha256 }}</open-checksum>
+    <location href="repodata/filelists.xml.zst"/>
+    <timestamp>{{ timestamp }}</timestamp>
+    <size>{{ filelists.size }}</size>
+    <open-size>{{ filelists.open_size }}</open-size>
+  </data>
+  <data type="other">
+    <checksum type="sha256">{{ other.sha256 }}</checksum>
+    <open-checksum type="sha256">{{ other.open_sha256}}</open-checksum>
+    <location href="repodata/other.xml.zst"/>
+    <timestamp>{{ timestamp }}</timestamp>
+    <size>{{ other.size }}</size>
+    <open-size>{{ other.open_size }}</open-size>
+  </data>
+</repomd>
