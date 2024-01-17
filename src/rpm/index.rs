@@ -76,7 +76,12 @@ impl Metadata {
         let size = compressed.len();
         let sha256 = hashsum::<Sha256>(&compressed);
 
-        Metadata { sha256, open_sha256, size, open_size }
+        Metadata {
+            sha256,
+            open_sha256,
+            size,
+            open_size,
+        }
     }
 }
 
@@ -87,8 +92,12 @@ impl RepoMD {
         let other = Metadata::create(other);
         let timestamp = Utc::now().timestamp();
 
-
-        RepoMD { primary, filelists, other, timestamp }
+        RepoMD {
+            primary,
+            filelists,
+            other,
+            timestamp,
+        }
     }
 }
 

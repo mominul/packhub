@@ -90,6 +90,12 @@ pub fn get_fedora_version(agent: &str) -> Option<&str> {
     Some(FEDORA.captures(agent)?.get(1)?.as_str())
 }
 
+pub fn detect_rpm_os(agent: &str) -> Option<Dist> {
+    let ver = get_fedora_version(agent)?;
+
+    Some(Dist::Fedora(parse(ver).ok()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -3,7 +3,11 @@ use std::sync::Arc;
 use octocrab::Octocrab;
 use once_cell::sync::Lazy;
 
-use crate::{package::Package, platform::get_apt_version, selector::select_package_ubuntu};
+use crate::{
+    package::Package,
+    platform::{detect_rpm_os, get_apt_version},
+    selector::{select_package, select_package_ubuntu},
+};
 
 static OCTOCRAB: Lazy<Arc<Octocrab>> = Lazy::new(|| octocrab::instance());
 
@@ -41,5 +45,10 @@ impl Repository {
     pub fn select_package_ubuntu(&self, agent: &str) -> &Package {
         let apt = get_apt_version(agent);
         select_package_ubuntu(&self.packages, apt)
+    }
+
+    pub fn select_package_rpm(&self, agent: &str) -> Option<&Package> {
+        let dist = detect_rpm_os(agent)?;
+        Some(select_package(&self.packages, dist))
     }
 }

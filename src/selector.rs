@@ -1,4 +1,7 @@
-use crate::{package::Package, platform::match_ubuntu_for_apt};
+use crate::{
+    package::{Dist, Package},
+    platform::match_ubuntu_for_apt,
+};
 
 pub(crate) fn select_package_ubuntu<'p>(from: &'p Vec<Package>, apt: &str) -> &'p Package {
     from.iter()
@@ -8,8 +11,17 @@ pub(crate) fn select_package_ubuntu<'p>(from: &'p Vec<Package>, apt: &str) -> &'
         .unwrap()
 }
 
+pub(crate) fn select_package<'p>(from: &'p [Package], dist: Dist) -> &'p Package {
+    from.iter()
+        .filter(|p| dist == *p.distribution())
+        .nth(0)
+        .unwrap()
+}
+
 #[cfg(test)]
 mod tests {
+    use lenient_semver::parse;
+
     use super::*;
 
     fn openbangla_keyboard_packages() -> Vec<Package> {
@@ -26,6 +38,8 @@ mod tests {
             package("OpenBangla-Keyboard_2.0.0-fedora34.rpm"),
             package("OpenBangla-Keyboard_2.0.0-fedora35.rpm"),
             package("OpenBangla-Keyboard_2.0.0-fedora36.rpm"),
+            package("OpenBangla-Keyboard_2.0.0-fedora37.rpm"),
+            package("OpenBangla-Keyboard_2.0.0-fedora38.rpm"),
             package("OpenBangla-Keyboard_2.0.0-ubuntu18.04.deb"),
             package("OpenBangla-Keyboard_2.0.0-ubuntu19.10.deb"),
             package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb"),
@@ -61,6 +75,16 @@ mod tests {
         assert_eq!(
             *select_package_ubuntu(&packages, "2.4.8"),
             package("OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb")
+        );
+    }
+
+    #[test]
+    fn test_package_selection_fedora() {
+        let packages: Vec<Package> = openbangla_keyboard_packages();
+
+        assert_eq!(
+            *select_package(&packages, Dist::Fedora(parse("38").ok())),
+            package("OpenBangla-Keyboard_2.0.0-fedora38.rpm")
         );
     }
 }
