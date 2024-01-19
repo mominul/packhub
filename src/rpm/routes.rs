@@ -2,14 +2,17 @@ use axum::{
     body::StreamBody, extract::Path, headers::UserAgent, http::StatusCode, response::IntoResponse,
     routing::get, Router, TypedHeader,
 };
+use zstd::encode_all;
 
 use crate::{
     repository::Repository,
     rpm::{index::get_repomd_index, package::RPMPackage},
 };
 
-async fn repomd(
-    Path((owner, repo)): Path<(String, String)>,
+use super::index::{get_primary_index, get_filelists_index, get_other_index};
+
+async fn index(
+    Path((owner, repo, file)): Path<(String, String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<Vec<u8>, StatusCode> {
     let repo = Repository::from_github(owner, repo).await;
@@ -19,10 +22,15 @@ async fn repomd(
 
     package.download().await.unwrap();
 
-    let package = vec![RPMPackage::from_package(package).unwrap()];
-    let index = get_repomd_index(&package).into_bytes();
+    let packages = vec![RPMPackage::from_package(package).unwrap()];
 
-    Ok(index)
+    match file.as_str() {
+        "repomd.xml" => Ok(get_repomd_index(&packages).into_bytes()),
+        "primary.xml.zst" => Ok(encode_all(get_primary_index(&packages).as_bytes(), 0).unwrap()),
+        "filelists.xml.zst" => Ok(encode_all(get_filelists_index(&packages).as_bytes(), 0).unwrap()),
+        "other.xml.zst" => Ok(encode_all(get_other_index(&packages).as_bytes(), 0).unwrap()),
+        _ => Err(StatusCode::NOT_FOUND)
+    }
 }
 
 async fn package(
@@ -38,6 +46,6 @@ async fn package(
 
 pub fn rpm_routes() -> Router {
     Router::new()
-        .route("/github/:owner/:repo/repodata/repomd.xml", get(repomd))
+        .route("/github/:owner/:repo/repodata/:file", get(index))
         .route("/github/:owner/:repo/package/:ver/:file", get(package))
 }
