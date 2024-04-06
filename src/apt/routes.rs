@@ -1,7 +1,7 @@
 use axum::{
-    body::StreamBody, extract::Path, headers::UserAgent, http::StatusCode, response::IntoResponse,
-    routing::get, Router, TypedHeader,
+    body::Body, extract::Path, http::StatusCode, response::IntoResponse, routing::get, Router,
 };
+use axum_extra::{headers::UserAgent, typed_header::TypedHeader};
 use tracing::debug;
 
 use crate::{
@@ -68,7 +68,7 @@ async fn pool(
 
     let stream = res.bytes_stream();
 
-    let stream = StreamBody::new(stream);
+    let stream = Body::from_stream(stream);
 
     stream
 }

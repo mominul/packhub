@@ -1,7 +1,7 @@
 use axum::{
-    body::StreamBody, extract::Path, headers::UserAgent, http::StatusCode, response::IntoResponse,
-    routing::get, Router, TypedHeader,
+    body::Body, extract::Path, http::StatusCode, response::IntoResponse, routing::get, Router,
 };
+use axum_extra::{headers::UserAgent, typed_header::TypedHeader};
 use zstd::encode_all;
 
 use crate::{
@@ -9,7 +9,7 @@ use crate::{
     rpm::{index::get_repomd_index, package::RPMPackage},
 };
 
-use super::index::{get_primary_index, get_filelists_index, get_other_index};
+use super::index::{get_filelists_index, get_other_index, get_primary_index};
 
 async fn index(
     Path((owner, repo, file)): Path<(String, String, String)>,
@@ -27,9 +27,11 @@ async fn index(
     match file.as_str() {
         "repomd.xml" => Ok(get_repomd_index(&packages).into_bytes()),
         "primary.xml.zst" => Ok(encode_all(get_primary_index(&packages).as_bytes(), 0).unwrap()),
-        "filelists.xml.zst" => Ok(encode_all(get_filelists_index(&packages).as_bytes(), 0).unwrap()),
+        "filelists.xml.zst" => {
+            Ok(encode_all(get_filelists_index(&packages).as_bytes(), 0).unwrap())
+        }
         "other.xml.zst" => Ok(encode_all(get_other_index(&packages).as_bytes(), 0).unwrap()),
-        _ => Err(StatusCode::NOT_FOUND)
+        _ => Err(StatusCode::NOT_FOUND),
     }
 }
 
@@ -39,7 +41,7 @@ async fn package(
     let url = format!("https://github.com/{owner}/{repo}/releases/download/{ver}/{file}");
     let res = reqwest::get(url).await.unwrap();
     let stream = res.bytes_stream();
-    let stream = StreamBody::new(stream);
+    let stream = Body::from_stream(stream);
 
     stream
 }
