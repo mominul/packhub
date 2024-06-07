@@ -37,11 +37,15 @@ static DEBIAN_VERSIONS: Lazy<HashMap<VersionReq, Dist>> = Lazy::new(|| {
 
 /// Returns the Ubuntu version matching to the `apt` version it comes with.
 pub(crate) fn match_ubuntu_for_apt(ver: &str) -> Dist {
-    // TODO: handle cases like `1.0.1ubuntu2` which parses as `1.2.0-10ubuntu1`.
     let mut dist = Dist::Ubuntu(None);
 
+    let mut apt = parse(ver).unwrap();
+    // Remove the prelease part of the version.
+    // "2.6.0ubuntu0.1" -> "2.6.0"
+    apt.pre = semver::Prerelease::EMPTY;
+
     for (matcher, dst) in UBUNTU_VERSIONS.iter() {
-        if matcher.matches(&parse(ver).unwrap()) {
+        if matcher.matches(&apt) {
             dist = dst.clone();
             break;
         }
@@ -54,8 +58,13 @@ pub(crate) fn match_ubuntu_for_apt(ver: &str) -> Dist {
 fn match_debian_for_apt(ver: &str) -> Dist {
     let mut dist = Dist::Debian(None);
 
+    let mut apt = parse(ver).unwrap();
+    // Remove the prelease part of the version.
+    // "2.6.0ubuntu0.1" -> "2.6.0"
+    apt.pre = semver::Prerelease::EMPTY;
+
     for (matcher, dst) in DEBIAN_VERSIONS.iter() {
-        if matcher.matches(&parse(ver).unwrap()) {
+        if matcher.matches(&apt) {
             dist = dst.clone();
             break;
         }
@@ -158,7 +167,10 @@ mod tests {
             match_ubuntu_for_apt("2.6.0"),
             Dist::Ubuntu(parse("23.04").ok())
         );
-        // FIXME: assert_eq!(match_ubuntu_for_apt("2.6.0ubuntu0.1"), Dist::Ubuntu(parse("23.04").ok()));
+        assert_eq!(
+            match_ubuntu_for_apt("2.6.0ubuntu0.1"),
+            Dist::Ubuntu(parse("23.04").ok())
+        );
         assert_eq!(
             match_ubuntu_for_apt("2.7.3"),
             Dist::Ubuntu(parse("23.10").ok())

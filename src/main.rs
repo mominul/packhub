@@ -16,7 +16,7 @@ async fn main() {
         .with(filter)
         .init();
 
-    let addr: SocketAddr = "127.0.0.1:8080".parse().unwrap();
+    let addr: SocketAddr = "127.0.0.1:3000".parse().unwrap();
 
     info!("listening on {}", addr);
 
