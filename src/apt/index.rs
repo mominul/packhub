@@ -11,8 +11,7 @@ use sha2::{Sha256, Sha512};
 use crate::{apt::deb::DebAnalyzer, package::Package, utils::hashsum};
 
 pub struct AptIndices<'a> {
-    package: &'a Package,
-    deb: DebAnalyzer,
+    packages: Vec<&'a Package>,
 }
 
 #[derive(Template)]
@@ -26,8 +25,12 @@ struct ReleaseIndex<'a> {
 
 #[derive(Template)]
 #[template(path = "Packages")]
-struct PackageIndex<'a> {
-    control: &'a str,
+struct PackageIndex {
+    packages: Vec<DebianPackage>,
+}
+
+struct DebianPackage {
+    control: String,
     md5: String,
     sha1: String,
     sha256: String,
@@ -46,37 +49,18 @@ struct Files {
 }
 
 impl<'a> AptIndices<'a> {
-    pub fn new(package: &'a Package) -> Result<Self> {
-        let Some(data) = package.data() else {
-            bail!("Data not found in package");
-        };
-        let deb = DebAnalyzer::new(&data);
-        Ok(AptIndices { package, deb })
+    pub fn new(packages: Vec<&'a Package>) -> Result<AptIndices<'a>> {
+        Ok(AptIndices { packages })
     }
 
     pub fn get_package_index(&self) -> String {
-        let control = self.deb.get_control_data().trim_end();
-        let filename = format!(
-            "pool/stable/{}/{}",
-            self.package.version(),
-            self.package.file_name()
-        );
-        let data = self.package.data().unwrap();
-        let size = data.len();
-        let md5 = hashsum::<Md5>(&data);
-        let sha1 = hashsum::<Sha1>(&data);
-        let sha256 = hashsum::<Sha256>(&data);
-        let sha512 = hashsum::<Sha512>(&data);
-
-        let index = PackageIndex {
-            control,
-            md5,
-            sha1,
-            sha256,
-            sha512,
-            size,
-            filename,
-        };
+        let packages = self
+            .packages
+            .iter()
+            .map(|package| get_package_metadata(package))
+            .filter_map(Result::ok)
+            .collect::<Vec<_>>();
+        let index = PackageIndex { packages };
         index.render().unwrap()
     }
 
@@ -132,6 +116,31 @@ pub fn gzip_compression(data: &[u8]) -> Vec<u8> {
     gzip
 }
 
+fn get_package_metadata(package: &Package) -> Result<DebianPackage> {
+    let Some(data) = package.data() else {
+        bail!("Package data is not available");
+    };
+    let deb = DebAnalyzer::new(&data);
+    let control = deb.get_control_data().trim_end().to_owned();
+    let filename = format!("pool/stable/{}/{}", package.version(), package.file_name());
+
+    let size = data.len();
+    let md5 = hashsum::<Md5>(&data);
+    let sha1 = hashsum::<Sha1>(&data);
+    let sha256 = hashsum::<Sha256>(&data);
+    let sha512 = hashsum::<Sha512>(&data);
+
+    Ok(DebianPackage {
+        control,
+        md5,
+        sha1,
+        sha256,
+        sha512,
+        size,
+        filename,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use std::fs;
@@ -147,7 +156,37 @@ mod tests {
         let data = fs::read("data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb").unwrap();
         package.set_data(data);
 
-        let indices = AptIndices::new(&package).unwrap();
+        let packages = vec![&package];
+
+        let indices = AptIndices::new(packages).unwrap();
+
+        // Packages
+        let packages = indices.get_package_index();
+        assert_snapshot!(packages);
+
+        // Release
+        let release = indices.get_release_index();
+        insta::with_settings!({filters => vec![
+            // Date is a changing value, so replace it with a hardcoded value.
+            (r"Date: .+", "Date: [DATE]"),
+        ]}, {
+            assert_snapshot!(release);
+        });
+    }
+
+    #[test]
+    fn test_multiple_packages() {
+        let package1 = Package::detect_package("data/OpenBangla-Keyboard_3.0.0-fcitx.deb", "2.0.0".to_owned(), "https://github.com/mominul/pack-exp2/releases/download/3.0.0/OpenBangla-Keyboard_3.0.0-fcitx.deb".to_owned(), DateTime::UNIX_EPOCH).unwrap();
+        let data = fs::read("data/OpenBangla-Keyboard_3.0.0-fcitx.deb").unwrap();
+        package1.set_data(data);
+
+        let package2 = Package::detect_package("data/OpenBangla-Keyboard_3.0.0-ibus.deb", "2.0.0".to_owned(), "https://github.com/mominul/pack-exp2/releases/download/3.0.0/OpenBangla-Keyboard_3.0.0-ibus.deb".to_owned(), DateTime::UNIX_EPOCH).unwrap();
+        let data = fs::read("data/OpenBangla-Keyboard_3.0.0-ibus.deb").unwrap();
+        package2.set_data(data);
+
+        let packages = vec![&package1, &package2];
+
+        let indices = AptIndices::new(packages).unwrap();
 
         // Packages
         let packages = indices.get_package_index();

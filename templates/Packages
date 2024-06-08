@@ -1,7 +1,10 @@
-{{ control }}
-MD5sum: {{ md5 }}
-SHA1: {{ sha1 }}
-SHA256: {{ sha256 }}
-SHA512: {{ sha512 }}
-Size: {{ size }}
-Filename: {{ filename }}
+{% for package in packages -%}
+{{ package.control }}
+MD5sum: {{ package.md5 }}
+SHA1: {{ package.sha1 }}
+SHA256: {{ package.sha256 }}
+SHA512: {{ package.sha512 }}
+Size: {{ package.size }}
+Filename: {{ package.filename }}
+
+{% endfor -%}

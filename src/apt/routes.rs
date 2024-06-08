@@ -23,7 +23,9 @@ async fn release_file(
 
     // debug!("Downloaded package length {}", data.len());
 
-    let index = AptIndices::new(package).unwrap();
+    let packages = vec![package];
+
+    let index = AptIndices::new(packages).unwrap();
 
     Ok(index.get_release_index())
 }
@@ -38,7 +40,9 @@ async fn packages_file(
 
     package.download().await.unwrap();
 
-    let index = AptIndices::new(package).unwrap();
+    let packages = vec![package];
+
+    let index = AptIndices::new(packages).unwrap();
 
     match file.as_str() {
         "Packages" => Ok(index.get_package_index().as_bytes().to_owned()),

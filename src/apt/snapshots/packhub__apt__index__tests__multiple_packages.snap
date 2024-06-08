@@ -1,0 +1,46 @@
+---
+source: src/apt/index.rs
+expression: packages
+---
+Architecture: amd64
+Depends: fcitx5 (>= 5.0.5), libc6 (>= 2.29), libfcitx5config6 (>= 5.0.5), libfcitx5core7 (>= 5.0.5), libfcitx5utils2 (>= 5.0.5), libgcc-s1 (>= 4.2), libqt5core5a (>= 5.15.1), libqt5gui5 (>= 5.0.2) | libqt5gui5-gles (>= 5.0.2), libqt5network5 (>= 5.0.2), libqt5widgets5 (>= 5.0.2), libstdc++6 (>= 9), libzstd1 (>= 1.4.0)
+Description: OpenSource Bengali input method
+ OpenBangla Keyboard is an OpenSource, Unicode compliant Bengali Input Method for GNU/Linux systems. It&apos;s a full fledged Bengali input method with typing automation tools, includes many famous typing methods such as Avro Phonetic, Probhat, Munir Optima, National (Jatiya) etc.
+ .
+ Most of the features of Avro Keyboard are present in OpenBangla Keyboard. So Avro Keyboard users will feel at home with OpenBangla Keyboard in Linux.
+Homepage: https://openbangla.github.io/
+Maintainer: OpenBangla Team <openbanglateam@gmail.com>
+Package: fcitx-openbangla
+Priority: optional
+Section: utils
+Version: 3.0.0
+Installed-Size: 12763
+MD5sum: 45ae5eb935c9b9b5fc4df927217a55e3
+SHA1: bff2bedc76feb324ea2db323eaa568f2234b92a5
+SHA256: c84f27813eebf33fc2b90d3fc330cea5167d0fa08d0a674ac863d207916a33dd
+SHA512: 555d2a214ad5d5bd196df952b84c071ecf46502e04af5a715c0b0c65677becc87b08de91e8385d1ab39a80d2aa51dd6ce66a64e0b806a8c16c4a52e67c431b06
+Size: 5484440
+Filename: pool/stable/2.0.0/OpenBangla-Keyboard_3.0.0-fcitx.deb
+
+Architecture: amd64
+Depends: ibus (>= 1.5.1), libc6 (>= 2.29), libgcc-s1 (>= 4.2), libglib2.0-0 (>= 2.12.0), libibus-1.0-5 (>= 1.5.1), libqt5core5a (>= 5.12.2), libqt5gui5 (>= 5.0.2) | libqt5gui5-gles (>= 5.0.2), libqt5network5 (>= 5.0.2), libqt5widgets5 (>= 5.0.2), libstdc++6 (>= 5.2), libzstd1 (>= 1.3.2)
+Description: OpenSource Bengali input method
+ OpenBangla Keyboard is an OpenSource, Unicode compliant Bengali Input Method for GNU/Linux systems. It&apos;s a full fledged Bengali input method with typing automation tools, includes many famous typing methods such as Avro Phonetic, Probhat, Munir Optima, National (Jatiya) etc.
+ .
+ Most of the features of Avro Keyboard are present in OpenBangla Keyboard. So Avro Keyboard users will feel at home with OpenBangla Keyboard in Linux.
+ .
+Homepage: https://openbangla.github.io/
+Maintainer: OpenBangla Team <openbanglateam@gmail.com>
+Package: ibus-openbangla
+Priority: optional
+Section: utils
+Version: 3.0.0
+Installed-Size: 12824
+MD5sum: 50b535cfbedaa8a64272db3e85082ec6
+SHA1: 769405dd1e9da69217f97cbe14d1632201f74c5b
+SHA256: 2649db66a21a9ce3d915d856781b83b37dcd069e8834b047ddb2d559e7e54277
+SHA512: 9360281f13177c7c4e0cb4cff52cbf0a0d3491febebe8b8cbd6e95ce4dc24f25ca6a0398a41905638d1ab0739667b1737412ba497c1c4cd25d60015b0f481c1f
+Size: 5525884
+Filename: pool/stable/2.0.0/OpenBangla-Keyboard_3.0.0-ibus.deb
+
+
