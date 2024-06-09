@@ -1,4 +1,4 @@
-name: CI Test Pipeline
+name: Linux Distribution Test Pipeline
 
 on: [push, pull_request]
 
