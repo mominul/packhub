@@ -3,7 +3,7 @@ name: CI Test Pipeline
 on: [push, pull_request]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     services:
@@ -34,14 +34,23 @@ jobs:
       run: |
         docker build -t ubuntu23.04 -f images/ubuntu23.04.Dockerfile scripts/
         docker run --name ubuntu23.04-test --network host ubuntu23.04 || exit 1
+    
+    - name: Build and run Fedora 38 container
+      run: |
+        docker build -t fedora38 -f images/fedora38.Dockerfile scripts/
+        docker run --name fedora38-test --network host fedora38 || exit 1
 
     - name: Check client containers' statuses
       run: |
         if [ "$(docker inspect -f '{{.State.ExitCode}}' ubuntu23.04-test)" -ne 0 ]; then
-          echo "Container ubuntu23.04-test failed"
+          echo "Test on Ubuntu 23.04 failed"
           exit 1
         fi
       
+        if [ "$(docker inspect -f '{{.State.ExitCode}}' fedora38-test)" -ne 0 ]; then
+          echo "Test on Fedora 38 failed"
+          exit 1
+        fi
 
     - name: Check server logs
       run: |
@@ -51,3 +60,4 @@ jobs:
       run: |
         docker rm -f server-container
         docker rm -f ubuntu23.04-test
+        docker rm -f fedora38-test
