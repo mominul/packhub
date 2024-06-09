@@ -1,0 +1,59 @@
+name: CI Test Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:20.10.16
+        options: --privileged
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build and run server container
+      run: |
+        docker build -t server -f images/server-ci.Dockerfile .
+        docker run -d -p 3000:3000 --name server-container server
+
+    - name: Wait for server to start
+      run: |
+        until curl --output /dev/null --silent --fail http://localhost:3000; do
+          echo 'Waiting for server...'
+          sleep 5
+        done
+
+    - name: Build and run Ubuntu 23.04 container
+      run: |
+        docker build -t ubuntu23.04 -f images/ubuntu23.04.Dockerfile scripts/
+        docker run --name ubuntu23.04-test --network host ubuntu23.04 || exit 1
+
+    - name: Check client containers' statuses
+      run: |
+        if [ "$(docker inspect -f '{{.State.ExitCode}}' ubuntu23.04-test)" -ne 0 ]; then
+          echo "Container ubuntu23.04-test failed"
+          exit 1
+        fi
+      
+
+    - name: Check server logs
+      run: |
+        docker logs server-container
+
+    - name: Clean up
+      run: |
+        docker rm -f server-container
+        docker rm -f ubuntu23.04-test
