@@ -4,4 +4,4 @@ WORKDIR /app
 
 COPY . .
 
-ENTRYPOINT ["check_apt.sh"]
+ENTRYPOINT ["./check_apt.sh"]
