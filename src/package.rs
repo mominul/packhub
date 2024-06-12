@@ -2,37 +2,8 @@ use std::{str::FromStr, sync::Mutex};
 
 use anyhow::Result;
 use chrono::{DateTime, Utc};
-use lenient_semver::parse;
-use semver::Version;
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum Dist {
-    Ubuntu(Option<Version>),
-    Debian(Option<Version>),
-    Fedora(Option<Version>),
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Arch {
-    Amd64,
-}
-
-impl FromStr for Arch {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "amd64" => Ok(Arch::Amd64),
-            _ => Err(()),
-        }
-    }
-}
-
-#[derive(Debug, PartialEq)]
-enum Type {
-    Deb,
-    Rpm,
-}
+use crate::utils::{Arch, Dist, Type};
 
 #[derive(Debug)]
 pub struct Package {
@@ -42,6 +13,20 @@ pub struct Package {
     ver: String,
     data: Mutex<Option<Vec<u8>>>,
     created: DateTime<Utc>,
+}
+
+impl Clone for Package {
+    fn clone(&self) -> Self {
+        let data = self.data.lock().unwrap().clone();
+        Self {
+            tipe: self.tipe.clone(),
+            dist: self.dist.clone(),
+            url: self.url.clone(),
+            ver: self.ver.clone(),
+            data: Mutex::new(data),
+            created: self.created.clone(),
+        }
+    }
 }
 
 impl PartialEq for Package {
@@ -92,6 +77,10 @@ impl Package {
         })
     }
 
+    pub fn ty(&self) -> &Type {
+        &self.tipe
+    }
+
     pub fn is_deb(&self) -> bool {
         self.tipe == Type::Deb
     }
@@ -102,8 +91,8 @@ impl Package {
     }
 
     /// Return the distribution for which it was packaged
-    pub fn distribution(&self) -> &Dist {
-        self.dist.as_ref().unwrap()
+    pub fn distribution(&self) -> &Option<Dist> {
+        &self.dist
     }
 
     /// Version of the package
@@ -153,8 +142,8 @@ impl Package {
 ///
 /// For instance, for a distribution identifier `ubuntu22.10` it will
 /// parse the version as `22.10`.
-fn parse_version(dist: &str) -> Option<Version> {
-    parse(split_at_numeric(dist)?).ok()
+fn parse_version(dist: &str) -> Option<String> {
+    split_at_numeric(dist).map(|s| s.to_owned())
 }
 
 /// Splits the string `s` at the first occurence of a numeric digit.
@@ -214,7 +203,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(pack.version(), "2.0.0");
-        assert_eq!(pack.dist, Some(Dist::Ubuntu(Some(parse("22.04").unwrap()))));
+        assert_eq!(pack.dist, Some(Dist::Ubuntu(Some("22.04".to_owned()))));
         assert_eq!(pack.tipe, Type::Deb);
 
         let pack = Package::detect_package(
@@ -225,7 +214,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(pack.version(), "2.0.0");
-        assert_eq!(pack.dist, Some(Dist::Fedora(Some(parse("36").unwrap()))));
+        assert_eq!(pack.dist, Some(Dist::Fedora(Some("36".to_owned()))));
         assert_eq!(pack.tipe, Type::Rpm);
 
         let pack = Package::detect_package(
@@ -262,10 +251,7 @@ mod tests {
 
     #[test]
     fn test_parse_version() {
-        assert_eq!(
-            parse_version("ubuntu22.10").unwrap(),
-            Version::new(22, 10, 0)
-        );
-        assert_eq!(parse_version("fedora37").unwrap(), Version::new(37, 0, 0));
+        assert_eq!(parse_version("ubuntu22.10").unwrap(), "22.10".to_owned());
+        assert_eq!(parse_version("fedora37").unwrap(), "37".to_owned());
     }
 }

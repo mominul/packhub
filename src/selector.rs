@@ -1,27 +1,41 @@
-use crate::{
-    package::{Dist, Package},
-    platform::match_ubuntu_for_apt,
-};
+use crate::{package::Package, utils::Dist};
 
-pub(crate) fn select_package_ubuntu<'p>(from: &'p Vec<Package>, apt: &str) -> &'p Package {
-    from.iter()
-        .filter(|p| p.for_ubuntu())
-        .filter(|p| match_ubuntu_for_apt(apt) == *p.distribution())
-        .nth(0)
-        .unwrap()
-}
+pub(crate) fn select_packages<'p>(from: &'p [Package], dist: Dist) -> Vec<&Package> {
+    let mut packages = Vec::new();
 
-pub(crate) fn select_package<'p>(from: &'p [Package], dist: Dist) -> &'p Package {
-    from.iter()
-        .filter(|p| dist == *p.distribution())
-        .nth(0)
-        .unwrap()
+    // Filter out the packages that are not for the distribution.
+    for package in from {
+        if package.ty().matches_distribution(&dist) {
+            packages.push(package);
+        }
+    }
+
+    let mut selective = Vec::new();
+
+    if let Dist::Ubuntu(_) = dist {
+        for package in packages.iter() {
+            if Some(&dist) == package.distribution().as_ref() {
+                selective.push(*package);
+            }
+        }
+    } else if let Dist::Fedora(_) = dist {
+        for package in packages.iter() {
+            if Some(&dist) == package.distribution().as_ref() {
+                selective.push(*package);
+            }
+        }
+    }
+
+    // If we selective packages, then return them.
+    if !selective.is_empty() {
+        return selective;
+    }
+
+    packages
 }
 
 #[cfg(test)]
 mod tests {
-    use lenient_semver::parse;
-
     use super::*;
 
     fn openbangla_keyboard_packages() -> Vec<Package> {
@@ -49,6 +63,14 @@ mod tests {
         .into()
     }
 
+    fn multiple_packages() -> Vec<Package> {
+        [
+            package("fcitx-openbangla_3.0.0.deb"),
+            package("ibus-openbangla_3.0.0.deb"),
+        ]
+        .into()
+    }
+
     /// A shorthand for `Package::detect_package()`
     fn package(p: &str) -> Package {
         Package::detect_package(
@@ -65,16 +87,16 @@ mod tests {
         let packages: Vec<Package> = openbangla_keyboard_packages();
 
         assert_eq!(
-            *select_package_ubuntu(&packages, "1.6.14"),
-            package("OpenBangla-Keyboard_2.0.0-ubuntu18.04.deb")
+            select_packages(&packages, Dist::Ubuntu(Some("18.04".to_owned()))),
+            vec![&package("OpenBangla-Keyboard_2.0.0-ubuntu18.04.deb")]
         );
         assert_eq!(
-            *select_package_ubuntu(&packages, "2.0.9"),
-            package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb")
+            select_packages(&packages, Dist::Ubuntu(Some("20.04".to_owned()))),
+            vec![&package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb")]
         );
         assert_eq!(
-            *select_package_ubuntu(&packages, "2.4.8"),
-            package("OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb")
+            select_packages(&packages, Dist::Ubuntu(Some("22.04".to_owned()))),
+            vec![&package("OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb")]
         );
     }
 
@@ -83,8 +105,21 @@ mod tests {
         let packages: Vec<Package> = openbangla_keyboard_packages();
 
         assert_eq!(
-            *select_package(&packages, Dist::Fedora(parse("38").ok())),
-            package("OpenBangla-Keyboard_2.0.0-fedora38.rpm")
+            select_packages(&packages, Dist::Fedora(Some("38".to_owned()))),
+            vec![&package("OpenBangla-Keyboard_2.0.0-fedora38.rpm")]
+        );
+    }
+
+    #[test]
+    fn test_multiple_package_selection() {
+        let packages = multiple_packages();
+
+        assert_eq!(
+            select_packages(&packages, Dist::Ubuntu(Some("22.04".to_owned()))),
+            vec![
+                &package("fcitx-openbangla_3.0.0.deb"),
+                &package("ibus-openbangla_3.0.0.deb")
+            ]
         );
     }
 }

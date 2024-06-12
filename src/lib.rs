@@ -1,4 +1,4 @@
-use axum::{routing::get, Router, http::StatusCode};
+use axum::{http::StatusCode, routing::get, Router};
 use tower_http::trace::{DefaultMakeSpan, TraceLayer};
 
 mod apt;

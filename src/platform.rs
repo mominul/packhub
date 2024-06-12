@@ -5,7 +5,7 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 use semver::VersionReq;
 
-use crate::package::Dist;
+use crate::utils::Dist;
 
 static APT: Lazy<Regex> = Lazy::new(|| Regex::new(r#"Debian APT.+\((.+)\)"#).unwrap());
 static FEDORA: Lazy<Regex> = Lazy::new(|| Regex::new(r#"libdnf \(Fedora Linux (\d+);"#).unwrap());
@@ -77,7 +77,7 @@ fn match_debian_for_apt(ver: &str) -> Dist {
 fn matcher_ubuntu(req: &str, ver: &str) -> (VersionReq, Dist) {
     (
         VersionReq::parse(req).unwrap(),
-        Dist::Ubuntu(parse(ver).ok()),
+        Dist::Ubuntu(Some(ver.to_owned())),
     )
 }
 
@@ -85,7 +85,7 @@ fn matcher_ubuntu(req: &str, ver: &str) -> (VersionReq, Dist) {
 fn matcher_debian(req: &str, ver: &str) -> (VersionReq, Dist) {
     (
         VersionReq::parse(req).unwrap(),
-        Dist::Debian(parse(ver).ok()),
+        Dist::Debian(Some(ver.to_owned())),
     )
 }
 
@@ -102,7 +102,7 @@ pub fn get_fedora_version(agent: &str) -> Option<&str> {
 pub fn detect_rpm_os(agent: &str) -> Option<Dist> {
     let ver = get_fedora_version(agent)?;
 
-    Some(Dist::Fedora(parse(ver).ok()))
+    Some(Dist::Fedora(Some(ver.to_owned())))
 }
 
 #[cfg(test)]
@@ -113,97 +113,100 @@ mod tests {
     fn test_match_platform() {
         assert_eq!(
             match_ubuntu_for_apt("1.0.1"),
-            Dist::Ubuntu(parse("14.04").ok())
+            Dist::Ubuntu(Some("14.04".to_owned()))
         );
         assert_eq!(
             match_ubuntu_for_apt("1.2.1"),
-            Dist::Ubuntu(parse("16.04").ok())
+            Dist::Ubuntu(Some("16.04".to_owned()))
         );
         assert_eq!(
             match_ubuntu_for_apt("1.2.10"),
-            Dist::Ubuntu(parse("16.04").ok())
+            Dist::Ubuntu(Some("16.04".to_owned()))
         );
         assert_eq!(
             match_ubuntu_for_apt("1.2.35"),
-            Dist::Ubuntu(parse("16.04").ok())
+            Dist::Ubuntu(Some("16.04".to_owned()))
         );
         assert_eq!(
             match_ubuntu_for_apt("1.6.1"),
-            Dist::Ubuntu(parse("18.04").ok())
+            Dist::Ubuntu(Some("18.04".to_owned()))
         );
         assert_eq!(
             match_ubuntu_for_apt("1.6.14"),
-            Dist::Ubuntu(parse("18.04").ok())
+            Dist::Ubuntu(Some("18.04".to_owned()))
         );
         assert_eq!(
             match_ubuntu_for_apt("2.0.2"),
-            Dist::Ubuntu(parse("20.04").ok())
+            Dist::Ubuntu(Some("20.04".to_owned()))
         );
         assert_eq!(
             match_ubuntu_for_apt("2.0.9"),
-            Dist::Ubuntu(parse("20.04").ok())
+            Dist::Ubuntu(Some("20.04".to_owned()))
         );
         assert_eq!(
             match_ubuntu_for_apt("2.4.5"),
-            Dist::Ubuntu(parse("22.04").ok())
+            Dist::Ubuntu(Some("22.04".to_owned()))
         );
         assert_eq!(
             match_ubuntu_for_apt("2.4.8"),
-            Dist::Ubuntu(parse("22.04").ok())
+            Dist::Ubuntu(Some("22.04".to_owned()))
         );
         assert_eq!(
             match_ubuntu_for_apt("2.4.10"),
-            Dist::Ubuntu(parse("22.04").ok())
+            Dist::Ubuntu(Some("22.04".to_owned()))
         );
         assert_eq!(
             match_ubuntu_for_apt("2.5.3"),
-            Dist::Ubuntu(parse("22.10").ok())
+            Dist::Ubuntu(Some("22.10".to_owned()))
         );
         assert_eq!(
             match_ubuntu_for_apt("2.5.4"),
-            Dist::Ubuntu(parse("23.04").ok())
+            Dist::Ubuntu(Some("23.04".to_owned()))
         );
         assert_eq!(
             match_ubuntu_for_apt("2.6.0"),
-            Dist::Ubuntu(parse("23.04").ok())
+            Dist::Ubuntu(Some("23.04".to_owned()))
         );
         assert_eq!(
             match_ubuntu_for_apt("2.6.0ubuntu0.1"),
-            Dist::Ubuntu(parse("23.04").ok())
+            Dist::Ubuntu(Some("23.04".to_owned()))
         );
         assert_eq!(
             match_ubuntu_for_apt("2.7.3"),
-            Dist::Ubuntu(parse("23.10").ok())
+            Dist::Ubuntu(Some("23.10".to_owned()))
         );
 
-        assert_eq!(match_debian_for_apt("1.0.9"), Dist::Debian(parse("8").ok()));
+        assert_eq!(
+            match_debian_for_apt("1.0.9"),
+            Dist::Debian(Some("8".to_owned()))
+        );
         assert_eq!(
             match_debian_for_apt("1.4.10"),
-            Dist::Debian(parse("9").ok())
+            Dist::Debian(Some("9".to_owned()))
         );
         assert_eq!(
             match_debian_for_apt("1.4.11"),
-            Dist::Debian(parse("9").ok())
+            Dist::Debian(Some("9".to_owned()))
         );
         assert_eq!(
             match_debian_for_apt("1.8.2.3"),
-            Dist::Debian(parse("10").ok())
+            Dist::Debian(Some("10".to_owned()))
         );
         assert_eq!(
             match_debian_for_apt("2.2.4"),
-            Dist::Debian(parse("11").ok())
+            Dist::Debian(Some("11".to_owned()))
         );
         assert_eq!(
             match_debian_for_apt("2.5.4"),
-            Dist::Debian(parse("12").ok())
+            Dist::Debian(Some("12".to_owned()))
         );
         assert_eq!(
             match_debian_for_apt("2.6.1"),
-            Dist::Debian(parse("12").ok())
+            Dist::Debian(Some("12".to_owned()))
         );
         assert_eq!(
             match_debian_for_apt("2.7.6"),
-            Dist::Debian(parse("13").ok())
+            Dist::Debian(Some("13".to_owned()))
         );
     }
 

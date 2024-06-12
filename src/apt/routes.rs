@@ -7,6 +7,7 @@ use tracing::debug;
 use crate::{
     apt::index::{gzip_compression, AptIndices},
     repository::Repository,
+    utils::download_packages,
 };
 
 async fn release_file(
@@ -15,17 +16,17 @@ async fn release_file(
 ) -> Result<String, StatusCode> {
     let repo = Repository::from_github(owner, repo).await;
 
-    let package = repo.select_package_ubuntu(agent.as_str());
+    let packages = repo.select_package_ubuntu(agent.as_str());
 
-    debug!("Package selected {:?}", package);
+    // debug!("Package selected {:?}", package);
 
-    package.download().await.unwrap();
+    let packages = packages.into_iter().map(|p| p.clone()).collect();
+
+    let packages = download_packages(packages).await.unwrap();
 
     // debug!("Downloaded package length {}", data.len());
 
-    let packages = vec![package];
-
-    let index = AptIndices::new(packages).unwrap();
+    let index = AptIndices::new(&packages).unwrap();
 
     Ok(index.get_release_index())
 }
@@ -36,13 +37,13 @@ async fn packages_file(
 ) -> Result<Vec<u8>, StatusCode> {
     let repo = Repository::from_github(owner, repo).await;
 
-    let package = repo.select_package_ubuntu(agent.as_str());
+    let packages = repo.select_package_ubuntu(agent.as_str());
 
-    package.download().await.unwrap();
+    let packages = packages.into_iter().map(|p| p.clone()).collect();
 
-    let packages = vec![package];
+    let packages = download_packages(packages).await.unwrap();
 
-    let index = AptIndices::new(packages).unwrap();
+    let index = AptIndices::new(&packages).unwrap();
 
     match file.as_str() {
         "Packages" => Ok(index.get_package_index().as_bytes().to_owned()),

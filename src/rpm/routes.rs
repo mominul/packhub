@@ -7,6 +7,7 @@ use zstd::encode_all;
 use crate::{
     repository::Repository,
     rpm::{index::get_repomd_index, package::RPMPackage},
+    utils::download_packages,
 };
 
 use super::index::{get_filelists_index, get_other_index, get_primary_index};
@@ -16,13 +17,18 @@ async fn index(
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<Vec<u8>, StatusCode> {
     let repo = Repository::from_github(owner, repo).await;
-    let Some(package) = repo.select_package_rpm(agent.as_str()) else {
+    let Some(packages) = repo.select_package_rpm(agent.as_str()) else {
         return Err(StatusCode::NOT_FOUND);
     };
 
-    package.download().await.unwrap();
+    let packages = packages.into_iter().map(|p| p.clone()).collect();
 
-    let packages = vec![RPMPackage::from_package(package).unwrap()];
+    let packages: Vec<RPMPackage> = download_packages(packages)
+        .await
+        .unwrap()
+        .into_iter()
+        .map(|p| RPMPackage::from_package(&p).unwrap())
+        .collect();
 
     match file.as_str() {
         "repomd.xml" => Ok(get_repomd_index(&packages).into_bytes()),

@@ -11,7 +11,7 @@ use sha2::{Sha256, Sha512};
 use crate::{apt::deb::DebAnalyzer, package::Package, utils::hashsum};
 
 pub struct AptIndices<'a> {
-    packages: Vec<&'a Package>,
+    packages: &'a [Package],
 }
 
 #[derive(Template)]
@@ -49,7 +49,7 @@ struct Files {
 }
 
 impl<'a> AptIndices<'a> {
-    pub fn new(packages: Vec<&'a Package>) -> Result<AptIndices<'a>> {
+    pub fn new(packages: &'a [Package]) -> Result<AptIndices<'a>> {
         Ok(AptIndices { packages })
     }
 
@@ -156,9 +156,9 @@ mod tests {
         let data = fs::read("data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb").unwrap();
         package.set_data(data);
 
-        let packages = vec![&package];
+        let packages = vec![package];
 
-        let indices = AptIndices::new(packages).unwrap();
+        let indices = AptIndices::new(&packages).unwrap();
 
         // Packages
         let packages = indices.get_package_index();
@@ -176,17 +176,17 @@ mod tests {
 
     #[test]
     fn test_multiple_packages() {
-        let package1 = Package::detect_package("data/OpenBangla-Keyboard_3.0.0-fcitx.deb", "2.0.0".to_owned(), "https://github.com/mominul/pack-exp2/releases/download/3.0.0/OpenBangla-Keyboard_3.0.0-fcitx.deb".to_owned(), DateTime::UNIX_EPOCH).unwrap();
-        let data = fs::read("data/OpenBangla-Keyboard_3.0.0-fcitx.deb").unwrap();
+        let package1 = Package::detect_package("fcitx-openbangla_3.0.0.deb", "3.0.0".to_owned(), "https://github.com/mominul/pack-exp2/releases/download/3.0.0/fcitx-openbangla_3.0.0.deb".to_owned(), DateTime::UNIX_EPOCH).unwrap();
+        let data = fs::read("data/fcitx-openbangla_3.0.0.deb").unwrap();
         package1.set_data(data);
 
-        let package2 = Package::detect_package("data/OpenBangla-Keyboard_3.0.0-ibus.deb", "2.0.0".to_owned(), "https://github.com/mominul/pack-exp2/releases/download/3.0.0/OpenBangla-Keyboard_3.0.0-ibus.deb".to_owned(), DateTime::UNIX_EPOCH).unwrap();
-        let data = fs::read("data/OpenBangla-Keyboard_3.0.0-ibus.deb").unwrap();
+        let package2 = Package::detect_package("ibus-openbangla_3.0.0.deb", "3.0.0".to_owned(), "https://github.com/mominul/pack-exp2/releases/download/3.0.0/ibus-openbangla_3.0.0.deb".to_owned(), DateTime::UNIX_EPOCH).unwrap();
+        let data = fs::read("data/ibus-openbangla_3.0.0.deb").unwrap();
         package2.set_data(data);
 
-        let packages = vec![&package1, &package2];
+        let packages = vec![package1, package2];
 
-        let indices = AptIndices::new(packages).unwrap();
+        let indices = AptIndices::new(&packages).unwrap();
 
         // Packages
         let packages = indices.get_package_index();

@@ -5,8 +5,8 @@ use once_cell::sync::Lazy;
 
 use crate::{
     package::Package,
-    platform::{detect_rpm_os, get_apt_version},
-    selector::{select_package, select_package_ubuntu},
+    platform::{detect_rpm_os, get_apt_version, match_ubuntu_for_apt},
+    selector::select_packages,
 };
 
 static OCTOCRAB: Lazy<Arc<Octocrab>> = Lazy::new(|| octocrab::instance());
@@ -42,13 +42,14 @@ impl Repository {
         Repository { packages }
     }
 
-    pub fn select_package_ubuntu(&self, agent: &str) -> &Package {
+    pub fn select_package_ubuntu(&self, agent: &str) -> Vec<&Package> {
         let apt = get_apt_version(agent);
-        select_package_ubuntu(&self.packages, apt)
+        let dist = match_ubuntu_for_apt(apt);
+        select_packages(&self.packages, dist)
     }
 
-    pub fn select_package_rpm(&self, agent: &str) -> Option<&Package> {
+    pub fn select_package_rpm(&self, agent: &str) -> Option<Vec<&Package>> {
         let dist = detect_rpm_os(agent)?;
-        Some(select_package(&self.packages, dist))
+        Some(select_packages(&self.packages, dist))
     }
 }
