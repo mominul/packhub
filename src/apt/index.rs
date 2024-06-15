@@ -61,7 +61,7 @@ impl<'a> AptIndices<'a> {
             .filter_map(Result::ok)
             .collect::<Vec<_>>();
         let index = PackageIndex { packages };
-        index.render().unwrap()
+        index.render().unwrap().trim().to_owned()
     }
 
     pub fn get_release_index(&self) -> String {
@@ -191,6 +191,9 @@ mod tests {
         // Packages
         let packages = indices.get_package_index();
         assert_snapshot!(packages);
+        assert_eq!(packages.as_bytes().len(), 2729);
+        let packages_gz = gzip_compression(packages.as_bytes());
+        assert_eq!(packages_gz.len(), 1105);
 
         // Release
         let release = indices.get_release_index();

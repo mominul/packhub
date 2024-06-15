@@ -1,11 +1,10 @@
-use std::{str::FromStr, sync::Mutex};
+use std::sync::Mutex;
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use chrono::{DateTime, Utc};
 
-use crate::utils::{Arch, Dist, Type};
+use crate::utils::{Dist, Type};
 
-#[derive(Debug)]
 pub struct Package {
     tipe: Type,
     pub(crate) dist: Option<Dist>,
@@ -13,6 +12,12 @@ pub struct Package {
     ver: String,
     data: Mutex<Option<Vec<u8>>>,
     created: DateTime<Utc>,
+}
+
+impl std::fmt::Debug for Package {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.file_name())
+    }
 }
 
 impl Clone for Package {
@@ -40,19 +45,17 @@ impl PartialEq for Package {
     }
 }
 
-struct DetectError;
-
 impl Package {
     pub fn detect_package(
         name: &str,
         ver: String,
         url: String,
         created: DateTime<Utc>,
-    ) -> Result<Package, ()> {
+    ) -> Result<Package> {
         // Split the extension first.
         // If we don't recognize it, then return error.
         let Some((tipe, splitted)) = split_extention(name) else {
-            return Err(());
+            bail!("Unknown package type: {}", name);
         };
 
         let mut dist: Option<Dist> = None;
@@ -79,15 +82,6 @@ impl Package {
 
     pub fn ty(&self) -> &Type {
         &self.tipe
-    }
-
-    pub fn is_deb(&self) -> bool {
-        self.tipe == Type::Deb
-    }
-
-    /// Check if the package is for Ubuntu
-    pub fn for_ubuntu(&self) -> bool {
-        matches!(self.dist, Some(Dist::Ubuntu(_)))
     }
 
     /// Return the distribution for which it was packaged

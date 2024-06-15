@@ -10,6 +10,7 @@ use crate::{
     utils::download_packages,
 };
 
+#[tracing::instrument(name = "Debian Release File", skip(owner, repo))]
 async fn release_file(
     Path((owner, repo)): Path<(String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
@@ -18,19 +19,18 @@ async fn release_file(
 
     let packages = repo.select_package_ubuntu(agent.as_str());
 
-    // debug!("Package selected {:?}", package);
+    debug!("Packages selected {:?}", packages);
 
     let packages = packages.into_iter().map(|p| p.clone()).collect();
 
     let packages = download_packages(packages).await.unwrap();
-
-    // debug!("Downloaded package length {}", data.len());
 
     let index = AptIndices::new(&packages).unwrap();
 
     Ok(index.get_release_index())
 }
 
+#[tracing::instrument(name = "Debian Package metadata file", skip(owner, repo, file))]
 async fn packages_file(
     Path((owner, repo, file)): Path<(String, String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
@@ -40,6 +40,8 @@ async fn packages_file(
     let packages = repo.select_package_ubuntu(agent.as_str());
 
     let packages = packages.into_iter().map(|p| p.clone()).collect();
+
+    debug!("Packages selected {:?}", packages);
 
     let packages = download_packages(packages).await.unwrap();
 
@@ -62,6 +64,7 @@ async fn empty_packages_file(
     }
 }
 
+#[tracing::instrument(name = "Debian Package download", skip_all)]
 async fn pool(
     Path((owner, repo, ver, file)): Path<(String, String, String, String)>,
 ) -> impl IntoResponse {

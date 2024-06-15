@@ -6,9 +6,8 @@ use tracing_subscriber::{filter::Targets, prelude::*};
 #[tokio::main]
 async fn main() {
     let filter = Targets::new()
-        .with_target("tower_http::trace::on_response", Level::TRACE)
-        .with_target("tower_http::trace::on_request", Level::TRACE)
-        .with_target("tower_http::trace::make_span", Level::DEBUG)
+        .with_target("tower_http", Level::TRACE)
+        .with_target("packhub", Level::TRACE)
         .with_default(Level::INFO);
 
     tracing_subscriber::registry()

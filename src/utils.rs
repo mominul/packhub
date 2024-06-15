@@ -3,6 +3,7 @@ use std::{ops::Add, str::FromStr};
 use anyhow::{bail, Result};
 use sha1::digest::{generic_array::ArrayLength, Digest, OutputSizeUser};
 use tokio::task::JoinSet;
+use tracing::debug;
 
 use crate::package::Package;
 
@@ -57,7 +58,10 @@ pub async fn download_packages(packages: Vec<Package>) -> Result<Vec<Package>> {
     let mut runner = JoinSet::new();
 
     for package in packages {
-        runner.spawn(async move { package.download().await.and_then(|_| Ok(package)) });
+        runner.spawn(async move {
+            debug!("Downloading package: {:?}", package.file_name());
+            package.download().await.and_then(|_| Ok(package))
+        });
     }
 
     let mut result = Vec::new();
@@ -67,7 +71,11 @@ pub async fn download_packages(packages: Vec<Package>) -> Result<Vec<Package>> {
             bail!("Executor error: Failed to download package")
         };
 
-        result.push(res?);
+        let package = res?;
+
+        debug!("Downloaded package: {:?}", package.file_name());
+
+        result.push(package);
     }
 
     Ok(result)
