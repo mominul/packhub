@@ -3,7 +3,10 @@
 apt update
 apt install sudo wget -y
 
+echo
+echo "Running the package key and repository setup script"
 wget -qO- http://host.docker.internal:3000/sh/github/ubuntu/mominul/pack-exp3 | sh
+echo "Package key and repository setup script ran successfully."
 
 output=$(apt search openbangla 2>&1)
 status=$?
