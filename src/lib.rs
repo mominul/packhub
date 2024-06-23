@@ -15,6 +15,7 @@ pub mod pgp;
 mod platform;
 mod repository;
 mod rpm;
+mod script;
 mod selector;
 mod utils;
 
@@ -28,6 +29,7 @@ pub fn app() -> Router {
         .nest("/rpm", rpm::rpm_routes())
         .route("/", get(|| async { StatusCode::OK }))
         .route("/keys/packhub.asc", get(public_key))
+        .nest("/sh", script::script_routes())
         .layer(
             TraceLayer::new_for_http().on_response(|response: &Response<Body>, latency: Duration, _: &Span| {
                 debug!(size=response_size(response),latency=?latency,status=%response_status(response), "finished processing request");

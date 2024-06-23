@@ -1,8 +1,9 @@
 #!/bin/bash
 
-echo "deb [trusted=yes] http://localhost:3000/apt/github/mominul/pack-exp2 stable main" > /etc/apt/sources.list.d/openbangla-keyboard.list
-
 apt update
+apt install sudo -y
+
+wget -qO- http://host.docker.internal:3000/sh/github/ubuntu/mominul/pack-exp2 | sh
 
 output=$(apt search openbangla 2>&1)
 status=$?
