@@ -1,5 +1,5 @@
-use packhub::app;
-use std::net::SocketAddr;
+use packhub::{app, pgp::generate_and_save_keys};
+use std::{env::args, net::SocketAddr};
 use tracing::{info, Level};
 use tracing_subscriber::{filter::Targets, prelude::*};
 
@@ -14,6 +14,13 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .with(filter)
         .init();
+
+    if args().len() > 1 {
+        let arg = args().nth(1).unwrap();
+        if arg == "--generate-keys" {
+            generate_and_save_keys().unwrap();
+        }
+    }
 
     let addr: SocketAddr = "0.0.0.0:3000".parse().unwrap();
 

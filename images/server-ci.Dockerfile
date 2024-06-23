@@ -8,4 +8,4 @@ RUN cargo build
 
 EXPOSE 3000
 
-ENTRYPOINT ["target/debug/packhub"]
+ENTRYPOINT ["scripts/run_server.sh"]

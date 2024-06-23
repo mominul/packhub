@@ -11,7 +11,7 @@ use tracing::{debug, Span};
 
 mod apt;
 mod package;
-mod pgp;
+pub mod pgp;
 mod platform;
 mod repository;
 mod rpm;

@@ -1,3 +1,5 @@
+use std::fs;
+
 use anyhow::Result;
 use pgp::{
     cleartext::CleartextSignedMessage, types::SecretKeyTrait, ArmorOptions, Deserializable,
@@ -51,6 +53,19 @@ pub fn generate_secret_key() -> Result<SignedSecretKey> {
     let signed_secret_key = secret_key.sign(passwd_fn)?;
 
     Ok(signed_secret_key)
+}
+
+pub fn generate_and_save_keys() -> Result<()> {
+    let secret_key = generate_secret_key()?;
+    let public_key = public_key_from_secret_key(&secret_key)?;
+
+    let secret_signed_key_armor = secret_key.to_armored_bytes(ArmorOptions::default())?;
+    fs::write("secret_key.asc", secret_signed_key_armor)?;
+
+    let public_signed_key_armor = public_key.to_armored_string(ArmorOptions::default())?;
+    fs::write("packhub.asc", public_signed_key_armor)?;
+
+    Ok(())
 }
 
 pub fn public_key_from_secret_key(secret_key: &SignedSecretKey) -> Result<SignedPublicKey> {
