@@ -137,3 +137,9 @@
 2024-01-19T19:15:39.296638Z DEBUG request{method=GET uri=/rpm/github/OpenBangla/OpenBangla-Keyboard/repodata/primary.xml.zst version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "user-agent": "libdnf (Fedora Linux 38; container; Linux.x86_64)", "accept": "*/*"}}: tower_http::trace::on_request: started processing request
 2024-01-19T19:15:43.694442Z DEBUG request{method=GET uri=/rpm/github/OpenBangla/OpenBangla-Keyboard/repodata/filelists.xml.zst version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "user-agent": "libdnf (Fedora Linux 38; container; Linux.x86_64)", "accept": "*/*"}}: tower_http::trace::on_response: finished processing request latency=4398 ms status=200
 2024-01-19T19:15:46.827531Z DEBUG request{method=GET uri=/rpm/github/OpenBangla/OpenBangla-Keyboard/repodata/primary.xml.zst version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "user-agent": "libdnf (Fedora Linux 38; container; Linux.x86_64)", "accept": "*/*"}}: tower_http::trace::on_response: finished processing request latency=7530 ms status=200
+
+
+apt-get install wget gpg
+wget -qO- http://host.docker.internal:3000/keys/packhub.asc | gpg --dearmor > packhub.gpg
+install -D -o root -g root -m 644 packhub.gpg /etc/apt/keyrings/packhub.gpg
+echo "deb [signed-by=/etc/apt/keyrings/packhub.gpg] http://host.docker.internal:3000/apt/github/OpenBangla/OpenBangla-Keyboard stable main" > /etc/apt/sources.list.d/openbangla-keyboard.list

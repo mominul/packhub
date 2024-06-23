@@ -6,9 +6,36 @@ use tracing::debug;
 
 use crate::{
     apt::index::{gzip_compression, AptIndices},
+    pgp::{clearsign_metadata, detached_sign_metadata, load_secret_key_from_file},
     repository::Repository,
     utils::download_packages,
 };
+
+#[tracing::instrument(name = "Debian Clear-signed Release File", skip(owner, repo))]
+async fn in_release_file(
+    Path((owner, repo)): Path<(String, String)>,
+    TypedHeader(agent): TypedHeader<UserAgent>,
+) -> Result<String, StatusCode> {
+    let repo = Repository::from_github(owner, repo).await;
+
+    let packages = repo.select_package_ubuntu(agent.as_str());
+
+    debug!("Packages selected {:?}", packages);
+
+    let packages = packages.into_iter().map(|p| p.clone()).collect();
+
+    let packages = download_packages(packages).await.unwrap();
+
+    let index = AptIndices::new(&packages).unwrap();
+
+    let release_file = index.get_release_index();
+
+    let secret_key = load_secret_key_from_file().unwrap();
+
+    let signed_release_file = clearsign_metadata(&release_file, &secret_key).unwrap();
+
+    Ok(signed_release_file)
+}
 
 #[tracing::instrument(name = "Debian Release File", skip(owner, repo))]
 async fn release_file(
@@ -28,6 +55,33 @@ async fn release_file(
     let index = AptIndices::new(&packages).unwrap();
 
     Ok(index.get_release_index())
+}
+
+#[tracing::instrument(name = "Debian Signed Release File", skip(owner, repo))]
+async fn signed_release_file(
+    Path((owner, repo)): Path<(String, String)>,
+    TypedHeader(agent): TypedHeader<UserAgent>,
+) -> Result<String, StatusCode> {
+    let repo = Repository::from_github(owner, repo).await;
+
+    let packages = repo.select_package_ubuntu(agent.as_str());
+
+    debug!("Packages selected {:?}", packages);
+
+    let packages = packages.into_iter().map(|p| p.clone()).collect();
+
+    let packages = download_packages(packages).await.unwrap();
+
+    let index = AptIndices::new(&packages).unwrap();
+
+    let release_file = index.get_release_index();
+
+    let secret_key = load_secret_key_from_file().unwrap();
+
+    let signed_release_file =
+        detached_sign_metadata("Release", &release_file, &secret_key).unwrap();
+
+    Ok(signed_release_file)
 }
 
 #[tracing::instrument(name = "Debian Package metadata file", skip(owner, repo, file))]
@@ -86,6 +140,14 @@ pub fn apt_routes() -> Router {
         .route(
             "/github/:owner/:repo/dists/stable/Release",
             get(release_file),
+        )
+        .route(
+            "/github/:owner/:repo/dists/stable/Release.gpg",
+            get(signed_release_file),
+        )
+        .route(
+            "/github/:owner/:repo/dists/stable/InRelease",
+            get(in_release_file),
         )
         .route(
             "/github/:owner/:repo/dists/stable/main/binary-amd64/:index",

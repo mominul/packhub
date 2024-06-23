@@ -2,7 +2,6 @@ use std::io::Write;
 
 use anyhow::{bail, Result};
 use askama::Template;
-use chrono::Utc;
 use libflate::gzip::{EncodeOptions, Encoder, HeaderBuilder};
 use md5::Md5;
 use sha1::Sha1;
@@ -65,7 +64,15 @@ impl<'a> AptIndices<'a> {
     }
 
     pub fn get_release_index(&self) -> String {
-        let date = Utc::now().to_rfc2822();
+        // Find the latest date from the list of packages
+        let mut date = chrono::DateTime::UNIX_EPOCH;
+        for package in self.packages {
+            if *package.creation_date() > date {
+                date = *package.creation_date();
+            }
+        }
+
+        let date = date.to_rfc2822();
 
         let packages = self.get_package_index();
         let packages = packages.as_bytes();
@@ -143,7 +150,10 @@ fn get_package_metadata(package: &Package) -> Result<DebianPackage> {
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
+    use std::{
+        fs::{self, File},
+        io::Read,
+    };
 
     use chrono::DateTime;
     use insta::assert_snapshot;
@@ -152,8 +162,14 @@ mod tests {
 
     #[test]
     fn test_apt_indices() {
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), DateTime::UNIX_EPOCH).unwrap();
-        let data = fs::read("data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb").unwrap();
+        let mut file = File::open("data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb").unwrap();
+
+        let created = file.metadata().unwrap().created().unwrap();
+
+        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), DateTime::from(created)).unwrap();
+
+        let mut data = Vec::new();
+        file.read_to_end(&mut data).unwrap();
         package.set_data(data);
 
         let packages = vec![package];
@@ -166,12 +182,7 @@ mod tests {
 
         // Release
         let release = indices.get_release_index();
-        insta::with_settings!({filters => vec![
-            // Date is a changing value, so replace it with a hardcoded value.
-            (r"Date: .+", "Date: [DATE]"),
-        ]}, {
-            assert_snapshot!(release);
-        });
+        assert_snapshot!(release);
     }
 
     #[test]
@@ -197,11 +208,6 @@ mod tests {
 
         // Release
         let release = indices.get_release_index();
-        insta::with_settings!({filters => vec![
-            // Date is a changing value, so replace it with a hardcoded value.
-            (r"Date: .+", "Date: [DATE]"),
-        ]}, {
-            assert_snapshot!(release);
-        });
+        assert_snapshot!(release);
     }
 }
