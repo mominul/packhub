@@ -150,10 +150,7 @@ fn get_package_metadata(package: &Package) -> Result<DebianPackage> {
 
 #[cfg(test)]
 mod tests {
-    use std::{
-        fs::{self, File},
-        io::Read,
-    };
+    use std::fs::{self, read};
 
     use chrono::DateTime;
     use insta::assert_snapshot;
@@ -162,14 +159,8 @@ mod tests {
 
     #[test]
     fn test_apt_indices() {
-        let mut file = File::open("data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb").unwrap();
-
-        let created = file.metadata().unwrap().created().unwrap();
-
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), DateTime::from(created)).unwrap();
-
-        let mut data = Vec::new();
-        file.read_to_end(&mut data).unwrap();
+        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), DateTime::parse_from_rfc2822("Wed, 8 Nov 2023 16:40:12 +0000").unwrap().into()).unwrap();
+        let data = read("data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb").unwrap();
         package.set_data(data);
 
         let packages = vec![package];
