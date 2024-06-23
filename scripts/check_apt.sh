@@ -1,7 +1,7 @@
 #!/bin/bash
 
 apt update
-apt install sudo -y
+apt install sudo wget -y
 
 wget -qO- http://host.docker.internal:3000/sh/github/ubuntu/mominul/pack-exp3 | sh
 
