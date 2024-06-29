@@ -7,7 +7,7 @@ echo
 echo "Running the package key and repository setup script"
 
 # Save the script first for debugging
-SCRIPT_URL="http://host.docker.internal:3000/sh/github/ubuntu/mominul/pack-exp3"
+SCRIPT_URL="http://localhost:3000/sh/github/ubuntu/mominul/pack-exp3"
 SCRIPT_LOCAL_PATH="/tmp/pack-exp3.sh"
 
 # Try downloading the script
