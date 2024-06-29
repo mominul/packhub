@@ -5,7 +5,7 @@ apt install sudo wget -y
 
 echo
 echo "Running the package key and repository setup script"
-wget -qO- http://host.docker.internal:3000/sh/github/ubuntu/mominul/pack-exp3 | sh
+wget -qO- http://host.docker.internal:3000/sh/github/ubuntu/mominul/pack-exp3 | bash
 return_value=$?
 
 if [ $return_value -ne 0 ]; then
