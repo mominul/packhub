@@ -5,6 +5,7 @@ use axum_extra::{headers::UserAgent, typed_header::TypedHeader};
 use zstd::encode_all;
 
 use crate::{
+    pgp::{detached_sign_metadata, load_secret_key_from_file},
     repository::Repository,
     rpm::{index::get_repomd_index, package::RPMPackage},
     utils::download_packages,
@@ -32,6 +33,14 @@ async fn index(
 
     match file.as_str() {
         "repomd.xml" => Ok(get_repomd_index(&packages).into_bytes()),
+        "repomd.xml.asc" => {
+            let metadata = get_repomd_index(&packages);
+            let secret_key = load_secret_key_from_file().unwrap();
+            let signature = detached_sign_metadata("repomd.xml", &metadata, &secret_key)
+                .unwrap()
+                .into_bytes();
+            Ok(signature)
+        }
         "primary.xml.zst" => Ok(encode_all(get_primary_index(&packages).as_bytes(), 0).unwrap()),
         "filelists.xml.zst" => {
             Ok(encode_all(get_filelists_index(&packages).as_bytes(), 0).unwrap())

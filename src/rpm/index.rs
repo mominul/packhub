@@ -61,7 +61,15 @@ pub fn get_repomd_index(packages: &[RPMPackage]) -> String {
     let filelists = get_filelists_index(packages);
     let other = get_other_index(packages);
 
-    let repomd = RepoMD::create(primary, filelists, other);
+    // Find the latest date from the list of packages
+    let mut timestamp = 0;
+    for package in packages {
+        if package.pkg_time > timestamp {
+            timestamp = package.pkg_time;
+        }
+    }
+
+    let repomd = RepoMD::create(primary, filelists, other, timestamp);
 
     repomd.render().unwrap()
 }
@@ -86,11 +94,10 @@ impl Metadata {
 }
 
 impl RepoMD {
-    fn create(primary: String, filelists: String, other: String) -> RepoMD {
+    fn create(primary: String, filelists: String, other: String, timestamp: i64) -> RepoMD {
         let primary = Metadata::create(primary);
         let filelists = Metadata::create(filelists);
         let other = Metadata::create(other);
-        let timestamp = Utc::now().timestamp();
 
         RepoMD {
             primary,
@@ -114,7 +121,7 @@ mod tests {
 
     #[test]
     fn test_rpm_indices() {
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm".to_owned(), DateTime::UNIX_EPOCH).unwrap();
+        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm".to_owned(), DateTime::parse_from_rfc2822("Wed, 8 Nov 2023 16:40:12 +0000").unwrap().into()).unwrap();
         let data = read("data/OpenBangla-Keyboard_2.0.0-fedora38.rpm").unwrap();
         package.set_data(data);
         let package = RPMPackage::from_package(&package).unwrap();
@@ -126,13 +133,6 @@ mod tests {
 
         assert_snapshot!(get_other_index(&packages));
 
-        let repomd = get_repomd_index(&packages);
-        insta::with_settings!({filters => vec![
-            // Date is a changing value, so replace it with a hardcoded value.
-            (r"<timestamp>.+<\/timestamp>", r"<timestamp>TIMESTAMP<\/timestamp>"),
-            (r"<revision>.+<\/revision>", r"<revision>TIMESTAMP<\/revision>"),
-        ]}, {
-            assert_snapshot!(repomd);
-        });
+        assert_snapshot!(get_repomd_index(&packages));
     }
 }

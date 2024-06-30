@@ -1,6 +1,6 @@
 ---
 source: src/rpm/index.rs
-expression: get_primary_index(packages.clone())
+expression: get_primary_index(&packages)
 ---
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata xmlns="http://linux.duke.edu/metadata/common" xmlns:rpm="http://linux.duke.edu/metadata/rpm" packages="1">
@@ -16,7 +16,7 @@ expression: get_primary_index(packages.clone())
 Most of the features of Avro Keyboard are present in OpenBangla Keyboard. So Avro Keyboard users will feel at home with OpenBangla Keyboard in Linux.</description>
   <packager></packager>
   <url>https://openbangla.github.io/</url>
-  <time file="0" build="1684606381"/>
+  <time file="1699461612" build="1684606381"/>
   <size package="4615096" installed="12106690" archive="12112024"/>
   <location href="package/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm"/>
   <format>

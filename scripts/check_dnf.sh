@@ -1,8 +1,8 @@
 #!/bin/bash
 
-sh -c 'echo -e "[obk]\nname=OpenBangla Keyboard\nbaseurl=http://localhost:3000/rpm/github/OpenBangla/OpenBangla-Keyboard/\nenabled=1\ngpgcheck=0" > /etc/yum.repos.d/obk.repo'
+sh -c 'echo -e "[obk]\nname=OpenBangla Keyboard\nbaseurl=http://localhost:3000/rpm/github/mominul/pack-exp3\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=http://localhost:3000/keys/packhub.asc" > /etc/yum.repos.d/obk.repo'
 
-output=$(dnf search openbangla 2>&1)
+output=$(yes | dnf search openbangla 2>&1)
 status=$?
 
 # Print the output of the dnf command

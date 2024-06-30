@@ -145,3 +145,5 @@ install -D -o root -g root -m 644 packhub.gpg /etc/apt/keyrings/packhub.gpg
 echo "deb [signed-by=/etc/apt/keyrings/packhub.gpg] http://host.docker.internal:3000/apt/github/OpenBangla/OpenBangla-Keyboard stable main" > /etc/apt/sources.list.d/openbangla-keyboard.list
 
 wget -qO- http://host.docker.internal:3000/sh/github/ubuntu/OpenBangla/OpenBangla-Keyboard | sh
+
+# sh -c 'echo -e "[obk]\nname=OpenBangla Keyboard\nbaseurl=http://host.docker.internal:3000/rpm/github/OpenBangla/OpenBangla-Keyboard/\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=http://host.docker.internal:3000/keys/packhub.asc" > /etc/yum.repos.d/obk.repo'
