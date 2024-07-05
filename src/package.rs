@@ -10,8 +10,25 @@ pub struct Package {
     pub(crate) dist: Option<Dist>,
     url: String,
     ver: String,
-    data: Mutex<Option<Vec<u8>>>,
+    data: Mutex<Data<Vec<u8>>>,
     created: DateTime<Utc>,
+}
+
+/// Data type for package data and metadata.
+///
+/// It is used to differentiate between package data and metadata.
+///
+/// `Data::Package` is used for package data. It is the actual package
+/// file which needs to be processed to extract the metadata.
+///
+/// `Data::Metadata` is used for package metadata.
+///
+/// `Data::None` is used when no data is available.
+#[derive(Clone, PartialEq)]
+pub enum Data<T> {
+    Package(T),
+    Metadata(T),
+    None,
 }
 
 impl std::fmt::Debug for Package {
@@ -75,7 +92,7 @@ impl Package {
             dist,
             url,
             ver,
-            data: Mutex::new(None),
+            data: Mutex::new(Data::None),
             created,
         })
     }
@@ -107,28 +124,33 @@ impl Package {
     /// It is required to call this function before calling the `data()` function.
     pub async fn download(&self) -> Result<()> {
         let data = reqwest::get(self.download_url()).await?.bytes().await?;
-        *self.data.lock().unwrap() = Some(data.to_vec());
+        *self.data.lock().unwrap() = Data::Package(data.to_vec());
         Ok(())
     }
 
     /// Return the data of the package.
     ///
-    /// It is required to call the `download()` function before calling this.
+    /// It is required to call the `download()` or `set_metadata()` function before calling this.
     /// Otherwise, `None` is returned.
-    pub fn data(&self) -> Option<Vec<u8>> {
+    pub fn data(&self) -> Data<Vec<u8>> {
         self.data.lock().unwrap().clone()
     }
 
     #[cfg(test)]
-    /// Set the internal package data.
+    /// Set the package data.
     ///
     /// It's for testing purpose.
-    pub fn set_data(&self, data: Vec<u8>) {
-        *self.data.lock().unwrap() = Some(data);
+    pub fn set_package_data(&self, data: Vec<u8>) {
+        *self.data.lock().unwrap() = Data::Package(data);
     }
 
     pub fn creation_date(&self) -> &DateTime<Utc> {
         &self.created
+    }
+
+    /// Set the package metadata.
+    pub fn set_metadata(&self, metadata: Vec<u8>) {
+        *self.data.lock().unwrap() = Data::Metadata(metadata);
     }
 }
 

@@ -1,5 +1,4 @@
 use askama::Template;
-use chrono::Utc;
 use sha2::Sha256;
 use zstd::encode_all;
 
@@ -123,7 +122,7 @@ mod tests {
     fn test_rpm_indices() {
         let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm".to_owned(), DateTime::parse_from_rfc2822("Wed, 8 Nov 2023 16:40:12 +0000").unwrap().into()).unwrap();
         let data = read("data/OpenBangla-Keyboard_2.0.0-fedora38.rpm").unwrap();
-        package.set_data(data);
+        package.set_package_data(data);
         let package = RPMPackage::from_package(&package).unwrap();
         let packages = vec![package];
 

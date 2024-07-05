@@ -10,6 +10,7 @@ use tower_http::trace::TraceLayer;
 use tracing::{debug, Span};
 
 mod apt;
+mod db;
 mod package;
 pub mod pgp;
 mod platform;

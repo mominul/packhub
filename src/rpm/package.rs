@@ -1,10 +1,15 @@
 use anyhow::{bail, Context, Result};
+use mongodb::bson::{from_slice, to_vec};
 use rpm::{DependencyFlags, FileMode, IndexSignatureTag};
+use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 
-use crate::{package::Package, utils::hashsum};
+use crate::{
+    package::{Data, Package},
+    utils::hashsum,
+};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RPMPackage {
     pub name: String,
     pub epoch: u32,
@@ -33,24 +38,34 @@ pub struct RPMPackage {
     pub pkg_time: i64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Dependency {
     pub dependency: String,
     pub version: String,
     pub condition: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct File {
     pub path: String,
     pub dir: bool,
 }
 
 impl RPMPackage {
+    /// Parse the package and return the RPM package.
+    ///
+    /// Also sets the metadata to the package.
     pub fn from_package(package: &Package) -> Result<RPMPackage> {
-        let Some(data) = package.data() else {
+        // If the metadata is already available, then build the RPMPackage from it
+        if let Data::Metadata(metadata) = package.data() {
+            let rpm: RPMPackage = from_slice(&metadata)?;
+            return Ok(rpm);
+        }
+
+        let Data::Package(data) = package.data() else {
             bail!("Data isn't loaded in package");
         };
+
         let mut data = data.as_slice();
         // Calculate these before the data slice is mutated
         let pkg_size = data.len();
@@ -122,7 +137,7 @@ impl RPMPackage {
         let location = format!("package/{}/{}", package.version(), package.file_name());
         let pkg_time = package.creation_date().timestamp();
 
-        Ok(RPMPackage {
+        let rpm = RPMPackage {
             name,
             epoch,
             version,
@@ -148,7 +163,13 @@ impl RPMPackage {
             archive_size,
             location,
             pkg_time,
-        })
+        };
+
+        // Set the matadata to the package
+        let metadata = to_vec(&rpm)?;
+        package.set_metadata(metadata);
+
+        Ok(rpm)
     }
 }
 
@@ -177,8 +198,29 @@ mod tests {
     fn test_parser() {
         let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm".to_owned(), DateTime::UNIX_EPOCH).unwrap();
         let data = read("data/OpenBangla-Keyboard_2.0.0-fedora38.rpm").unwrap();
-        package.set_data(data);
+        package.set_package_data(data);
         let parsed = RPMPackage::from_package(&package).unwrap();
         assert_debug_snapshot!(parsed);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_package_without_data() {
+        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm".to_owned(), DateTime::UNIX_EPOCH).unwrap();
+
+        RPMPackage::from_package(&package).unwrap();
+    }
+
+    #[test]
+    fn test_loading_from_metadata() {
+        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm".to_owned(), DateTime::UNIX_EPOCH).unwrap();
+        let data = read("data/OpenBangla-Keyboard_2.0.0-fedora38.rpm").unwrap();
+        package.set_package_data(data);
+        let _ = RPMPackage::from_package(&package).unwrap();
+
+        // The package data should have been replaced by the metadata
+        assert!(matches!(package.data(), Data::Metadata(_)));
+
+        let _ = RPMPackage::from_package(&package).unwrap();
     }
 }
