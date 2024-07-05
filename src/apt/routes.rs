@@ -1,30 +1,30 @@
 use axum::{
-    body::Body, extract::Path, http::StatusCode, response::IntoResponse, routing::get, Router,
+    body::Body,
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+    routing::get,
+    Router,
 };
 use axum_extra::{headers::UserAgent, typed_header::TypedHeader};
+use mongodb::Client;
 use tracing::debug;
 
 use crate::{
     apt::index::{gzip_compression, AptIndices},
     pgp::{clearsign_metadata, detached_sign_metadata, load_secret_key_from_file},
     repository::Repository,
-    utils::download_packages,
 };
 
-#[tracing::instrument(name = "Debian Clear-signed Release File", skip(owner, repo))]
+#[tracing::instrument(name = "Debian Clear-signed Release File", skip(owner, repo, client))]
 async fn in_release_file(
+    State(client): State<Client>,
     Path((owner, repo)): Path<(String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<String, StatusCode> {
-    let repo = Repository::from_github(owner, repo).await;
+    let repo = Repository::from_github(owner, repo, client).await;
 
-    let packages = repo.select_package_ubuntu(agent.as_str());
-
-    debug!("Packages selected {:?}", packages);
-
-    let packages = packages.into_iter().map(|p| p.clone()).collect();
-
-    let packages = download_packages(packages).await.unwrap();
+    let packages = repo.select_package_ubuntu(agent.as_str()).await.unwrap();
 
     let index = AptIndices::new(&packages).unwrap();
 
@@ -37,40 +37,30 @@ async fn in_release_file(
     Ok(signed_release_file)
 }
 
-#[tracing::instrument(name = "Debian Release File", skip(owner, repo))]
+#[tracing::instrument(name = "Debian Release File", skip(owner, repo, client))]
 async fn release_file(
+    State(client): State<Client>,
     Path((owner, repo)): Path<(String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<String, StatusCode> {
-    let repo = Repository::from_github(owner, repo).await;
+    let repo = Repository::from_github(owner, repo, client).await;
 
-    let packages = repo.select_package_ubuntu(agent.as_str());
-
-    debug!("Packages selected {:?}", packages);
-
-    let packages = packages.into_iter().map(|p| p.clone()).collect();
-
-    let packages = download_packages(packages).await.unwrap();
+    let packages = repo.select_package_ubuntu(agent.as_str()).await.unwrap();
 
     let index = AptIndices::new(&packages).unwrap();
 
     Ok(index.get_release_index())
 }
 
-#[tracing::instrument(name = "Debian Signed Release File", skip(owner, repo))]
+#[tracing::instrument(name = "Debian Signed Release File", skip(owner, repo, client))]
 async fn signed_release_file(
+    State(client): State<Client>,
     Path((owner, repo)): Path<(String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<String, StatusCode> {
-    let repo = Repository::from_github(owner, repo).await;
+    let repo = Repository::from_github(owner, repo, client).await;
 
-    let packages = repo.select_package_ubuntu(agent.as_str());
-
-    debug!("Packages selected {:?}", packages);
-
-    let packages = packages.into_iter().map(|p| p.clone()).collect();
-
-    let packages = download_packages(packages).await.unwrap();
+    let packages = repo.select_package_ubuntu(agent.as_str()).await.unwrap();
 
     let index = AptIndices::new(&packages).unwrap();
 
@@ -84,20 +74,15 @@ async fn signed_release_file(
     Ok(signed_release_file)
 }
 
-#[tracing::instrument(name = "Debian Package metadata file", skip(owner, repo, file))]
+#[tracing::instrument(name = "Debian Package metadata file", skip(owner, repo, file, client))]
 async fn packages_file(
+    State(client): State<Client>,
     Path((owner, repo, file)): Path<(String, String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<Vec<u8>, StatusCode> {
-    let repo = Repository::from_github(owner, repo).await;
+    let repo = Repository::from_github(owner, repo, client).await;
 
-    let packages = repo.select_package_ubuntu(agent.as_str());
-
-    let packages = packages.into_iter().map(|p| p.clone()).collect();
-
-    debug!("Packages selected {:?}", packages);
-
-    let packages = download_packages(packages).await.unwrap();
+    let packages = repo.select_package_ubuntu(agent.as_str()).await.unwrap();
 
     let index = AptIndices::new(&packages).unwrap();
 
@@ -135,7 +120,7 @@ async fn pool(
     stream
 }
 
-pub fn apt_routes() -> Router {
+pub fn apt_routes() -> Router<Client> {
     Router::new()
         .route(
             "/github/:owner/:repo/dists/stable/Release",

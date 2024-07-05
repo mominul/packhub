@@ -31,10 +31,12 @@ anyhow = "1"
 zstd = "0.13"
 pgp = "0.13"
 mongodb = "3"
+bson = { version = "2", features = ["chrono-0_4"] }
 serde = { version = "1", features = ["derive"] }
 
 [dev-dependencies]
 insta = { version = "1", features = ["filters"] }
+testcontainers-modules = { version = "0.8", features = ["mongo"] }
 
 [profile.dev.package.insta]
 opt-level = 3

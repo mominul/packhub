@@ -12,6 +12,7 @@ pub struct Package {
     ver: String,
     data: Mutex<Data<Vec<u8>>>,
     created: DateTime<Utc>,
+    updated: DateTime<Utc>,
 }
 
 /// Data type for package data and metadata.
@@ -47,6 +48,7 @@ impl Clone for Package {
             ver: self.ver.clone(),
             data: Mutex::new(data),
             created: self.created.clone(),
+            updated: self.updated.clone(),
         }
     }
 }
@@ -59,6 +61,7 @@ impl PartialEq for Package {
             && self.ver == other.ver
             && *self.data.lock().unwrap() == *other.data.lock().unwrap()
             && self.created == other.created
+            && self.updated == other.updated
     }
 }
 
@@ -68,6 +71,7 @@ impl Package {
         ver: String,
         url: String,
         created: DateTime<Utc>,
+        updated: DateTime<Utc>,
     ) -> Result<Package> {
         // Split the extension first.
         // If we don't recognize it, then return error.
@@ -94,6 +98,7 @@ impl Package {
             ver,
             data: Mutex::new(Data::None),
             created,
+            updated,
         })
     }
 
@@ -148,9 +153,18 @@ impl Package {
         &self.created
     }
 
+    pub fn updated_date(&self) -> &DateTime<Utc> {
+        &self.updated
+    }
+
     /// Set the package metadata.
     pub fn set_metadata(&self, metadata: Vec<u8>) {
         *self.data.lock().unwrap() = Data::Metadata(metadata);
+    }
+
+    /// Check if metadata is available.
+    pub fn is_metadata_available(&self) -> bool {
+        matches!(*self.data.lock().unwrap(), Data::Metadata(_))
     }
 }
 
@@ -216,6 +230,7 @@ mod tests {
             "2.0.0".to_owned(),
             String::new(),
             DateTime::UNIX_EPOCH,
+            DateTime::UNIX_EPOCH,
         )
         .unwrap();
         assert_eq!(pack.version(), "2.0.0");
@@ -227,6 +242,7 @@ mod tests {
             "2.0.0".to_owned(),
             String::new(),
             DateTime::UNIX_EPOCH,
+            DateTime::UNIX_EPOCH,
         )
         .unwrap();
         assert_eq!(pack.version(), "2.0.0");
@@ -237,6 +253,7 @@ mod tests {
             "caprine_2.56.1_amd64.deb",
             "v2.56.1".to_owned(),
             String::new(),
+            DateTime::UNIX_EPOCH,
             DateTime::UNIX_EPOCH,
         )
         .unwrap();

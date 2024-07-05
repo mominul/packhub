@@ -1,5 +1,6 @@
 use askama::Template;
 use axum::{extract::Path, routing::get, Router};
+use mongodb::Client;
 
 #[derive(Template)]
 #[template(path = "apt-script.sh", escape = "none")]
@@ -17,7 +18,7 @@ async fn apt_script_handler(Path((owner, repo)): Path<(String, String)>) -> Stri
     generate_apt_script(&owner, &repo)
 }
 
-pub fn script_routes() -> Router {
+pub fn script_routes() -> Router<Client> {
     Router::new().route("/github/ubuntu/:owner/:repo", get(apt_script_handler))
 }
 

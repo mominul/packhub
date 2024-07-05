@@ -23,6 +23,10 @@ jobs:
         docker build -t server -f images/server-ci.Dockerfile .
         docker run -d -p 3000:3000 --name server-container server
 
+    - name: Run mongodb server
+      run: |
+        docker run -d -p 27017:27017 --name mongodb -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=pass mongo
+
     - name: Wait for server to start
       run: |
         until curl --output /dev/null --silent --fail http://localhost:3000; do
