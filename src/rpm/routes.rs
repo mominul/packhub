@@ -23,7 +23,7 @@ async fn index(
     Path((owner, repo, file)): Path<(String, String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<Vec<u8>, StatusCode> {
-    let repo = Repository::from_github(owner, repo, client).await;
+    let mut repo = Repository::from_github(owner, repo, client).await;
     let packages: Vec<RPMPackage> = repo
         .select_package_rpm(agent.as_str())
         .await
@@ -31,6 +31,8 @@ async fn index(
         .into_iter()
         .map(|p| RPMPackage::from_package(&p).unwrap())
         .collect();
+
+    repo.save_package_metadata().await;
 
     match file.as_str() {
         "repomd.xml" => Ok(get_repomd_index(&packages).into_bytes()),

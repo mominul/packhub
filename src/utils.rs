@@ -3,7 +3,7 @@ use std::{ops::Add, str::FromStr};
 use anyhow::Result;
 use sha1::digest::{generic_array::ArrayLength, Digest, OutputSizeUser};
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Dist {
     Ubuntu(Option<String>),
     Debian(Option<String>),

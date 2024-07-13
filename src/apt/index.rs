@@ -2,6 +2,7 @@ use std::io::Write;
 
 use anyhow::Result;
 use askama::Template;
+use chrono::{DateTime, Utc};
 use libflate::gzip::{EncodeOptions, Encoder, HeaderBuilder};
 use md5::Md5;
 use sha1::Sha1;
@@ -9,8 +10,10 @@ use sha2::{Sha256, Sha512};
 
 use crate::{apt::deb::DebianPackage, package::Package, utils::hashsum};
 
-pub struct AptIndices<'a> {
-    packages: &'a [Package],
+#[derive(Debug)]
+pub struct AptIndices {
+    packages: Vec<DebianPackage>,
+    date: DateTime<Utc>,
 }
 
 #[derive(Template)]
@@ -24,8 +27,8 @@ struct ReleaseIndex<'a> {
 
 #[derive(Template)]
 #[template(path = "Packages")]
-struct PackageIndex {
-    packages: Vec<DebianPackage>,
+struct PackageIndex<'a> {
+    packages: &'a [DebianPackage],
 }
 
 struct Files {
@@ -37,32 +40,39 @@ struct Files {
     path: String,
 }
 
-impl<'a> AptIndices<'a> {
-    pub fn new(packages: &'a [Package]) -> Result<AptIndices<'a>> {
-        Ok(AptIndices { packages })
+impl AptIndices {
+    pub fn new(packages: &[Package]) -> Result<AptIndices> {
+        let mut debian = Vec::new();
+        // Find the latest date from the list of packages
+        let mut date = DateTime::UNIX_EPOCH;
+        for package in packages {
+            if *package.creation_date() > date {
+                date = *package.creation_date();
+            }
+
+            match DebianPackage::from_package(package) {
+                Ok(deb) => debian.push(deb),
+                Err(e) => {
+                    tracing::error!("Error occurred when extracting debian control data: {e}");
+                    continue;
+                }
+            }
+        }
+        Ok(AptIndices {
+            packages: debian,
+            date,
+        })
     }
 
     pub fn get_package_index(&self) -> String {
-        let packages = self
-            .packages
-            .iter()
-            .map(|package| DebianPackage::from_package(package))
-            .filter_map(Result::ok)
-            .collect::<Vec<_>>();
-        let index = PackageIndex { packages };
+        let index = PackageIndex {
+            packages: self.packages.as_slice(),
+        };
         index.render().unwrap().trim().to_owned()
     }
 
     pub fn get_release_index(&self) -> String {
-        // Find the latest date from the list of packages
-        let mut date = chrono::DateTime::UNIX_EPOCH;
-        for package in self.packages {
-            if *package.creation_date() > date {
-                date = *package.creation_date();
-            }
-        }
-
-        let date = date.to_rfc2822();
+        let date = self.date.to_rfc2822();
 
         let packages = self.get_package_index();
         let packages = packages.as_bytes();

@@ -22,11 +22,13 @@ async fn in_release_file(
     Path((owner, repo)): Path<(String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<String, StatusCode> {
-    let repo = Repository::from_github(owner, repo, client).await;
+    let mut repo = Repository::from_github(owner, repo, client).await;
 
     let packages = repo.select_package_ubuntu(agent.as_str()).await.unwrap();
 
     let index = AptIndices::new(&packages).unwrap();
+
+    repo.save_package_metadata().await;
 
     let release_file = index.get_release_index();
 
@@ -43,11 +45,13 @@ async fn release_file(
     Path((owner, repo)): Path<(String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<String, StatusCode> {
-    let repo = Repository::from_github(owner, repo, client).await;
+    let mut repo = Repository::from_github(owner, repo, client).await;
 
     let packages = repo.select_package_ubuntu(agent.as_str()).await.unwrap();
 
     let index = AptIndices::new(&packages).unwrap();
+
+    repo.save_package_metadata().await;
 
     Ok(index.get_release_index())
 }
@@ -58,11 +62,13 @@ async fn signed_release_file(
     Path((owner, repo)): Path<(String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<String, StatusCode> {
-    let repo = Repository::from_github(owner, repo, client).await;
+    let mut repo = Repository::from_github(owner, repo, client).await;
 
     let packages = repo.select_package_ubuntu(agent.as_str()).await.unwrap();
 
     let index = AptIndices::new(&packages).unwrap();
+
+    repo.save_package_metadata().await;
 
     let release_file = index.get_release_index();
 
@@ -80,11 +86,13 @@ async fn packages_file(
     Path((owner, repo, file)): Path<(String, String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<Vec<u8>, StatusCode> {
-    let repo = Repository::from_github(owner, repo, client).await;
+    let mut repo = Repository::from_github(owner, repo, client).await;
 
     let packages = repo.select_package_ubuntu(agent.as_str()).await.unwrap();
 
     let index = AptIndices::new(&packages).unwrap();
+
+    repo.save_package_metadata().await;
 
     match file.as_str() {
         "Packages" => Ok(index.get_package_index().as_bytes().to_owned()),

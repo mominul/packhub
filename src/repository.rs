@@ -19,6 +19,7 @@ static OCTOCRAB: Lazy<Arc<Octocrab>> = Lazy::new(|| octocrab::instance());
 pub struct Repository {
     collection: Collection<PackageMetadata>,
     packages: Vec<Package>,
+    downloaded: Vec<Package>,
 }
 
 impl Repository {
@@ -56,25 +57,29 @@ impl Repository {
         Repository {
             collection,
             packages,
+            downloaded: Vec::new(),
         }
     }
 
-    async fn save_package_metadata(&self, package: &Package) {
-        let Some(metadata) = PackageMetadata::from_package(package) else {
-            error!(
-                "Metadata was not available for saving the package: {:?}",
-                package.file_name()
-            );
-            return;
-        };
+    pub async fn save_package_metadata(&mut self) {
+        for package in &self.downloaded {
+            let Some(metadata) = PackageMetadata::from_package(package) else {
+                error!(
+                    "Metadata was not available for saving the package: {:?}",
+                    package.file_name()
+                );
+                return;
+            };
 
-        if let Err(e) = self.collection.insert_one(metadata).await {
-            error!(
-                "Failed to save metadata for package: {:?}\n Error: {e}",
-                package.file_name()
-            );
-            return;
-        };
+            if let Err(e) = self.collection.insert_one(metadata).await {
+                error!(
+                    "Failed to save metadata for package: {:?}\n Error: {e}",
+                    package.file_name()
+                );
+                return;
+            };
+            debug!("Saved metadata for package: {:?}", package.file_name());
+        }
     }
 
     /// Select packages for Ubuntu.
@@ -84,7 +89,7 @@ impl Repository {
     /// It returns a vector of packages that are compatible with the given agent.
     ///
     /// It also downloads the selected packages if the metadata is not available.
-    pub async fn select_package_ubuntu(&self, agent: &str) -> Result<Vec<Package>> {
+    pub async fn select_package_ubuntu(&mut self, agent: &str) -> Result<Vec<Package>> {
         let apt = get_apt_version(agent);
         let dist = match_ubuntu_for_apt(apt);
         let packages: Vec<Package> = select_packages(&self.packages, dist)
@@ -104,7 +109,7 @@ impl Repository {
     /// It returns a vector of packages that are compatible with the given agent.
     ///
     /// It also downloads the selected packages if the metadata is not available.
-    pub async fn select_package_rpm(&self, agent: &str) -> Result<Vec<Package>> {
+    pub async fn select_package_rpm(&mut self, agent: &str) -> Result<Vec<Package>> {
         let Some(dist) = detect_rpm_os(agent) else {
             bail!("Unknown RPM distribution agent: {agent}");
         };
@@ -118,8 +123,9 @@ impl Repository {
         self.download_packages(packages).await
     }
 
-    async fn download_packages(&self, packages: Vec<Package>) -> Result<Vec<Package>> {
+    async fn download_packages(&mut self, packages: Vec<Package>) -> Result<Vec<Package>> {
         let mut runner = JoinSet::new();
+        let mut result = Vec::new();
 
         for package in packages {
             if !package.is_metadata_available() {
@@ -129,10 +135,9 @@ impl Repository {
                 });
             } else {
                 debug!("Package metadata available: {:?}", package.file_name());
+                result.push(package);
             }
         }
-
-        let mut result = Vec::new();
 
         while let Some(res) = runner.join_next().await {
             let Ok(res) = res else {
@@ -142,10 +147,9 @@ impl Repository {
             let package = res?;
 
             debug!("Downloaded package: {:?}", package.file_name());
-            self.save_package_metadata(&package).await;
-            debug!("Saved package metadata: {:?}", package.file_name());
 
-            result.push(package);
+            result.push(package.clone());
+            self.downloaded.push(package);
         }
 
         Ok(result)

@@ -19,7 +19,7 @@ static ARCH: Lazy<Regex> = Lazy::new(|| Regex::new(r#"Architecture: (\w+)"#).unw
 static PACKAGE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"Package: (.+)"#).unwrap());
 
 /// Debian package (.deb)
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct DebianPackage {
     pub control: String,
     pub md5: String,
