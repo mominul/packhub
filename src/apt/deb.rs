@@ -1,6 +1,6 @@
 use std::io::Read;
 
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 use libflate::gzip::Decoder;
 use md5::Md5;
 use mongodb::bson::{from_slice, to_vec};
@@ -46,7 +46,10 @@ impl DebianPackage {
             bail!("Package data is not available");
         };
 
-        let control = read_control_file(&data).trim_end().to_owned();
+        let control = read_control_file(&data)
+            .context("Error occurred while parsing the debian control file from package")?
+            .trim_end()
+            .to_owned();
         let filename = format!("pool/stable/{}/{}", package.version(), package.file_name());
 
         let size = data.len();
@@ -92,40 +95,41 @@ impl DebianPackage {
     }
 }
 
-fn read_control_file(data: &[u8]) -> String {
+fn read_control_file(data: &[u8]) -> Result<String> {
     let mut archive = ar::Archive::new(data);
 
     while let Some(entry_result) = archive.next_entry() {
-        let mut entry = entry_result.unwrap();
+        let mut entry = entry_result?;
         let header = entry.header();
         let name = String::from_utf8_lossy(header.identifier());
         if name == "control.tar.gz" {
             let mut data = Vec::new();
-            entry.read_to_end(&mut data).unwrap();
+            entry.read_to_end(&mut data)?;
 
             // Un-compress the control.tar.gz
-            let mut decoder = Decoder::new(&data[..]).unwrap();
+            let mut decoder = Decoder::new(&data[..])?;
             let mut data = Vec::new();
-            decoder.read_to_end(&mut data).unwrap();
+            decoder.read_to_end(&mut data)?;
 
             // Read the control.tar archive
             let mut archive = tar::Archive::new(&data[..]);
-            for entry in archive.entries().unwrap() {
-                let mut entry = entry.unwrap();
+            for entry in archive.entries()? {
+                let mut entry = entry?;
 
-                let path = entry.path().unwrap();
+                let path = entry.path()?;
                 let path = path.to_str().unwrap();
 
                 if path == "./control" {
                     let mut control = String::new();
-                    entry.read_to_string(&mut control).unwrap();
+                    entry.read_to_string(&mut control)?;
 
-                    return control;
+                    return Ok(control);
                 }
             }
         }
     }
-    return String::new();
+
+    bail!("Control file not found");
 }
 
 #[cfg(test)]
