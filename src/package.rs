@@ -12,7 +12,6 @@ struct InnerPackage {
     ver: String,
     data: Mutex<Data>,
     created: DateTime<Utc>,
-    updated: DateTime<Utc>,
 }
 
 #[derive(Clone, PartialEq)]
@@ -51,7 +50,6 @@ impl PartialEq for InnerPackage {
             && self.ver == other.ver
             && *self.data.lock().unwrap() == *other.data.lock().unwrap()
             && self.created == other.created
-            && self.updated == other.updated
     }
 }
 
@@ -61,7 +59,6 @@ impl Package {
         ver: String,
         url: String,
         created: DateTime<Utc>,
-        updated: DateTime<Utc>,
     ) -> Result<Package> {
         // Split the extension first.
         // If we don't recognize it, then return error.
@@ -88,7 +85,6 @@ impl Package {
             ver,
             data: Mutex::new(Data::None),
             created,
-            updated,
         };
 
         Ok(Self {
@@ -145,10 +141,6 @@ impl Package {
 
     pub fn creation_date(&self) -> &DateTime<Utc> {
         &self.inner.created
-    }
-
-    pub fn updated_date(&self) -> &DateTime<Utc> {
-        &self.inner.updated
     }
 
     /// Set the package metadata.
@@ -224,7 +216,6 @@ mod tests {
             "2.0.0".to_owned(),
             String::new(),
             DateTime::UNIX_EPOCH,
-            DateTime::UNIX_EPOCH,
         )
         .unwrap();
         assert_eq!(pack.version(), "2.0.0");
@@ -238,7 +229,6 @@ mod tests {
             "OpenBangla-Keyboard_2.0.0-fedora36.rpm",
             "2.0.0".to_owned(),
             String::new(),
-            DateTime::UNIX_EPOCH,
             DateTime::UNIX_EPOCH,
         )
         .unwrap();
@@ -254,7 +244,6 @@ mod tests {
             "v2.56.1".to_owned(),
             String::new(),
             DateTime::UNIX_EPOCH,
-            DateTime::UNIX_EPOCH,
         )
         .unwrap();
         assert_eq!(pack.version(), "v2.56.1");
@@ -268,7 +257,6 @@ mod tests {
             "OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb",
             "2.0.0".to_owned(),
             String::new(),
-            DateTime::UNIX_EPOCH,
             DateTime::UNIX_EPOCH,
         )
         .unwrap();

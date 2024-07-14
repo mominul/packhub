@@ -24,7 +24,6 @@ impl PackageMetadata {
         Some(Self {
             name: package.file_name().to_owned(),
             created_at: package.creation_date().clone(),
-            updated_at: package.updated_date().clone(),
             metadata,
         })
     }
@@ -34,7 +33,7 @@ impl PackageMetadata {
         package: &Package,
     ) -> Option<Self> {
         collection
-            .find_one(doc! { "name": package.file_name() })
+            .find_one(doc! { "name": package.file_name(), "created_at": package.creation_date() })
             .await
             .unwrap()
     }
@@ -71,7 +70,7 @@ mod tests {
         let container = Mongo::default().start().await.unwrap();
         let client = setup_mongodb(&container).await;
 
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), DateTime::parse_from_rfc3339("2024-07-01T00:00:00Z").unwrap().into(), DateTime::parse_from_rfc3339("2024-07-09T00:00:00Z").unwrap().into()).unwrap();
+        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), DateTime::parse_from_rfc3339("2024-07-01T00:00:00Z").unwrap().into()).unwrap();
         let data = read("data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb").unwrap();
         package.set_package_data(data);
 
@@ -89,5 +88,12 @@ mod tests {
             .unwrap();
 
         assert_eq!(metadata, retrieved);
+
+        let non_existent = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), DateTime::parse_from_rfc3339("2024-07-10T00:00:00Z").unwrap().into()).unwrap();
+
+        assert_eq!(
+            PackageMetadata::retrieve_from(&collection, &non_existent).await,
+            None
+        );
     }
 }

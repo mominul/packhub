@@ -196,7 +196,7 @@ mod tests {
 
     #[test]
     fn test_parser() {
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm".to_owned(), DateTime::UNIX_EPOCH, DateTime::UNIX_EPOCH).unwrap();
+        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm".to_owned(), DateTime::UNIX_EPOCH).unwrap();
         let data = read("data/OpenBangla-Keyboard_2.0.0-fedora38.rpm").unwrap();
         package.set_package_data(data);
         let parsed = RPMPackage::from_package(&package).unwrap();
@@ -206,14 +206,14 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_package_without_data() {
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm".to_owned(), DateTime::UNIX_EPOCH, DateTime::UNIX_EPOCH).unwrap();
+        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm".to_owned(), DateTime::UNIX_EPOCH).unwrap();
 
         RPMPackage::from_package(&package).unwrap();
     }
 
     #[test]
     fn test_loading_from_metadata() {
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm".to_owned(), DateTime::UNIX_EPOCH, DateTime::UNIX_EPOCH).unwrap();
+        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm".to_owned(), DateTime::UNIX_EPOCH).unwrap();
         let data = read("data/OpenBangla-Keyboard_2.0.0-fedora38.rpm").unwrap();
         package.set_package_data(data);
         let _ = RPMPackage::from_package(&package).unwrap();

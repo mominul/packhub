@@ -78,7 +78,6 @@ mod tests {
             String::new(),
             String::new(),
             chrono::DateTime::UNIX_EPOCH,
-            chrono::DateTime::UNIX_EPOCH,
         )
         .unwrap()
     }
