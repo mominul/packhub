@@ -42,6 +42,20 @@ impl std::fmt::Debug for Package {
     }
 }
 
+impl Eq for Package {}
+
+impl PartialOrd for Package {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Package {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.file_name().cmp(other.file_name())
+    }
+}
+
 impl PartialEq for InnerPackage {
     fn eq(&self, other: &Self) -> bool {
         self.tipe == other.tipe

@@ -151,6 +151,8 @@ impl Repository {
             self.downloaded.push(package);
         }
 
+        result.sort();
+
         Ok(result)
     }
 }

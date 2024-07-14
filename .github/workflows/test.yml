@@ -51,6 +51,11 @@ jobs:
         docker build -t ubuntu23.04-multi -f images/ubuntu23.04-multi-package.Dockerfile scripts/
         docker run --name ubuntu23.04-multitest --network host ubuntu23.04-multi || true
     
+    - name: Build and run Fedora 38 container for checking multiple package support
+      run: |
+        docker build -t fedora38 -f images/fedora38-multi-package.Dockerfile scripts/
+        docker run --name fedora38-multitest --network host fedora38 || true
+    
     - name: Check server logs
       run: |
         docker logs server-container || true
@@ -69,5 +74,10 @@ jobs:
 
         if [ "$(docker inspect -f '{{.State.ExitCode}}' ubuntu23.04-multitest)" -ne 0 ]; then
           echo "Test on Ubuntu 23.04 for multiple package support failed"
+          exit 1
+        fi
+
+        if [ "$(docker inspect -f '{{.State.ExitCode}}' fedora38-multitest)" -ne 0 ]; then
+          echo "Test on Fedora 38 failed multiple package support failed"
           exit 1
         fi
