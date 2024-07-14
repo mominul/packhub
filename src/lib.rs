@@ -6,10 +6,12 @@ use axum::{
     routing::get,
     Router,
 };
+use mongodb::Client;
 use tower_http::trace::TraceLayer;
 use tracing::{debug, Span};
 
 mod apt;
+mod db;
 mod package;
 pub mod pgp;
 mod platform;
@@ -23,13 +25,14 @@ async fn public_key() -> String {
     std::fs::read_to_string("packhub.asc").unwrap()
 }
 
-pub fn app() -> Router {
+pub fn app(client: Client) -> Router {
     Router::new()
         .nest("/apt", apt::apt_routes())
         .nest("/rpm", rpm::rpm_routes())
         .route("/", get(|| async { StatusCode::OK }))
         .route("/keys/packhub.asc", get(public_key))
         .nest("/sh", script::script_routes())
+        .with_state(client)
         .layer(
             TraceLayer::new_for_http().on_response(|response: &Response<Body>, latency: Duration, _: &Span| {
                 debug!(size=response_size(response),latency=?latency,status=%response_status(response), "finished processing request");

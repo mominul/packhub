@@ -139,6 +139,8 @@
 2024-01-19T19:15:46.827531Z DEBUG request{method=GET uri=/rpm/github/OpenBangla/OpenBangla-Keyboard/repodata/primary.xml.zst version=HTTP/1.1 headers={"host": "127.0.0.1:3000", "user-agent": "libdnf (Fedora Linux 38; container; Linux.x86_64)", "accept": "*/*"}}: tower_http::trace::on_response: finished processing request latency=7530 ms status=200
 
 
+echo "deb [trusted=yes] http://host.docker.internal:3000/apt/github/mominul/pack-exp3 stable main" > /etc/apt/sources.list.d/openbangla-keyboard.list
+
 apt-get install wget gpg
 wget -qO- http://host.docker.internal:3000/keys/packhub.asc | gpg --dearmor > packhub.gpg
 install -D -o root -g root -m 644 packhub.gpg /etc/apt/keyrings/packhub.gpg
@@ -146,4 +148,6 @@ echo "deb [signed-by=/etc/apt/keyrings/packhub.gpg] http://host.docker.internal:
 
 wget -qO- http://host.docker.internal:3000/sh/github/ubuntu/OpenBangla/OpenBangla-Keyboard | sh
 
-# sh -c 'echo -e "[obk]\nname=OpenBangla Keyboard\nbaseurl=http://host.docker.internal:3000/rpm/github/OpenBangla/OpenBangla-Keyboard/\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=http://host.docker.internal:3000/keys/packhub.asc" > /etc/yum.repos.d/obk.repo'
+sh -c 'echo -e "[obk]\nname=OpenBangla Keyboard\nbaseurl=http://host.docker.internal:3000/rpm/github/OpenBangla/OpenBangla-Keyboard/\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=http://host.docker.internal:3000/keys/packhub.asc" > /etc/yum.repos.d/obk.repo'
+
+sh -c 'echo -e "[obk]\nname=OpenBangla Keyboard\nbaseurl=http://host.docker.internal:3000/rpm/github/mominul/pack-exp3/\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=http://host.docker.internal:3000/keys/packhub.asc" > /etc/yum.repos.d/obk.repo'

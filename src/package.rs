@@ -1,17 +1,39 @@
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use anyhow::{bail, Result};
 use chrono::{DateTime, Utc};
 
 use crate::utils::{Dist, Type};
 
-pub struct Package {
+struct InnerPackage {
     tipe: Type,
-    pub(crate) dist: Option<Dist>,
+    dist: Option<Dist>,
     url: String,
     ver: String,
-    data: Mutex<Option<Vec<u8>>>,
+    data: Mutex<Data>,
     created: DateTime<Utc>,
+}
+
+#[derive(Clone, PartialEq)]
+pub struct Package {
+    inner: Arc<InnerPackage>,
+}
+
+/// Data type for package data and metadata.
+///
+/// It is used to differentiate between package data and metadata.
+///
+/// `Data::Package` is used for package data. It is the actual package
+/// file which needs to be processed to extract the metadata.
+///
+/// `Data::Metadata` is used for package metadata.
+///
+/// `Data::None` is used when no data is available.
+#[derive(Clone, PartialEq)]
+pub enum Data {
+    Package(Vec<u8>),
+    Metadata(String),
+    None,
 }
 
 impl std::fmt::Debug for Package {
@@ -20,21 +42,7 @@ impl std::fmt::Debug for Package {
     }
 }
 
-impl Clone for Package {
-    fn clone(&self) -> Self {
-        let data = self.data.lock().unwrap().clone();
-        Self {
-            tipe: self.tipe.clone(),
-            dist: self.dist.clone(),
-            url: self.url.clone(),
-            ver: self.ver.clone(),
-            data: Mutex::new(data),
-            created: self.created.clone(),
-        }
-    }
-}
-
-impl PartialEq for Package {
+impl PartialEq for InnerPackage {
     fn eq(&self, other: &Self) -> bool {
         self.tipe == other.tipe
             && self.dist == other.dist
@@ -70,36 +78,40 @@ impl Package {
             }
         }
 
-        Ok(Package {
+        let inner = InnerPackage {
             tipe,
             dist,
             url,
             ver,
-            data: Mutex::new(None),
+            data: Mutex::new(Data::None),
             created,
+        };
+
+        Ok(Self {
+            inner: Arc::new(inner),
         })
     }
 
     pub fn ty(&self) -> &Type {
-        &self.tipe
+        &self.inner.tipe
     }
 
     /// Return the distribution for which it was packaged
     pub fn distribution(&self) -> &Option<Dist> {
-        &self.dist
+        &self.inner.dist
     }
 
     /// Version of the package
     pub fn version(&self) -> &str {
-        &self.ver
+        &self.inner.ver
     }
 
     pub fn download_url(&self) -> &str {
-        &self.url
+        &self.inner.url
     }
 
     pub fn file_name(&self) -> &str {
-        &self.url.split('/').last().unwrap()
+        &self.inner.url.split('/').last().unwrap()
     }
 
     /// Download package data
@@ -107,28 +119,38 @@ impl Package {
     /// It is required to call this function before calling the `data()` function.
     pub async fn download(&self) -> Result<()> {
         let data = reqwest::get(self.download_url()).await?.bytes().await?;
-        *self.data.lock().unwrap() = Some(data.to_vec());
+        *self.inner.data.lock().unwrap() = Data::Package(data.to_vec());
         Ok(())
     }
 
     /// Return the data of the package.
     ///
-    /// It is required to call the `download()` function before calling this.
+    /// It is required to call the `download()` or `set_metadata()` function before calling this.
     /// Otherwise, `None` is returned.
-    pub fn data(&self) -> Option<Vec<u8>> {
-        self.data.lock().unwrap().clone()
+    pub fn data(&self) -> Data {
+        self.inner.data.lock().unwrap().clone()
     }
 
     #[cfg(test)]
-    /// Set the internal package data.
+    /// Set the package data.
     ///
     /// It's for testing purpose.
-    pub fn set_data(&self, data: Vec<u8>) {
-        *self.data.lock().unwrap() = Some(data);
+    pub fn set_package_data(&self, data: Vec<u8>) {
+        *self.inner.data.lock().unwrap() = Data::Package(data);
     }
 
     pub fn creation_date(&self) -> &DateTime<Utc> {
-        &self.created
+        &self.inner.created
+    }
+
+    /// Set the package metadata.
+    pub fn set_metadata(&self, metadata: String) {
+        *self.inner.data.lock().unwrap() = Data::Metadata(metadata);
+    }
+
+    /// Check if metadata is available.
+    pub fn is_metadata_available(&self) -> bool {
+        matches!(*self.inner.data.lock().unwrap(), Data::Metadata(_))
     }
 }
 
@@ -197,8 +219,11 @@ mod tests {
         )
         .unwrap();
         assert_eq!(pack.version(), "2.0.0");
-        assert_eq!(pack.dist, Some(Dist::Ubuntu(Some("22.04".to_owned()))));
-        assert_eq!(pack.tipe, Type::Deb);
+        assert_eq!(
+            *pack.distribution(),
+            Some(Dist::Ubuntu(Some("22.04".to_owned())))
+        );
+        assert_eq!(*pack.ty(), Type::Deb);
 
         let pack = Package::detect_package(
             "OpenBangla-Keyboard_2.0.0-fedora36.rpm",
@@ -208,8 +233,11 @@ mod tests {
         )
         .unwrap();
         assert_eq!(pack.version(), "2.0.0");
-        assert_eq!(pack.dist, Some(Dist::Fedora(Some("36".to_owned()))));
-        assert_eq!(pack.tipe, Type::Rpm);
+        assert_eq!(
+            *pack.distribution(),
+            Some(Dist::Fedora(Some("36".to_owned())))
+        );
+        assert_eq!(*pack.ty(), Type::Rpm);
 
         let pack = Package::detect_package(
             "caprine_2.56.1_amd64.deb",
@@ -219,8 +247,26 @@ mod tests {
         )
         .unwrap();
         assert_eq!(pack.version(), "v2.56.1");
-        assert_eq!(pack.dist, None);
-        assert_eq!(pack.tipe, Type::Deb);
+        assert_eq!(*pack.distribution(), None);
+        assert_eq!(*pack.ty(), Type::Deb);
+    }
+
+    #[test]
+    fn test_package_change_propagation() {
+        let pack = Package::detect_package(
+            "OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb",
+            "2.0.0".to_owned(),
+            String::new(),
+            DateTime::UNIX_EPOCH,
+        )
+        .unwrap();
+
+        assert!(!pack.is_metadata_available());
+
+        let pack2 = pack.clone();
+        pack2.set_metadata(String::new());
+
+        assert!(pack.is_metadata_available());
     }
 
     #[test]

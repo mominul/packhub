@@ -1,3 +1,4 @@
+use mongodb::Client;
 use packhub::{app, pgp::generate_and_save_keys};
 use std::{env::args, net::SocketAddr};
 use tracing::{info, Level};
@@ -22,11 +23,15 @@ async fn main() {
         }
     }
 
+    let client = Client::with_uri_str("mongodb://root:pass@localhost:27017")
+        .await
+        .unwrap();
+
     let addr: SocketAddr = "0.0.0.0:3000".parse().unwrap();
 
     info!("listening on {}", addr);
 
     // run it
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, app()).await.unwrap();
+    axum::serve(listener, app(client)).await.unwrap();
 }
