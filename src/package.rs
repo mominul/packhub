@@ -10,7 +10,7 @@ struct InnerPackage {
     dist: Option<Dist>,
     url: String,
     ver: String,
-    data: Mutex<Data<Vec<u8>>>,
+    data: Mutex<Data>,
     created: DateTime<Utc>,
     updated: DateTime<Utc>,
 }
@@ -31,9 +31,9 @@ pub struct Package {
 ///
 /// `Data::None` is used when no data is available.
 #[derive(Clone, PartialEq)]
-pub enum Data<T> {
-    Package(T),
-    Metadata(T),
+pub enum Data {
+    Package(Vec<u8>),
+    Metadata(String),
     None,
 }
 
@@ -131,7 +131,7 @@ impl Package {
     ///
     /// It is required to call the `download()` or `set_metadata()` function before calling this.
     /// Otherwise, `None` is returned.
-    pub fn data(&self) -> Data<Vec<u8>> {
+    pub fn data(&self) -> Data {
         self.inner.data.lock().unwrap().clone()
     }
 
@@ -152,7 +152,7 @@ impl Package {
     }
 
     /// Set the package metadata.
-    pub fn set_metadata(&self, metadata: Vec<u8>) {
+    pub fn set_metadata(&self, metadata: String) {
         *self.inner.data.lock().unwrap() = Data::Metadata(metadata);
     }
 
@@ -276,7 +276,7 @@ mod tests {
         assert!(!pack.is_metadata_available());
 
         let pack2 = pack.clone();
-        pack2.set_metadata(Vec::new());
+        pack2.set_metadata(String::new());
 
         assert!(pack.is_metadata_available());
     }

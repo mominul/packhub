@@ -3,10 +3,10 @@ use std::io::Read;
 use anyhow::{bail, Context, Result};
 use libflate::gzip::Decoder;
 use md5::Md5;
-use mongodb::bson::{from_slice, to_vec};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use serde_json::{from_str, to_string};
 use sha1::Sha1;
 use sha2::{Sha256, Sha512};
 
@@ -37,7 +37,7 @@ impl DebianPackage {
     pub fn from_package(package: &Package) -> Result<Self> {
         // Create the debian package from the metadata if it is present.
         if let Data::Metadata(metadata) = package.data() {
-            let package: DebianPackage = from_slice(&metadata)?;
+            let package: DebianPackage = from_str(&metadata)?;
 
             return Ok(package);
         }
@@ -68,7 +68,7 @@ impl DebianPackage {
             filename,
         };
 
-        let metadata = to_vec(&deb)?;
+        let metadata = to_string(&deb)?;
         package.set_metadata(metadata);
 
         Ok(deb)

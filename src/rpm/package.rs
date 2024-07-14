@@ -1,7 +1,7 @@
 use anyhow::{bail, Context, Result};
-use mongodb::bson::{from_slice, to_vec};
 use rpm::{DependencyFlags, FileMode, IndexSignatureTag};
 use serde::{Deserialize, Serialize};
+use serde_json::{from_str, to_string};
 use sha2::Sha256;
 
 use crate::{
@@ -58,7 +58,7 @@ impl RPMPackage {
     pub fn from_package(package: &Package) -> Result<RPMPackage> {
         // If the metadata is already available, then build the RPMPackage from it
         if let Data::Metadata(metadata) = package.data() {
-            let rpm: RPMPackage = from_slice(&metadata)?;
+            let rpm: RPMPackage = from_str(&metadata)?;
             return Ok(rpm);
         }
 
@@ -166,7 +166,7 @@ impl RPMPackage {
         };
 
         // Set the matadata to the package
-        let metadata = to_vec(&rpm)?;
+        let metadata = to_string(&rpm)?;
         package.set_metadata(metadata);
 
         Ok(rpm)

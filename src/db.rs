@@ -9,9 +9,7 @@ pub struct PackageMetadata {
     name: String,
     #[serde(with = "mongodb::bson::serde_helpers::chrono_datetime_as_bson_datetime")]
     created_at: DateTime<Utc>,
-    #[serde(with = "mongodb::bson::serde_helpers::chrono_datetime_as_bson_datetime")]
-    updated_at: DateTime<Utc>,
-    metadata: Vec<u8>,
+    metadata: String,
 }
 
 impl PackageMetadata {
@@ -41,7 +39,7 @@ impl PackageMetadata {
             .unwrap()
     }
 
-    pub fn data(self) -> Vec<u8> {
+    pub fn data(self) -> String {
         self.metadata
     }
 }
