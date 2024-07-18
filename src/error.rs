@@ -1,10 +1,12 @@
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
+use tracing::error;
 
 pub struct AppError(anyhow::Error);
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
+        error!("Something went wrong: {}", self.0);
         (
             StatusCode::NOT_FOUND,
             format!("Something went wrong: {}", self.0),
