@@ -1,9 +1,11 @@
 use std::fs;
 
 use anyhow::Result;
+use axum::{routing::get, Router};
+use mongodb::Client;
 use pgp::{
-    cleartext::CleartextSignedMessage, types::SecretKeyTrait, ArmorOptions, Deserializable,
-    KeyType, Message, SecretKeyParamsBuilder, SignedPublicKey, SignedSecretKey,
+    cleartext::CleartextSignedMessage, ser::Serialize, types::SecretKeyTrait, ArmorOptions,
+    Deserializable, KeyType, Message, SecretKeyParamsBuilder, SignedPublicKey, SignedSecretKey,
 };
 
 pub fn load_secret_key_from_file() -> Result<SignedSecretKey> {
@@ -71,6 +73,20 @@ pub fn generate_and_save_keys() -> Result<()> {
 pub fn public_key_from_secret_key(secret_key: &SignedSecretKey) -> Result<SignedPublicKey> {
     let public_key = secret_key.public_key();
     Ok(public_key.sign(&secret_key, || String::new())?)
+}
+
+fn dearmored_public_key() -> Vec<u8> {
+    let key = load_public_key_from_file().unwrap();
+    key.to_bytes().unwrap()
+}
+
+pub fn keys() -> Router<Client> {
+    Router::new()
+        .route(
+            "/packhub.asc",
+            get(|| async { fs::read_to_string("packhub.asc").unwrap() }),
+        )
+        .route("/packhub.gpg", get(dearmored_public_key()))
 }
 
 #[cfg(test)]

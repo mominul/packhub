@@ -21,16 +21,12 @@ mod script;
 mod selector;
 mod utils;
 
-async fn public_key() -> String {
-    std::fs::read_to_string("packhub.asc").unwrap()
-}
-
 pub fn app(client: Client) -> Router {
     Router::new()
+        .route("/", get(|| async { StatusCode::OK }))
         .nest("/apt", apt::apt_routes())
         .nest("/rpm", rpm::rpm_routes())
-        .route("/", get(|| async { StatusCode::OK }))
-        .route("/keys/packhub.asc", get(public_key))
+        .nest("/keys", pgp::keys())
         .nest("/sh", script::script_routes())
         .with_state(client)
         .layer(
