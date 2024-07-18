@@ -12,6 +12,7 @@ use tracing::{debug, Span};
 
 mod apt;
 mod db;
+mod error;
 mod package;
 pub mod pgp;
 mod platform;

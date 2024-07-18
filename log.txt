@@ -141,8 +141,8 @@
 
 echo "deb [trusted=yes] http://host.docker.internal:3000/apt/github/mominul/pack-exp3 stable main" > /etc/apt/sources.list.d/openbangla-keyboard.list
 
-apt-get install wget gpg
-wget -qO- http://host.docker.internal:3000/keys/packhub.asc | gpg --dearmor > packhub.gpg
+apt-get install wget
+wget -qO- http://host.docker.internal:3000/keys/packhub.gpg > packhub.gpg
 install -D -o root -g root -m 644 packhub.gpg /etc/apt/keyrings/packhub.gpg
 echo "deb [signed-by=/etc/apt/keyrings/packhub.gpg] http://host.docker.internal:3000/apt/github/OpenBangla/OpenBangla-Keyboard stable main" > /etc/apt/sources.list.d/openbangla-keyboard.list
 
