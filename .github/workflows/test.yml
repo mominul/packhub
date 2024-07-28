@@ -46,6 +46,11 @@ jobs:
         docker build -t fedora38 -f images/fedora38.Dockerfile scripts/
         docker run --name fedora38-test --network host fedora38 || true
 
+    - name: Build and run Debian 12 container
+      run: |
+        docker build -t debian12 -f images/debian12.Dockerfile scripts/
+        docker run --name debian12-test --network host debian12 || true
+
     - name: Build and run Ubuntu 23.04 container for checking multiple package support
       run: |
         docker build -t ubuntu23.04-multi -f images/ubuntu23.04-multi-package.Dockerfile scripts/
@@ -55,6 +60,11 @@ jobs:
       run: |
         docker build -t fedora38 -f images/fedora38-multi-package.Dockerfile scripts/
         docker run --name fedora38-multitest --network host fedora38 || true
+
+    - name: Build and run Debian 12 container for checking multiple package support
+      run: |
+        docker build -t debian12-multi -f images/debian12-multi-package.Dockerfile scripts/
+        docker run --name debian12-multitest --network host debian12-multi || true
     
     - name: Check server logs
       run: |
@@ -72,6 +82,11 @@ jobs:
           exit 1
         fi
 
+        if [ "$(docker inspect -f '{{.State.ExitCode}}' debian12-test)" -ne 0 ]; then
+          echo "Test on Debian 12 failed"
+          exit 1
+        fi
+
         if [ "$(docker inspect -f '{{.State.ExitCode}}' ubuntu23.04-multitest)" -ne 0 ]; then
           echo "Test on Ubuntu 23.04 for multiple package support failed"
           exit 1
@@ -79,5 +94,10 @@ jobs:
 
         if [ "$(docker inspect -f '{{.State.ExitCode}}' fedora38-multitest)" -ne 0 ]; then
           echo "Test on Fedora 38 failed multiple package support failed"
+          exit 1
+        fi
+
+        if [ "$(docker inspect -f '{{.State.ExitCode}}' debian12-multitest)" -ne 0 ]; then
+          echo "Test on Debian 12 for multiple package support failed"
           exit 1
         fi

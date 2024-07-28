@@ -4,6 +4,6 @@ WORKDIR /app
 
 COPY . .
 
-ENV DIST=ubuntu
+ENV DIST=debian
 
 ENTRYPOINT ["./check_apt_multiple.sh"]

@@ -1,9 +1,9 @@
-FROM ubuntu:23.04
+FROM debian:12
 
 WORKDIR /app
 
 COPY . .
 
-ENV DIST=ubuntu
+ENV DIST=debian
 
 ENTRYPOINT ["./check_apt.sh"]

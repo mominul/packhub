@@ -10,19 +10,12 @@ pub(crate) fn select_packages<'p>(from: &'p [Package], dist: Dist) -> Vec<&Packa
         }
     }
 
+    // Find exact matches for the distribution. 
     let mut selective = Vec::new();
 
-    if let Dist::Ubuntu(_) = dist {
-        for package in packages.iter() {
-            if Some(&dist) == package.distribution().as_ref() {
-                selective.push(*package);
-            }
-        }
-    } else if let Dist::Fedora(_) = dist {
-        for package in packages.iter() {
-            if Some(&dist) == package.distribution().as_ref() {
-                selective.push(*package);
-            }
+    for package in packages.iter() {
+        if Some(&dist) == package.distribution().as_ref() {
+            selective.push(*package);
         }
     }
 
@@ -107,6 +100,16 @@ mod tests {
         assert_eq!(
             select_packages(&packages, Dist::Fedora(Some("38".to_owned()))),
             vec![&package("OpenBangla-Keyboard_2.0.0-fedora38.rpm")]
+        );
+    }
+
+    #[test]
+    fn test_package_selection_debian() {
+        let packages: Vec<Package> = openbangla_keyboard_packages();
+
+        assert_eq!(
+            select_packages(&packages, Dist::Debian(Some("11".to_owned()))),
+            vec![&package("OpenBangla-Keyboard_2.0.0-debian11.deb")]
         );
     }
 

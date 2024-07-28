@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sh -c 'echo -e "[obk]\nname=OpenBangla Keyboard\nbaseurl=http://localhost:3000/rpm/github/mominul/pack-exp2\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=http://localhost:3000/keys/packhub.asc" > /etc/yum.repos.d/obk.repo'
+sh -c 'echo -e "[obk]\nname=OpenBangla Keyboard\nbaseurl=http://localhost:3000/v1/rpm/github/mominul/pack-exp2\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=http://localhost:3000/keys/packhub.asc" > /etc/yum.repos.d/obk.repo'
 
 output=$(yes | dnf search openbangla 2>&1)
 status=$?

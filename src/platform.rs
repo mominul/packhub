@@ -30,7 +30,7 @@ static DEBIAN_VERSIONS: Lazy<HashMap<VersionReq, Dist>> = Lazy::new(|| {
         matcher_debian("=1.8.2+3", "10"),
         matcher_debian("=2.2.4", "11"),
         matcher_debian(">=2.5.4, <=2.6.1", "12"),
-        matcher_debian("=2.7.6", "13"),
+        matcher_debian(">=2.7.6, <=2.9.6", "13"),
     ]
     .into()
 });
@@ -55,7 +55,7 @@ pub(crate) fn match_ubuntu_for_apt(ver: &str) -> Dist {
 }
 
 /// Returns the Debian version matching to the `apt` version it comes with.
-fn match_debian_for_apt(ver: &str) -> Dist {
+pub(crate) fn match_debian_for_apt(ver: &str) -> Dist {
     let mut dist = Dist::Debian(None);
 
     let mut apt = parse(ver).unwrap();
@@ -206,6 +206,10 @@ mod tests {
         );
         assert_eq!(
             match_debian_for_apt("2.7.6"),
+            Dist::Debian(Some("13".to_owned()))
+        );
+        assert_eq!(
+            match_debian_for_apt("2.9.6"),
             Dist::Debian(Some("13".to_owned()))
         );
     }

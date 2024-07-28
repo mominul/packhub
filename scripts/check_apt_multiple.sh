@@ -3,7 +3,7 @@
 apt update
 apt install sudo wget -y
 
-wget -qO- http://localhost:3000/sh/github/ubuntu/mominul/pack-exp2 | sh
+wget -qO- http://localhost:3000/sh/$DIST/github/mominul/pack-exp2 | sh
 
 output=$(apt search openbangla 2>&1)
 status=$?

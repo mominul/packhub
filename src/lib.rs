@@ -22,25 +22,24 @@ mod script;
 mod selector;
 mod utils;
 
+fn v1() -> Router<Client> {
+    Router::new()
+        .nest("/apt", apt::apt_routes())
+        .nest("/rpm", rpm::rpm_routes())
+}
+
 pub fn app(client: Client) -> Router {
     Router::new()
         .route("/", get(|| async { StatusCode::OK }))
-        .nest("/apt", apt::apt_routes())
-        .nest("/rpm", rpm::rpm_routes())
+        .nest("/v1", v1())
         .nest("/keys", pgp::keys())
         .nest("/sh", script::script_routes())
         .with_state(client)
-        .layer(
-            TraceLayer::new_for_http().on_response(|response: &Response<Body>, latency: Duration, _: &Span| {
-                debug!(size=response_size(response),latency=?latency,status=%response_status(response), "finished processing request");
-            })
-        )
-}
-
-fn response_size(response: &Response<Body>) -> u64 {
-    response.body().size_hint().upper().unwrap_or(0)
-}
-
-fn response_status(response: &Response<Body>) -> StatusCode {
-    response.status()
+        .layer(TraceLayer::new_for_http().on_response(
+            |response: &Response<Body>, latency: Duration, _: &Span| {
+                let size = response.body().size_hint().upper().unwrap_or(0);
+                let status = response.status();
+                debug!(size=size,latency=?latency,status=%status, "finished processing request");
+            },
+        ))
 }

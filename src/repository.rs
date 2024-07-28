@@ -10,7 +10,7 @@ use tracing::{debug, error};
 use crate::{
     db::PackageMetadata,
     package::Package,
-    platform::{detect_rpm_os, get_apt_version, match_ubuntu_for_apt},
+    platform::{detect_rpm_os, get_apt_version, match_debian_for_apt, match_ubuntu_for_apt},
     selector::select_packages,
 };
 
@@ -81,16 +81,24 @@ impl Repository {
         }
     }
 
-    /// Select packages for Ubuntu.
+    /// Select packages for apt based distributions.
+    ///
+    /// The `distro` parameter is the name of the distribution (`debian`, `ubuntu`).
     ///
     /// The `agent` parameter is the user-agent string of the apt client.
     ///
     /// It returns a vector of packages that are compatible with the given agent.
     ///
     /// It also downloads the selected packages if the metadata is not available.
-    pub async fn select_package_ubuntu(&mut self, agent: &str) -> Result<Vec<Package>> {
+    pub async fn select_package_apt(&mut self, distro: &str, agent: &str) -> Result<Vec<Package>> {
         let apt = get_apt_version(agent);
-        let dist = match_ubuntu_for_apt(apt);
+
+        let dist = match distro {
+            "ubuntu" => match_ubuntu_for_apt(apt),
+            "debian" => match_debian_for_apt(apt),
+            dist => bail!("Unknown apt distribution {dist}"),
+        };
+
         let packages: Vec<Package> = select_packages(&self.packages, dist)
             .into_iter()
             .map(|p| p.clone())
