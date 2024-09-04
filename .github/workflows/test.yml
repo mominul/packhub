@@ -65,6 +65,11 @@ jobs:
       run: |
         docker build -t debian12-multi -f images/debian12-multi-package.Dockerfile scripts/
         docker run --name debian12-multitest --network host debian12-multi || true
+
+    - name: Build and run OpenSuse Tumbleweed container for checking multiple package support
+      run: |
+        docker build -t tumbleweed-multi -f images/tumbleweed-multi-package.Dockerfile scripts/
+        docker run --name tumbleweed-multitest --network host tumbleweed-multi || true
     
     - name: Check server logs
       run: |
@@ -99,5 +104,10 @@ jobs:
 
         if [ "$(docker inspect -f '{{.State.ExitCode}}' debian12-multitest)" -ne 0 ]; then
           echo "Test on Debian 12 for multiple package support failed"
+          exit 1
+        fi
+
+        if [ "$(docker inspect -f '{{.State.ExitCode}}' tumbleweed-multitest)" -ne 0 ]; then
+          echo "Test on OpenSuse Tumbleweed for multiple package support failed"
           exit 1
         fi

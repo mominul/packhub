@@ -8,6 +8,21 @@ pub enum Dist {
     Ubuntu(Option<String>),
     Debian(Option<String>),
     Fedora(Option<String>),
+    Tumbleweed,
+}
+
+impl Dist {
+    /// Check if it matches the `dist` without regarding its version.
+    ///
+    /// A loose check than `==`.
+    pub fn matches_distribution(&self, dist: &Dist) -> bool {
+        match self {
+            Dist::Debian(_) => matches!(dist, Dist::Debian(_)),
+            Dist::Ubuntu(_) => matches!(dist, Dist::Ubuntu(_)),
+            Dist::Fedora(_) => matches!(dist, Dist::Fedora(_)),
+            Dist::Tumbleweed => matches!(dist, Dist::Tumbleweed),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -36,7 +51,7 @@ impl Type {
     pub fn matches_distribution(&self, dist: &Dist) -> bool {
         match self {
             Type::Deb => matches!(dist, Dist::Debian(_) | Dist::Ubuntu(_)),
-            Type::Rpm => matches!(dist, Dist::Fedora(_)),
+            Type::Rpm => matches!(dist, Dist::Fedora(_) | Dist::Tumbleweed),
         }
     }
 }
@@ -59,5 +74,12 @@ mod tests {
         assert!(Type::Deb.matches_distribution(&Dist::Ubuntu(None)));
         assert!(!Type::Deb.matches_distribution(&Dist::Fedora(None)));
         assert!(Type::Rpm.matches_distribution(&Dist::Fedora(None)));
+        assert!(Type::Rpm.matches_distribution(&Dist::Tumbleweed));
+    }
+
+    #[test]
+    fn test_dist_matches() {
+        assert!(Dist::Ubuntu(None).matches_distribution(&Dist::Ubuntu(Some("24.04".to_owned()))));
+        assert!(!Dist::Debian(None).matches_distribution(&Dist::Ubuntu(Some("24.04".to_owned()))));
     }
 }

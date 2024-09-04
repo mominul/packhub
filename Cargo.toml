@@ -37,7 +37,7 @@ serde_json = "1"
 
 [dev-dependencies]
 insta = { version = "1", features = ["filters"] }
-testcontainers-modules = { version = "0.8", features = ["mongo"] }
+testcontainers-modules = { version = "0.10", features = ["mongo"] }
 
 [profile.dev.package.insta]
 opt-level = 3

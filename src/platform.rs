@@ -9,6 +9,7 @@ use crate::utils::Dist;
 
 static APT: Lazy<Regex> = Lazy::new(|| Regex::new(r#"Debian APT.+\((.+)\)"#).unwrap());
 static FEDORA: Lazy<Regex> = Lazy::new(|| Regex::new(r#"libdnf \(Fedora Linux (\d+);"#).unwrap());
+static TUMBLEWEED: Lazy<Regex> = Lazy::new(|| Regex::new(r#"ZYpp.+openSUSE-Tumbleweed"#).unwrap());
 
 static UBUNTU_VERSIONS: Lazy<HashMap<VersionReq, Dist>> = Lazy::new(|| {
     [
@@ -94,15 +95,24 @@ pub fn get_apt_version(agent: &str) -> &str {
     APT.captures(agent).unwrap().get(1).unwrap().as_str()
 }
 
-/// Retrieve the `apt` version from the user-agent string.
+/// Retrieve the fedora version from the user-agent string.
 pub fn get_fedora_version(agent: &str) -> Option<&str> {
     Some(FEDORA.captures(agent)?.get(1)?.as_str())
 }
 
-pub fn detect_rpm_os(agent: &str) -> Option<Dist> {
-    let ver = get_fedora_version(agent)?;
+/// Detect the opensuse fa from the user-agent string.
+pub fn detect_opensuse_tumbleweed(agent: &str) -> bool {
+    TUMBLEWEED.is_match(agent)
+}
 
-    Some(Dist::Fedora(Some(ver.to_owned())))
+pub fn detect_rpm_os(agent: &str) -> Option<Dist> {
+    if let Some(ver) = get_fedora_version(agent) {
+        Some(Dist::Fedora(Some(ver.to_owned())))
+    } else if detect_opensuse_tumbleweed(agent) {
+        Some(Dist::Tumbleweed)
+    } else {
+        None
+    }
 }
 
 #[cfg(test)]
@@ -229,5 +239,12 @@ mod tests {
             get_fedora_version("libdnf (Fedora Linux 39; container; Linux.x86_64)"),
             Some("39")
         );
+    }
+
+    #[test]
+    fn test_detect_opensuse() {
+        assert!(detect_opensuse_tumbleweed(
+            "ZYpp 17.31.15 (curl 8.5.0) openSUSE-Tumbleweed-x86_64"
+        ));
     }
 }

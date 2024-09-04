@@ -1,4 +1,4 @@
-FROM ubuntu:23.04
+FROM debian:12
 
 WORKDIR /app
 

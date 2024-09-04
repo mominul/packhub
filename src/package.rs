@@ -88,6 +88,7 @@ impl Package {
                 dst if dst.contains("ubuntu") => dist = Some(Dist::Ubuntu(parse_version(dst))),
                 dst if dst.contains("debian") => dist = Some(Dist::Debian(parse_version(dst))),
                 dst if dst.contains("fedora") => dist = Some(Dist::Fedora(parse_version(dst))),
+                dst if dst.contains("tumbleweed") => dist = Some(Dist::Tumbleweed),
                 _ => (),
             }
         }
@@ -263,6 +264,17 @@ mod tests {
         assert_eq!(pack.version(), "v2.56.1");
         assert_eq!(*pack.distribution(), None);
         assert_eq!(*pack.ty(), Type::Deb);
+
+        let pack = Package::detect_package(
+            "ibus-openbangla_3.0.0-opensuse-tumbleweed.rpm",
+            "3.0.0".to_owned(),
+            String::new(),
+            DateTime::UNIX_EPOCH,
+        )
+        .unwrap();
+        assert_eq!(pack.version(), "3.0.0");
+        assert_eq!(*pack.distribution(), Some(Dist::Tumbleweed));
+        assert_eq!(*pack.ty(), Type::Rpm);
     }
 
     #[test]
