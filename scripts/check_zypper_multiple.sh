@@ -4,7 +4,7 @@ sh -c 'echo -e "[obk]\nname=OpenBangla Keyboard\nbaseurl=http://localhost:3000/v
 
 zypper --gpg-auto-import-keys refresh
 
-output=$(yes | zypper search openbangla 2>&1)
+output=$(zypper search openbangla 2>&1)
 status=$?
 
 # Print the output of the dnf command

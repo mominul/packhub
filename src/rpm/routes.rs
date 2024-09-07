@@ -44,6 +44,12 @@ async fn index(
                 detached_sign_metadata("repomd.xml", &metadata, &secret_key)?.into_bytes();
             Ok(signature)
         }
+        "repomd.xml.key" => {
+            // let secret_key = load_secret_key_from_file()?;
+            // Ok(secret_key.public_key()?.into_bytes())
+            let public_key = std::fs::read_to_string("packhub.asc").unwrap();
+            Ok(public_key.into_bytes())
+        }
         "primary.xml.zst" => Ok(encode_all(get_primary_index(&packages).as_bytes(), 0)?),
         "filelists.xml.zst" => Ok(encode_all(get_filelists_index(&packages).as_bytes(), 0)?),
         "other.xml.zst" => Ok(encode_all(get_other_index(&packages).as_bytes(), 0)?),
