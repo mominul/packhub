@@ -45,8 +45,6 @@ async fn index(
             Ok(signature)
         }
         "repomd.xml.key" => {
-            // let secret_key = load_secret_key_from_file()?;
-            // Ok(secret_key.public_key()?.into_bytes())
             let public_key = std::fs::read_to_string("packhub.asc").unwrap();
             Ok(public_key.into_bytes())
         }

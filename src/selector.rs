@@ -1,6 +1,6 @@
 use crate::{package::Package, utils::Dist};
 
-pub(crate) fn select_packages<'p>(from: &'p [Package], dist: Dist) -> Vec<&Package> {
+pub(crate) fn select_packages(from: &[Package], dist: Dist) -> Vec<&Package> {
     let mut packages = Vec::new();
 
     // Filter out the packages that are not for the distribution.

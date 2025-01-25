@@ -1,9 +1,9 @@
 use std::io::Read;
+use std::sync::LazyLock;
 
 use anyhow::{bail, Context, Result};
 use libflate::gzip::Decoder;
 use md5::Md5;
-use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::{from_str, to_string};
@@ -15,8 +15,8 @@ use crate::{
     utils::{hashsum, Arch},
 };
 
-static ARCH: Lazy<Regex> = Lazy::new(|| Regex::new(r#"Architecture: (\w+)"#).unwrap());
-static PACKAGE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"Package: (.+)"#).unwrap());
+static ARCH: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"Architecture: (\w+)"#).unwrap());
+static PACKAGE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"Package: (.+)"#).unwrap());
 
 /// Debian package (.deb)
 #[derive(Serialize, Deserialize, Debug)]

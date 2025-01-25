@@ -1,17 +1,19 @@
 use std::collections::HashMap;
+use std::sync::LazyLock;
 
 use lenient_semver::parse;
-use once_cell::sync::Lazy;
 use regex::Regex;
 use semver::VersionReq;
 
 use crate::utils::Dist;
 
-static APT: Lazy<Regex> = Lazy::new(|| Regex::new(r#"Debian APT.+\((.+)\)"#).unwrap());
-static FEDORA: Lazy<Regex> = Lazy::new(|| Regex::new(r#"libdnf \(Fedora Linux (\d+);"#).unwrap());
-static TUMBLEWEED: Lazy<Regex> = Lazy::new(|| Regex::new(r#"ZYpp.+openSUSE-Tumbleweed"#).unwrap());
+static APT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"Debian APT.+\((.+)\)"#).unwrap());
+static FEDORA: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"libdnf \(Fedora Linux (\d+);"#).unwrap());
+static TUMBLEWEED: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"ZYpp.+openSUSE-Tumbleweed"#).unwrap());
 
-static UBUNTU_VERSIONS: Lazy<HashMap<VersionReq, Dist>> = Lazy::new(|| {
+static UBUNTU_VERSIONS: LazyLock<HashMap<VersionReq, Dist>> = LazyLock::new(|| {
     [
         matcher_ubuntu("=1.0.1", "14.04"),
         matcher_ubuntu(">=1.2.1, <=1.2.35", "16.04"),
@@ -24,7 +26,7 @@ static UBUNTU_VERSIONS: Lazy<HashMap<VersionReq, Dist>> = Lazy::new(|| {
     ]
     .into()
 });
-static DEBIAN_VERSIONS: Lazy<HashMap<VersionReq, Dist>> = Lazy::new(|| {
+static DEBIAN_VERSIONS: LazyLock<HashMap<VersionReq, Dist>> = LazyLock::new(|| {
     [
         matcher_debian("=1.0.9", "8"),
         matcher_debian(">=1.4.10, <=1.4.11", "9"),

@@ -1,9 +1,8 @@
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 
 use anyhow::{bail, Result};
 use mongodb::{Client, Collection};
 use octocrab::Octocrab;
-use once_cell::sync::Lazy;
 use tokio::task::JoinSet;
 use tracing::{debug, error};
 
@@ -14,7 +13,7 @@ use crate::{
     selector::select_packages,
 };
 
-static OCTOCRAB: Lazy<Arc<Octocrab>> = Lazy::new(|| octocrab::instance());
+static OCTOCRAB: LazyLock<Arc<Octocrab>> = LazyLock::new(|| octocrab::instance());
 
 pub struct Repository {
     collection: Collection<PackageMetadata>,
