@@ -38,8 +38,8 @@ jobs:
 
     - name: Build and run Ubuntu 23.04 container
       run: |
-        docker build -t ubuntu23.04 -f images/ubuntu23.04.Dockerfile scripts/
-        docker run --name ubuntu23.04-test --network host ubuntu23.04 || true
+        docker build -t ubuntu24.04 -f images/ubuntu24.04.Dockerfile scripts/
+        docker run --name ubuntu24.04-test --network host ubuntu24.04 || true
     
     - name: Build and run Fedora 38 container
       run: |
@@ -53,8 +53,8 @@ jobs:
 
     - name: Build and run Ubuntu 23.04 container for checking multiple package support
       run: |
-        docker build -t ubuntu23.04-multi -f images/ubuntu23.04-multi-package.Dockerfile scripts/
-        docker run --name ubuntu23.04-multitest --network host ubuntu23.04-multi || true
+        docker build -t ubuntu24.04-multi -f images/ubuntu24.04-multi-package.Dockerfile scripts/
+        docker run --name ubuntu24.04-multitest --network host ubuntu24.04-multi || true
     
     - name: Build and run Fedora 38 container for checking multiple package support
       run: |
@@ -77,7 +77,7 @@ jobs:
     
     - name: Check client containers' statuses
       run: |
-        if [ "$(docker inspect -f '{{.State.ExitCode}}' ubuntu23.04-test)" -ne 0 ]; then
+        if [ "$(docker inspect -f '{{.State.ExitCode}}' ubuntu24.04-test)" -ne 0 ]; then
           echo "Test on Ubuntu 23.04 failed"
           exit 1
         fi
@@ -92,7 +92,7 @@ jobs:
           exit 1
         fi
 
-        if [ "$(docker inspect -f '{{.State.ExitCode}}' ubuntu23.04-multitest)" -ne 0 ]; then
+        if [ "$(docker inspect -f '{{.State.ExitCode}}' ubuntu24.04-multitest)" -ne 0 ]; then
           echo "Test on Ubuntu 23.04 for multiple package support failed"
           exit 1
         fi
