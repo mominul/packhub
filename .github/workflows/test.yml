@@ -24,6 +24,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Setup .env file
+      run: |
+        cp .env.example .env
+
     - name: Build and run server container
       run: |
         docker build -t server -f images/server-ci.Dockerfile .

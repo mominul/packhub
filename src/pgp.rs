@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, sync::LazyLock};
 
 use anyhow::Result;
 use axum::{routing::get, Router};
@@ -8,6 +8,9 @@ use pgp::{
     Deserializable, KeyType, Message, SecretKeyParamsBuilder, SignedPublicKey, SignedSecretKey,
 };
 use rand::rngs::OsRng;
+use dotenvy::var;
+
+static PASSPHRASE: LazyLock<String> = LazyLock::new(|| var("PACKHUB_SIGN_PASSPHRASE").unwrap());
 
 pub fn load_secret_key_from_file() -> Result<SignedSecretKey> {
     let secret_key = std::fs::read("secret_key.asc")?;
@@ -24,7 +27,7 @@ pub fn load_public_key_from_file() -> Result<SignedPublicKey> {
 }
 
 pub fn clearsign_metadata(text: &str, secret_key: &SignedSecretKey) -> Result<String> {
-    let clear_text = CleartextSignedMessage::sign(OsRng, text, secret_key, || String::new())?;
+    let clear_text = CleartextSignedMessage::sign(OsRng, text, secret_key, || PASSPHRASE.clone())?;
 
     Ok(clear_text.to_armored_string(ArmorOptions::default())?)
 }
@@ -35,7 +38,7 @@ pub fn detached_sign_metadata(
     secret_key: &SignedSecretKey,
 ) -> Result<String> {
     let message = Message::new_literal(file_name, content);
-    let message = message.sign(OsRng, &secret_key, || String::new(), secret_key.hash_alg())?;
+    let message = message.sign(OsRng, &secret_key, || PASSPHRASE.clone(), secret_key.hash_alg())?;
 
     Ok(message
         .into_signature()
@@ -52,7 +55,7 @@ pub fn generate_secret_key() -> Result<SignedSecretKey> {
 
     let secret_key_params = key_params.build()?;
     let secret_key = secret_key_params.generate(OsRng)?;
-    let passwd_fn = || String::new();
+    let passwd_fn = || PASSPHRASE.clone();
     let signed_secret_key = secret_key.sign(OsRng, passwd_fn)?;
 
     Ok(signed_secret_key)
@@ -73,7 +76,7 @@ pub fn generate_and_save_keys() -> Result<()> {
 
 pub fn public_key_from_secret_key(secret_key: &SignedSecretKey) -> Result<SignedPublicKey> {
     let public_key = secret_key.public_key();
-    Ok(public_key.sign(OsRng, &secret_key, || String::new())?)
+    Ok(public_key.sign(OsRng, &secret_key, || PASSPHRASE.clone())?)
 }
 
 fn dearmored_public_key() -> Vec<u8> {
@@ -98,6 +101,8 @@ mod tests {
 
     #[test]
     fn test_generate_key_and_message_verify() {
+        dotenvy::from_filename(".env.example").ok();
+
         let secret_key = generate_secret_key().unwrap();
         let public_key = public_key_from_secret_key(&secret_key).unwrap();
 

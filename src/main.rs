@@ -1,8 +1,11 @@
-use mongodb::Client;
-use packhub::{app, pgp::generate_and_save_keys};
 use std::{env::args, net::SocketAddr};
+
+use mongodb::Client;
 use tracing::{info, Level};
 use tracing_subscriber::{filter::Targets, prelude::*};
+use dotenvy::{dotenv, var};
+
+use packhub::{app, pgp::generate_and_save_keys};
 
 #[tokio::main]
 async fn main() {
@@ -15,6 +18,10 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .with(filter)
         .init();
+    
+    if dotenv().is_err() {
+        info!("No .env file found");
+    }
 
     if args().len() > 1 {
         let arg = args().nth(1).unwrap();
@@ -23,7 +30,9 @@ async fn main() {
         }
     }
 
-    let client = Client::with_uri_str("mongodb://root:pass@localhost:27017")
+    let uri = format!("mongodb://{}:{}@localhost:27017", var("PACKHUB_DB_USER").unwrap(), var("PACKHUB_DB_PASSWORD").unwrap());
+
+    let client = Client::with_uri_str(uri)
         .await
         .unwrap();
 

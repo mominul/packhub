@@ -9,6 +9,7 @@ edition = "2021"
 axum = { version = "0.8", features = ["macros"] }
 axum-extra = { version = "0.10", features = ["typed-header"] }
 chrono = { version = "0.4.38", features = ["clock"] }
+dotenvy = "0.15"
 octocrab = "0.43"
 regex = "1"
 semver = "1"

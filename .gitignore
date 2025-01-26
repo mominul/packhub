@@ -11,3 +11,4 @@ Cargo.lock
 
 packhub.asc
 secret_key.asc
+.env
