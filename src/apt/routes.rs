@@ -94,16 +94,16 @@ async fn pool(
 pub fn apt_routes() -> Router<Client> {
     Router::new()
         .route(
-            "/:distro/github/:owner/:repo/dists/stable/:file",
+            "/{distro}/github/{owner}/{repo}/dists/stable/{file}",
             get(release_index),
         )
         .route(
-            "/:distro/github/:owner/:repo/dists/stable/main/binary-amd64/:index",
+            "/{distro}/github/{owner}/{repo}/dists/stable/main/binary-amd64/{index}",
             get(packages_file),
         )
         .route(
-            "/:distro/github/:owner/:repo/dists/stable/main/binary-all/:index",
+            "/{distro}/github/{owner}/{repo}/dists/stable/main/binary-all/{index}",
             get(empty_packages_file),
         )
-        .route("/github/:owner/:repo/pool/stable/:ver/:file", get(pool))
+        .route("/github/{owner}/{repo}/pool/stable/{ver}/{file}", get(pool))
 }

@@ -24,7 +24,7 @@ async fn apt_script_handler(Path((distro, owner, repo)): Path<(String, String, S
 }
 
 pub fn script_routes() -> Router<Client> {
-    Router::new().route("/:distro/github/:owner/:repo", get(apt_script_handler))
+    Router::new().route("/{distro}/github/{owner}/{repo}", get(apt_script_handler))
 }
 
 #[cfg(test)]

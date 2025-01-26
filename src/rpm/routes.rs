@@ -71,6 +71,6 @@ async fn package(
 
 pub fn rpm_routes() -> Router<Client> {
     Router::new()
-        .route("/github/:owner/:repo/repodata/:file", get(index))
-        .route("/github/:owner/:repo/package/:ver/:file", get(package))
+        .route("/github/{owner}/{repo}/repodata/{file}", get(index))
+        .route("/github/{owner}/{repo}/package/{ver}/{file}", get(package))
 }
