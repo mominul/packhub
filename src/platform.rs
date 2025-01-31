@@ -1,99 +1,133 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::LazyLock;
 
 use lenient_semver::parse;
 use regex::Regex;
-use semver::VersionReq;
+use semver::{Version, VersionReq};
 
-use crate::utils::Dist;
+use crate::{utils::Dist, REQWEST};
 
+static PRE_RELEASE_STRIPER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(\d+)\D").unwrap());
 static APT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"Debian APT.+\((.+)\)"#).unwrap());
 static FEDORA: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"libdnf \(Fedora Linux (\d+);"#).unwrap());
 static TUMBLEWEED: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"ZYpp.+openSUSE-Tumbleweed"#).unwrap());
 
-static UBUNTU_VERSIONS: LazyLock<HashMap<VersionReq, Dist>> = LazyLock::new(|| {
-    [
-        matcher_ubuntu("=1.0.1", "14.04"),
-        matcher_ubuntu(">=1.2.1, <=1.2.35", "16.04"),
-        matcher_ubuntu(">=1.6.1, <=1.6.14", "18.04"),
-        matcher_ubuntu(">=2.0.2, <=2.0.10", "20.04"),
-        matcher_ubuntu(">=2.4.5, <=2.4.10", "22.04"),
-        matcher_ubuntu("=2.5.3", "22.10"),
-        matcher_ubuntu(">=2.5.4, <=2.6.0", "23.04"),
-        matcher_ubuntu("=2.7.3", "23.10"),
-    ]
-    .into()
-});
-static DEBIAN_VERSIONS: LazyLock<HashMap<VersionReq, Dist>> = LazyLock::new(|| {
-    [
-        matcher_debian("=1.0.9", "8"),
-        matcher_debian(">=1.4.10, <=1.4.11", "9"),
-        matcher_debian("=1.8.2+3", "10"),
-        matcher_debian("=2.2.4", "11"),
-        matcher_debian(">=2.5.4, <=2.6.1", "12"),
-        matcher_debian(">=2.7.6, <=2.9.6", "13"),
-    ]
-    .into()
-});
+/// Detects platform based on the user-agent string of `apt` package manager.
+pub struct AptPlatformDetection {
+    ubuntu: HashMap<VersionReq, Dist>,
+    debian: HashMap<VersionReq, Dist>,
+}
 
-/// Returns the Ubuntu version matching to the `apt` version it comes with.
-pub(crate) fn match_ubuntu_for_apt(ver: &str) -> Dist {
-    let mut dist = Dist::Ubuntu(None);
+impl AptPlatformDetection {
+    pub async fn initialize() -> Self {
+        let data = REQWEST
+            .get("https://repology.org/api/v1/project/apt")
+            .send()
+            .await
+            .unwrap()
+            .text()
+            .await
+            .unwrap();
 
-    let mut apt = parse(ver).unwrap();
-    // Remove the prelease part of the version.
-    // "2.6.0ubuntu0.1" -> "2.6.0"
-    apt.pre = semver::Prerelease::EMPTY;
+        let data: serde_json::Value = serde_json::from_str(&data).unwrap();
 
-    for (matcher, dst) in UBUNTU_VERSIONS.iter() {
-        if matcher.matches(&apt) {
-            dist = dst.clone();
-            break;
+        // HashSet to remove duplicates
+        let mut map: HashMap<&str, HashSet<Version>> = HashMap::new();
+
+        for item in data.as_array().unwrap() {
+            let repo = item["repo"].as_str().unwrap();
+            if repo.starts_with("ubuntu") || repo.starts_with("debian") {
+                let repo = repo.trim_end_matches("_proposed");
+                let ver = item["version"].as_str().unwrap();
+                let parsed = fresh_version(parse(ver).unwrap());
+                map.entry(repo).or_default().insert(parsed);
+            }
         }
+
+        let mut ubuntu = HashMap::new();
+        let mut debian = HashMap::new();
+
+        for (key, value) in map.into_iter() {
+            let mut versions = value.into_iter().collect::<Vec<Version>>();
+            versions.sort();
+            let requirement;
+
+            if versions.len() > 1 {
+                requirement = VersionReq::parse(&format!(
+                    ">={}, <={}",
+                    versions[0],
+                    versions[versions.len() - 1]
+                ))
+                .unwrap();
+            } else {
+                requirement = VersionReq::parse(&format!("={}", versions[0])).unwrap();
+            }
+
+            if key.starts_with("ubuntu") {
+                let ver = key.trim_start_matches("ubuntu_");
+                ubuntu.insert(requirement, Dist::Ubuntu(Some(ver.replace("_", "."))));
+            } else if key.starts_with("debian") {
+                let ver = key.trim_start_matches("debian_");
+                debian.insert(requirement, Dist::Debian(Some(ver.to_owned())));
+            }
+        }
+
+        Self { ubuntu, debian }
     }
 
-    dist
-}
+    pub fn detect_ubuntu_for_apt(&self, agent: &str) -> Dist {
+        let ver = get_apt_version(agent);
+        let mut dist = Dist::Ubuntu(None);
 
-/// Returns the Debian version matching to the `apt` version it comes with.
-pub(crate) fn match_debian_for_apt(ver: &str) -> Dist {
-    let mut dist = Dist::Debian(None);
+        let apt = fresh_version(parse(ver).unwrap());
 
-    let mut apt = parse(ver).unwrap();
-    // Remove the prelease part of the version.
-    // "2.6.0ubuntu0.1" -> "2.6.0"
-    apt.pre = semver::Prerelease::EMPTY;
-
-    for (matcher, dst) in DEBIAN_VERSIONS.iter() {
-        if matcher.matches(&apt) {
-            dist = dst.clone();
-            break;
+        for (matcher, dst) in self.ubuntu.iter() {
+            if matcher.matches(&apt) {
+                dist = dst.clone();
+                break;
+            }
         }
+
+        dist
     }
 
-    dist
+    pub fn detect_debian_for_apt(&self, agent: &str) -> Dist {
+        let ver = get_apt_version(agent);
+        let mut dist = Dist::Debian(None);
+
+        let apt = fresh_version(parse(ver).unwrap());
+
+        for (matcher, dst) in self.debian.iter() {
+            if matcher.matches(&apt) {
+                dist = dst.clone();
+                break;
+            }
+        }
+
+        dist
+    }
 }
 
-/// Creates a `VersionReq` and `Dist` tuple for Ubuntu.
-fn matcher_ubuntu(req: &str, ver: &str) -> (VersionReq, Dist) {
-    (
-        VersionReq::parse(req).unwrap(),
-        Dist::Ubuntu(Some(ver.to_owned())),
-    )
+/// Removes the errorneous pre-release or build part from the version.
+fn fresh_version(mut ver: Version) -> Version {
+    ver.build = semver::BuildMetadata::EMPTY;
+
+    let pre = ver.pre.as_str();
+
+    // `1.0.1ubuntu2.24` is erroneously parsed as `1.0.0-1ubuntu2.24`
+    // so we need to strip the pre-release part and set the patch correctly
+    if let Some(capture) = PRE_RELEASE_STRIPER.captures(pre) {
+        let patch: u64 = capture.get(1).unwrap().as_str().parse().unwrap();
+        ver.patch = patch;
+        ver.pre = semver::Prerelease::EMPTY;
+    }
+
+    ver
 }
 
-/// Creates a `VersionReq` and `Dist` tuple for Debian.
-fn matcher_debian(req: &str, ver: &str) -> (VersionReq, Dist) {
-    (
-        VersionReq::parse(req).unwrap(),
-        Dist::Debian(Some(ver.to_owned())),
-    )
-}
-
-/// Retrieve the `apt` version from the user-agent string.
-pub fn get_apt_version(agent: &str) -> &str {
+fn get_apt_version<'a>(agent: &'a str) -> &'a str {
     APT.captures(agent).unwrap().get(1).unwrap().as_str()
 }
 
@@ -121,107 +155,51 @@ pub fn detect_rpm_os(agent: &str) -> Option<Dist> {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_match_platform() {
+    #[tokio::test]
+    async fn test_match_platform() {
+        let platform = AptPlatformDetection::initialize().await;
+
+        // Ubuntu
         assert_eq!(
-            match_ubuntu_for_apt("1.0.1"),
-            Dist::Ubuntu(Some("14.04".to_owned()))
-        );
-        assert_eq!(
-            match_ubuntu_for_apt("1.2.1"),
-            Dist::Ubuntu(Some("16.04".to_owned()))
-        );
-        assert_eq!(
-            match_ubuntu_for_apt("1.2.10"),
-            Dist::Ubuntu(Some("16.04".to_owned()))
-        );
-        assert_eq!(
-            match_ubuntu_for_apt("1.2.35"),
-            Dist::Ubuntu(Some("16.04".to_owned()))
-        );
-        assert_eq!(
-            match_ubuntu_for_apt("1.6.1"),
-            Dist::Ubuntu(Some("18.04".to_owned()))
-        );
-        assert_eq!(
-            match_ubuntu_for_apt("1.6.14"),
-            Dist::Ubuntu(Some("18.04".to_owned()))
-        );
-        assert_eq!(
-            match_ubuntu_for_apt("2.0.2"),
+            platform.detect_ubuntu_for_apt("Debian APT-HTTP/1.3 (2.0.2)"),
             Dist::Ubuntu(Some("20.04".to_owned()))
         );
         assert_eq!(
-            match_ubuntu_for_apt("2.0.9"),
+            platform.detect_ubuntu_for_apt("Debian APT-HTTP/1.3 (2.0.9)"),
             Dist::Ubuntu(Some("20.04".to_owned()))
         );
         assert_eq!(
-            match_ubuntu_for_apt("2.4.5"),
+            platform.detect_ubuntu_for_apt("Debian APT-HTTP/1.3 (2.4.5)"),
             Dist::Ubuntu(Some("22.04".to_owned()))
         );
         assert_eq!(
-            match_ubuntu_for_apt("2.4.8"),
+            platform.detect_ubuntu_for_apt("Debian APT-HTTP/1.3 (2.4.8)"),
             Dist::Ubuntu(Some("22.04".to_owned()))
         );
         assert_eq!(
-            match_ubuntu_for_apt("2.4.10"),
+            platform.detect_ubuntu_for_apt("Debian APT-HTTP/1.3 (2.4.10)"),
             Dist::Ubuntu(Some("22.04".to_owned()))
         );
         assert_eq!(
-            match_ubuntu_for_apt("2.5.3"),
-            Dist::Ubuntu(Some("22.10".to_owned()))
-        );
-        assert_eq!(
-            match_ubuntu_for_apt("2.5.4"),
-            Dist::Ubuntu(Some("23.04".to_owned()))
-        );
-        assert_eq!(
-            match_ubuntu_for_apt("2.6.0"),
-            Dist::Ubuntu(Some("23.04".to_owned()))
-        );
-        assert_eq!(
-            match_ubuntu_for_apt("2.6.0ubuntu0.1"),
-            Dist::Ubuntu(Some("23.04".to_owned()))
-        );
-        assert_eq!(
-            match_ubuntu_for_apt("2.7.3"),
-            Dist::Ubuntu(Some("23.10".to_owned()))
+            platform.detect_ubuntu_for_apt("Debian APT-HTTP/1.3 (2.7.14build2)"),
+            Dist::Ubuntu(Some("24.04".to_owned()))
         );
 
+        // Debian
         assert_eq!(
-            match_debian_for_apt("1.0.9"),
-            Dist::Debian(Some("8".to_owned()))
-        );
-        assert_eq!(
-            match_debian_for_apt("1.4.10"),
-            Dist::Debian(Some("9".to_owned()))
-        );
-        assert_eq!(
-            match_debian_for_apt("1.4.11"),
-            Dist::Debian(Some("9".to_owned()))
-        );
-        assert_eq!(
-            match_debian_for_apt("1.8.2.3"),
+            platform.detect_debian_for_apt("Debian APT-HTTP/1.3 (1.8.2.3)"),
             Dist::Debian(Some("10".to_owned()))
         );
         assert_eq!(
-            match_debian_for_apt("2.2.4"),
+            platform.detect_debian_for_apt("Debian APT-HTTP/1.3 (2.2.4)"),
             Dist::Debian(Some("11".to_owned()))
         );
         assert_eq!(
-            match_debian_for_apt("2.5.4"),
+            platform.detect_debian_for_apt("Debian APT-HTTP/1.3 (2.6.1)"),
             Dist::Debian(Some("12".to_owned()))
         );
         assert_eq!(
-            match_debian_for_apt("2.6.1"),
-            Dist::Debian(Some("12".to_owned()))
-        );
-        assert_eq!(
-            match_debian_for_apt("2.7.6"),
-            Dist::Debian(Some("13".to_owned()))
-        );
-        assert_eq!(
-            match_debian_for_apt("2.9.6"),
+            platform.detect_debian_for_apt("Debian APT-HTTP/1.3 (2.9.23)"),
             Dist::Debian(Some("13".to_owned()))
         );
     }

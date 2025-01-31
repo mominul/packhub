@@ -3,7 +3,10 @@ use std::sync::{Arc, Mutex};
 use anyhow::{bail, Result};
 use chrono::{DateTime, Utc};
 
-use crate::utils::{Dist, Type};
+use crate::{
+    utils::{Dist, Type},
+    REQWEST,
+};
 
 struct InnerPackage {
     tipe: Type,
@@ -133,7 +136,12 @@ impl Package {
     ///
     /// It is required to call this function before calling the `data()` function.
     pub async fn download(&self) -> Result<()> {
-        let data = reqwest::get(self.download_url()).await?.bytes().await?;
+        let data = REQWEST
+            .get(self.download_url())
+            .send()
+            .await?
+            .bytes()
+            .await?;
         *self.inner.data.lock().unwrap() = Data::Package(data.to_vec());
         Ok(())
     }

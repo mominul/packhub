@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{sync::LazyLock, time::Duration};
 
 use axum::{
     body::{Body, HttpBody},
@@ -21,6 +21,13 @@ mod rpm;
 mod script;
 mod selector;
 mod utils;
+
+static REQWEST: LazyLock<reqwest::Client> = LazyLock::new(|| {
+    reqwest::ClientBuilder::new()
+        .use_rustls_tls()
+        .build()
+        .unwrap()
+});
 
 fn v1() -> Router<Client> {
     Router::new()

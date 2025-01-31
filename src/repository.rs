@@ -9,7 +9,7 @@ use tracing::{debug, error};
 use crate::{
     db::PackageMetadata,
     package::Package,
-    platform::{detect_rpm_os, get_apt_version, match_debian_for_apt, match_ubuntu_for_apt},
+    platform::{detect_rpm_os, AptPlatformDetection},
     selector::select_packages,
 };
 
@@ -19,6 +19,7 @@ pub struct Repository {
     collection: Collection<PackageMetadata>,
     packages: Vec<Package>,
     downloaded: Vec<Package>,
+    platform: AptPlatformDetection,
 }
 
 impl Repository {
@@ -52,9 +53,12 @@ impl Repository {
             }
         }
 
+        let platform = AptPlatformDetection::initialize().await;
+
         Repository {
             collection,
             packages,
+            platform,
             downloaded: Vec::new(),
         }
     }
@@ -90,11 +94,9 @@ impl Repository {
     ///
     /// It also downloads the selected packages if the metadata is not available.
     pub async fn select_package_apt(&mut self, distro: &str, agent: &str) -> Result<Vec<Package>> {
-        let apt = get_apt_version(agent);
-
         let dist = match distro {
-            "ubuntu" => match_ubuntu_for_apt(apt),
-            "debian" => match_debian_for_apt(apt),
+            "ubuntu" => self.platform.detect_ubuntu_for_apt(agent),
+            "debian" => self.platform.detect_debian_for_apt(agent),
             dist => bail!("Unknown apt distribution {dist}"),
         };
 

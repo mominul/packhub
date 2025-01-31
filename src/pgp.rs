@@ -2,13 +2,13 @@ use std::{fs, sync::LazyLock};
 
 use anyhow::Result;
 use axum::{routing::get, Router};
+use dotenvy::var;
 use mongodb::Client;
 use pgp::{
     cleartext::CleartextSignedMessage, ser::Serialize, types::SecretKeyTrait, ArmorOptions,
     Deserializable, KeyType, Message, SecretKeyParamsBuilder, SignedPublicKey, SignedSecretKey,
 };
 use rand::rngs::OsRng;
-use dotenvy::var;
 
 static PASSPHRASE: LazyLock<String> = LazyLock::new(|| var("PACKHUB_SIGN_PASSPHRASE").unwrap());
 
@@ -38,7 +38,12 @@ pub fn detached_sign_metadata(
     secret_key: &SignedSecretKey,
 ) -> Result<String> {
     let message = Message::new_literal(file_name, content);
-    let message = message.sign(OsRng, &secret_key, || PASSPHRASE.clone(), secret_key.hash_alg())?;
+    let message = message.sign(
+        OsRng,
+        &secret_key,
+        || PASSPHRASE.clone(),
+        secret_key.hash_alg(),
+    )?;
 
     Ok(message
         .into_signature()
