@@ -5,13 +5,16 @@ use mongodb::Client;
 #[derive(Template)]
 #[template(path = "apt-script.sh", escape = "none")]
 struct AptScript<'a> {
+    host: &'a str,
     distro: &'a str,
     owner: &'a str,
     repo: &'a str,
 }
 
 fn generate_apt_script(distro: &str, owner: &str, repo: &str) -> String {
+    let host = dotenvy::var("PACKHUB_DOMAIN").unwrap();
     let script = AptScript {
+        host: &host,
         distro,
         owner,
         repo,

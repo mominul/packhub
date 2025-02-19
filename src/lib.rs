@@ -31,6 +31,7 @@ fn v1() -> Router<Client> {
     Router::new()
         .nest("/apt", apt::apt_routes())
         .nest("/rpm", rpm::rpm_routes())
+        .nest("/keys", pgp::keys())
 }
 
 async fn index() -> impl IntoResponse {
@@ -51,7 +52,6 @@ pub fn app(client: Client) -> Router {
     Router::new()
         .route("/", get(index))
         .nest("/v1", v1())
-        .nest("/keys", pgp::keys())
         .nest("/sh", script::script_routes())
         .with_state(client)
         .layer(TraceLayer::new_for_http().on_response(
