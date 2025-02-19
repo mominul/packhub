@@ -1,0 +1,25 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: images/server-ci.Dockerfile
+    container_name: packhub_app
+    depends_on:
+      - mongodb
+    ports:
+      - "3000:3000"
+
+  mongodb:
+    image: mongo
+    container_name: packhub_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:

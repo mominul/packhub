@@ -1,12 +1,10 @@
-use std::{sync::LazyLock, time::Duration};
+use std::{fs::File, sync::LazyLock, time::Duration};
 
 use axum::{
-    body::{Body, HttpBody},
-    http::{Response, StatusCode},
-    routing::get,
-    Router,
+    body::{Body, HttpBody}, http::{Response, StatusCode}, response::IntoResponse, routing::get, Router
 };
 use mongodb::Client;
+use tokio::fs::read_to_string;
 use tower_http::trace::TraceLayer;
 use tracing::{debug, Span};
 
@@ -35,9 +33,23 @@ fn v1() -> Router<Client> {
         .nest("/rpm", rpm::rpm_routes())
 }
 
+async fn index() -> impl IntoResponse {
+    match read_to_string("pages/index.html").await {
+        Ok(response) => Response::builder()
+            .status(StatusCode::OK)
+            .header("Content-Type", "text/html; charset=utf-8")  // Explicit charset
+            .body(Body::from(response))
+            .unwrap(),
+        Err(_) => Response::builder()
+            .status(StatusCode::INTERNAL_SERVER_ERROR)
+            .body(Body::from("Error loading page"))
+            .unwrap(),
+    }
+}
+
 pub fn app(client: Client) -> Router {
     Router::new()
-        .route("/", get(|| async { StatusCode::OK }))
+        .route("/", get(index))
         .nest("/v1", v1())
         .nest("/keys", pgp::keys())
         .nest("/sh", script::script_routes())
