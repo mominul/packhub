@@ -38,7 +38,7 @@ async fn main() {
 
     let client = Client::with_uri_str(uri).await.unwrap();
 
-    let addr: SocketAddr = "0.0.0.0:3000".parse().unwrap();
+    let addr: SocketAddr = "0.0.0.0:80".parse().unwrap();
 
     info!("listening on {}", addr);
 

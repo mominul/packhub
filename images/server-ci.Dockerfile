@@ -6,6 +6,6 @@ COPY . .
 
 RUN cargo build
 
-EXPOSE 3000
+EXPOSE 80
 
 ENTRYPOINT ["scripts/run_server.sh"]
