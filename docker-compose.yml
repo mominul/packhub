@@ -7,7 +7,10 @@ services:
     ports:
       - "80:80"
     volumes:
-      - .:/app
+      - ./.env:/app/.env
+      - ./packhub.asc:/app/packhub.asc
+      - ./secret_key.asc:/app/secret_key.asc
+
 
   mongodb:
     image: mongo:5.0.6
