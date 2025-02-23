@@ -6,6 +6,8 @@ services:
       - mongodb
     ports:
       - "80:80"
+    volumes:
+      - .:/app
 
   mongodb:
     image: mongo:5.0.6
