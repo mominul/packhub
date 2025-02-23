@@ -38,7 +38,9 @@ async fn main() {
 
     let client = Client::with_uri_str(uri).await.unwrap();
 
-    let addr: SocketAddr = "0.0.0.0:80".parse().unwrap();
+    let addr: SocketAddr = format!("0.0.0.0:{}", var("PACKHUB_PORT").unwrap())
+        .parse()
+        .unwrap();
 
     info!("listening on {}", addr);
 
