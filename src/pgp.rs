@@ -106,7 +106,7 @@ mod tests {
 
     #[test]
     fn test_generate_key_and_message_verify() {
-        dotenvy::from_filename(".env.example").ok();
+        dotenvy::from_filename(".env.example").unwrap();
 
         let secret_key = generate_secret_key().unwrap();
         let public_key = public_key_from_secret_key(&secret_key).unwrap();

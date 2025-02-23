@@ -1,4 +1,4 @@
-use std::{fs::File, sync::LazyLock, time::Duration};
+use std::{sync::LazyLock, time::Duration};
 
 use axum::{
     body::{Body, HttpBody}, http::{Response, StatusCode}, response::IntoResponse, routing::get, Router

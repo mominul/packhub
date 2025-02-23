@@ -1,8 +1,6 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: images/server-ci.Dockerfile
+    image: mominul/packhub:latest
     container_name: packhub_app
     depends_on:
       - mongodb

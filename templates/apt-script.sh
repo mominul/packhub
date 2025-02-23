@@ -8,7 +8,7 @@ echo "Downloading and installing the repository key..."
 wget -qO- {{host}}/v1/keys/packhub.gpg | sudo tee /etc/apt/keyrings/packhub.gpg > /dev/null
 echo
 echo "Adding the repository to your system..."
-sudo echo "deb [signed-by=/etc/apt/keyrings/packhub.gpg] {{host}}/v1/apt/{{distro}}/github/{{owner}}/{{repo}} stable main" | sudo tee /etc/apt/sources.list.d/{{repo}}.list > /dev/null
+echo "deb [signed-by=/etc/apt/keyrings/packhub.gpg] {{host}}/v1/apt/{{distro}}/github/{{owner}}/{{repo}} stable main" | sudo tee /etc/apt/sources.list.d/{{repo}}.list > /dev/null
 echo 
 echo "Updating package lists..."
 sudo apt-get update
