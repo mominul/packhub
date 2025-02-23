@@ -22,9 +22,7 @@ RUN apt update && apt install -y libssl-dev
 
 WORKDIR /app
 COPY --from=builder /app/target/release/packhub /app/packhub
-COPY .env /app/.env
-COPY packhub.asc /app/packhub.asc
-COPY secret_key.asc /app/secret_key.asc
+COPY . /app/
 
 EXPOSE 80
 ENTRYPOINT ["/app/packhub"]
