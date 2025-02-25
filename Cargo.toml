@@ -30,7 +30,7 @@ rpm = "0.16"
 anyhow = "1"
 zstd = "0.13"
 pgp = "0.15"
-rand = { version = "0.9", features = ["getrandom"] }
+rand = { version = "0.9", features = ["os_rng"] }
 mongodb = "3"
 bson = { version = "2", features = ["chrono-0_4"] }
 serde = { version = "1", features = ["derive"] }
