@@ -29,8 +29,8 @@ md-5 = "0.10"
 rpm = "0.16"
 anyhow = "1"
 zstd = "0.13"
-pgp = "0.14"
-rand = { version = "0.8", features = ["getrandom"] }
+pgp = "0.15"
+rand = { version = "0.9", features = ["getrandom"] }
 mongodb = "3"
 bson = { version = "2", features = ["chrono-0_4"] }
 serde = { version = "1", features = ["derive"] }

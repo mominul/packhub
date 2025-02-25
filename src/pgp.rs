@@ -56,7 +56,7 @@ pub fn generate_secret_key() -> Result<SignedSecretKey> {
         .key_type(KeyType::Rsa(2048))
         .can_certify(false)
         .can_sign(true)
-        .primary_user_id("Test <test@packhub.org>".into());
+        .primary_user_id("PackHub Signing <sign@packhub.dev>".into());
 
     let secret_key_params = key_params.build()?;
     let secret_key = secret_key_params.generate(OsRng)?;
