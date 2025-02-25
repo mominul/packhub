@@ -18,7 +18,8 @@ RUN cargo build --release
 # Stage 3: Minimal final runtime image
 FROM debian:bookworm-slim AS runtime
 
-RUN apt update && apt install -y libssl-dev
+RUN apt update && apt install -y libssl-dev ca-certificates
+RUN update-ca-certificates
 
 WORKDIR /app
 COPY --from=builder /app/target/release/packhub /app/packhub
