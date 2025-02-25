@@ -31,9 +31,10 @@ async fn main() {
     }
 
     let uri = format!(
-        "mongodb://{}:{}@localhost:27017",
+        "mongodb://{}:{}@{}:27017",
         var("PACKHUB_DB_USER").unwrap(),
-        var("PACKHUB_DB_PASSWORD").unwrap()
+        var("PACKHUB_DB_PASSWORD").unwrap(),
+        var("PACKHUB_DB_HOST").unwrap()
     );
 
     let client = Client::with_uri_str(uri).await.unwrap();
