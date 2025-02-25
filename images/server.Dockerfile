@@ -16,14 +16,15 @@ COPY . .
 RUN cargo build --release
 
 # Stage 3: Minimal final runtime image
-FROM debian:bookworm-slim AS runtime
+FROM ubuntu:24.04 AS runtime
 
-RUN apt update && apt install -y libssl-dev ca-certificates
-RUN update-ca-certificates
+# RUN apt update && apt install -y libssl-dev ca-certificates
+# RUN update-ca-certificates
 
 WORKDIR /app
 COPY --from=builder /app/target/release/packhub /app/packhub
 COPY /pages /app/pages
 
 EXPOSE 80
+#ENTRYPOINT ["/app/packhub", "--generate-keys"]
 ENTRYPOINT ["/app/packhub"]
