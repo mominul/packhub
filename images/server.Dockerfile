@@ -16,7 +16,7 @@ COPY . .
 RUN cargo build --release
 
 # Stage 3: Minimal final runtime image
-FROM ubuntu:24.04 AS runtime
+FROM rust:latest AS runtime
 
 # RUN apt update && apt install -y libssl-dev ca-certificates
 # RUN update-ca-certificates
