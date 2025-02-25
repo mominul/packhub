@@ -8,8 +8,8 @@ services:
       - "80:80"
     volumes:
       - ./.env:/app/.env
-      - ./packhub.asc:/app/packhub.asc
-      - ./secret_key.asc:/app/secret_key.asc
+      # - ./packhub.asc:/app/packhub.asc
+      # - ./secret_key.asc:/app/secret_key.asc
 
 
   mongodb:
