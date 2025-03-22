@@ -12,7 +12,7 @@ use mongodb::Client;
 use crate::{
     apt::index::{gzip_compression, AptIndices},
     error::AppError,
-    pgp::{clearsign_metadata, detached_sign_metadata, load_secret_key_from_file},
+    pgp::{clearsign_metadata, detached_sign_metadata},
     repository::Repository,
 };
 
@@ -33,15 +33,18 @@ async fn release_index(
     match file.as_str() {
         "Release" => Ok(release_file),
         "Release.gpg" => {
-            let secret_key = load_secret_key_from_file()?;
+            // let secret_key = load_secret_key_from_file()?;
+            // let signed_release_file =
+            //     detached_sign_metadata("Release", &release_file, &secret_key)?;
             let signed_release_file =
-                detached_sign_metadata("Release", &release_file, &secret_key)?;
-
+                detached_sign_metadata(&release_file)?;
             Ok(signed_release_file)
         }
         "InRelease" => {
-            let secret_key = load_secret_key_from_file()?;
-            let signed_release_file = clearsign_metadata(&release_file, &secret_key)?;
+            // let secret_key = load_secret_key_from_file()?;
+            // let signed_release_file = clearsign_metadata(&release_file, &secret_key)?;
+            let signed_release_file = clearsign_metadata(&release_file)?;
+
 
             Ok(signed_release_file)
         }

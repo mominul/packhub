@@ -12,7 +12,7 @@ use zstd::encode_all;
 
 use crate::{
     error::AppError,
-    pgp::{detached_sign_metadata, load_secret_key_from_file},
+    pgp::{detached_sign_metadata},
     repository::Repository,
     rpm::{index::get_repomd_index, package::RPMPackage},
 };
@@ -39,9 +39,11 @@ async fn index(
         "repomd.xml" => Ok(get_repomd_index(&packages).into_bytes()),
         "repomd.xml.asc" => {
             let metadata = get_repomd_index(&packages);
-            let secret_key = load_secret_key_from_file()?;
+            // let secret_key = load_secret_key_from_file()?;
+            // let signature =
+            //     detached_sign_metadata("repomd.xml", &metadata, &secret_key)?.into_bytes();
             let signature =
-                detached_sign_metadata("repomd.xml", &metadata, &secret_key)?.into_bytes();
+                detached_sign_metadata(&metadata)?.into_bytes();
             Ok(signature)
         }
         "repomd.xml.key" => {

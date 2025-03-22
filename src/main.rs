@@ -5,7 +5,7 @@ use mongodb::Client;
 use tracing::{info, Level};
 use tracing_subscriber::{filter::Targets, prelude::*};
 
-use packhub::{app, pgp::generate_and_save_keys};
+use packhub::{app};
 
 #[tokio::main]
 async fn main() {
@@ -23,12 +23,12 @@ async fn main() {
         info!("No .env file found");
     }
 
-    if args().len() > 1 {
-        let arg = args().nth(1).unwrap();
-        if arg == "--generate-keys" {
-            generate_and_save_keys().unwrap();
-        }
-    }
+    // if args().len() > 1 {
+    //     let arg = args().nth(1).unwrap();
+    //     if arg == "--generate-keys" {
+    //         generate_and_save_keys().unwrap();
+    //     }
+    // }
 
     let uri = format!(
         "mongodb://{}:{}@{}:27017",
