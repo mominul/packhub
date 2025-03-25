@@ -1,11 +1,15 @@
 use std::{sync::LazyLock, time::Duration};
 
 use axum::{
-    body::{Body, HttpBody}, http::{Response, StatusCode}, response::IntoResponse, routing::get, Router
+    body::{Body, HttpBody},
+    http::Response,
+    Router,
 };
 use mongodb::Client;
-use tokio::fs::read_to_string;
-use tower_http::trace::TraceLayer;
+use tower_http::{
+    services::{ServeDir, ServeFile},
+    trace::TraceLayer,
+};
 use tracing::{debug, Span};
 
 mod apt;
@@ -34,25 +38,12 @@ fn v1() -> Router<Client> {
         .nest("/keys", pgp::keys())
 }
 
-async fn index() -> impl IntoResponse {
-    match read_to_string("pages/index.html").await {
-        Ok(response) => Response::builder()
-            .status(StatusCode::OK)
-            .header("Content-Type", "text/html; charset=utf-8")  // Explicit charset
-            .body(Body::from(response))
-            .unwrap(),
-        Err(_) => Response::builder()
-            .status(StatusCode::INTERNAL_SERVER_ERROR)
-            .body(Body::from("Error loading page"))
-            .unwrap(),
-    }
-}
-
 pub fn app(client: Client) -> Router {
     Router::new()
-        .route("/", get(index))
+        .route_service("/", ServeFile::new("pages/index.html"))
         .nest("/v1", v1())
         .nest("/sh", script::script_routes())
+        .nest_service("/assets", ServeDir::new("pages/assets"))
         .with_state(client)
         .layer(TraceLayer::new_for_http().on_response(
             |response: &Response<Body>, latency: Duration, _: &Span| {
