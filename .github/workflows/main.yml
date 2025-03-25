@@ -9,4 +9,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - run: apt update && apt install -y clang llvm pkg-config nettle-dev
       - run: cargo test
