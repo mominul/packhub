@@ -1,7 +1,7 @@
 use std::sync::{Arc, LazyLock};
 
 use anyhow::{bail, Result};
-use mongodb::{Client, Collection};
+use mongodb::Collection;
 use octocrab::Octocrab;
 use tokio::task::JoinSet;
 use tracing::{debug, error};
@@ -10,7 +10,7 @@ use crate::{
     db::PackageMetadata,
     package::Package,
     platform::{detect_rpm_os, AptPlatformDetection},
-    selector::select_packages,
+    selector::select_packages, state::AppState,
 };
 
 static OCTOCRAB: LazyLock<Arc<Octocrab>> = LazyLock::new(|| octocrab::instance());
@@ -23,9 +23,10 @@ pub struct Repository {
 }
 
 impl Repository {
-    pub async fn from_github(owner: String, repo: String, client: Client) -> Self {
+    pub async fn from_github(owner: String, repo: String, state: &AppState) -> Self {
         let project = format!("{owner}/{repo}");
-        let collection = client
+        let collection = state
+            .db()
             .database("github")
             .collection::<PackageMetadata>(&project);
 

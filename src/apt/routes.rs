@@ -7,22 +7,20 @@ use axum::{
     Router,
 };
 use axum_extra::{headers::UserAgent, typed_header::TypedHeader};
-use mongodb::Client;
 
 use crate::{
     apt::index::{gzip_compression, AptIndices},
     error::AppError,
-    pgp::{clearsign_metadata, detached_sign_metadata},
-    repository::Repository,
+    repository::Repository, state::AppState,
 };
 
 #[tracing::instrument(name = "Debian Release File", skip_all, fields(agent = agent.as_str()))]
 async fn release_index(
-    State(client): State<Client>,
+    State(state): State<AppState>,
     Path((distro, owner, repo, file)): Path<(String, String, String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<String, AppError> {
-    let mut repo = Repository::from_github(owner, repo, client).await;
+    let mut repo = Repository::from_github(owner, repo, &state).await;
     let packages = repo.select_package_apt(&distro, agent.as_str()).await?;
 
     let index = AptIndices::new(&packages)?;
@@ -33,18 +31,12 @@ async fn release_index(
     match file.as_str() {
         "Release" => Ok(release_file),
         "Release.gpg" => {
-            // let secret_key = load_secret_key_from_file()?;
-            // let signed_release_file =
-            //     detached_sign_metadata("Release", &release_file, &secret_key)?;
             let signed_release_file =
-                detached_sign_metadata(&release_file)?;
+                state.detached_sign_metadata(&release_file)?;
             Ok(signed_release_file)
         }
         "InRelease" => {
-            // let secret_key = load_secret_key_from_file()?;
-            // let signed_release_file = clearsign_metadata(&release_file, &secret_key)?;
-            let signed_release_file = clearsign_metadata(&release_file)?;
-
+            let signed_release_file = state.clearsign_metadata(&release_file)?;
 
             Ok(signed_release_file)
         }
@@ -54,11 +46,11 @@ async fn release_index(
 
 #[tracing::instrument(name = "Debian Package metadata file", skip_all, fields(agent = agent.as_str()))]
 async fn packages_file(
-    State(client): State<Client>,
+    State(state): State<AppState>,
     Path((distro, owner, repo, file)): Path<(String, String, String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<Vec<u8>, AppError> {
-    let mut repo = Repository::from_github(owner, repo, client).await;
+    let mut repo = Repository::from_github(owner, repo, &state).await;
     let packages = repo.select_package_apt(&distro, agent.as_str()).await?;
 
     let index = AptIndices::new(&packages)?;
@@ -94,7 +86,7 @@ async fn pool(
     Ok(stream)
 }
 
-pub fn apt_routes() -> Router<Client> {
+pub fn apt_routes() -> Router<AppState> {
     Router::new()
         .route(
             "/{distro}/github/{owner}/{repo}/dists/stable/{file}",

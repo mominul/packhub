@@ -1,11 +1,10 @@
 use std::{env::args, net::SocketAddr};
 
 use dotenvy::{dotenv, var};
-use mongodb::Client;
 use tracing::{info, Level};
 use tracing_subscriber::{filter::Targets, prelude::*};
 
-use packhub::{app};
+use packhub::{app, state::AppState};
 
 #[tokio::main]
 async fn main() {
@@ -23,21 +22,16 @@ async fn main() {
         info!("No .env file found");
     }
 
-    // if args().len() > 1 {
-    //     let arg = args().nth(1).unwrap();
-    //     if arg == "--generate-keys" {
-    //         generate_and_save_keys().unwrap();
-    //     }
-    // }
+    let mut generate_keys = false;
 
-    let uri = format!(
-        "mongodb://{}:{}@{}:27017",
-        var("PACKHUB_DB_USER").unwrap(),
-        var("PACKHUB_DB_PASSWORD").unwrap(),
-        var("PACKHUB_DB_HOST").unwrap()
-    );
+    if args().len() > 1 {
+        let arg = args().nth(1).unwrap();
+        if arg == "--generate-keys" {
+            generate_keys = true;
+        }
+    }
 
-    let client = Client::with_uri_str(uri).await.unwrap();
+    let state = AppState::initialize(generate_keys).await;
 
     let addr: SocketAddr = format!("0.0.0.0:{}", var("PACKHUB_PORT").unwrap())
         .parse()
@@ -47,5 +41,5 @@ async fn main() {
 
     // run it
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, app(client)).await.unwrap();
+    axum::serve(listener, app(state)).await.unwrap();
 }

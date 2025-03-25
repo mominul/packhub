@@ -5,12 +5,13 @@ use axum::{
     http::Response,
     Router,
 };
-use mongodb::Client;
 use tower_http::{
     services::{ServeDir, ServeFile},
     trace::TraceLayer,
 };
 use tracing::{debug, Span};
+
+use crate::state::AppState;
 
 mod apt;
 mod db;
@@ -20,6 +21,7 @@ pub mod pgp;
 mod platform;
 mod repository;
 mod rpm;
+pub mod state;
 mod script;
 mod selector;
 mod utils;
@@ -31,20 +33,20 @@ static REQWEST: LazyLock<reqwest::Client> = LazyLock::new(|| {
         .unwrap()
 });
 
-fn v1() -> Router<Client> {
+fn v1() -> Router<AppState> {
     Router::new()
         .nest("/apt", apt::apt_routes())
         .nest("/rpm", rpm::rpm_routes())
         .nest("/keys", pgp::keys())
 }
 
-pub fn app(client: Client) -> Router {
+pub fn app(state: AppState) -> Router {
     Router::new()
         .route_service("/", ServeFile::new("pages/index.html"))
         .nest("/v1", v1())
         .nest("/sh", script::script_routes())
         .nest_service("/assets", ServeDir::new("pages/assets"))
-        .with_state(client)
+        .with_state(state)
         .layer(TraceLayer::new_for_http().on_response(
             |response: &Response<Body>, latency: Duration, _: &Span| {
                 let size = response.body().size_hint().upper().unwrap_or(0);
