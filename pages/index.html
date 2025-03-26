@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8" />
+  <title>packhub.dev - Install Linux packages straight from github!</title>
+  <meta name="keywords" content="packhub, Github, apt, ubuntu, fedora, dnf" />
+  <meta
+    name="description"
+    content="Install Linux packages straight from github!"
+  />
+  <link rel="stylesheet" href="/assets/normalize.css" />
+  <link rel="stylesheet" href="/assets/packhub.css" />
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="32x32"
+    href="https://www.rust-lang.org/static/images/favicon-32x32.png"
+  />
+  <link
+    rel="icon"
+    type="image/svg+xml"
+    href="https://www.rust-lang.org/static/images/favicon.svg"
+  />
+  <link
+    rel="mask-icon"
+    href="https://www.rust-lang.org/static/images/safari-pinned-tab.svg"
+    color="#000"
+  />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Fira+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+</head>
+
+<body id="idx">
+  <main>
+    <header>
+      <div>
+        <h1>PackHub</h1>
+        <h2>Install Linux packages straight from GitHub!</h2>
+        <h5>
+          <span class="text-bold">packhub</span> creates virtual linux package
+          repository (apt, dnf, yum etc) on the fly directly from GitHub
+          Releases.
+        </h5>
+      </div>
+    </header>
+
+    <div id="card" class="instructions">
+      <p>
+        Paste your GitHub repository URL below to get the command to setup
+        <span class="text-bold">packhub</span> repository.
+      </p>
+      <input
+        class="github-link"
+        type="text"
+        name=""
+        id=""
+        placeholder="https://github.com/OpenBangla/OpenBangla-Keyboard"
+      />
+
+      <div class="platform-header">
+        <img src="/assets/ubuntu.png" width="50px" alt="" />
+        <span>Ubuntu</span>
+      </div>
+      <div class="copy-container">
+        <pre class="command ubuntu">
+wget -qO- http://packhub.dev/sh/ubuntu/github/mominul/pack-exp2 | sh</pre
+        >
+        <button
+          id="copy-button-ubuntu"
+          class="copy-button"
+          title="Copy command to clipboard to setup packhub"
+          type="button"
+        >
+          <div class="copy-icon">
+            <svg
+              width="24"
+              height="25"
+              viewBox="0 0 24 25"
+              xmlns="http://www.w3.org/2000/svg"
+              alt="Copy command to clipboard to setup packhub"
+            >
+              <path
+                d="M18 20h2v3c0 1-1 2-2 2H2c-.998 0-2-1-2-2V5c0-.911.755-1.667 1.667-1.667h5A3.323 3.323 0 0110 0a3.323 3.323 0 013.333 3.333h5C19.245 3.333 20 4.09 20 5v8.333h-2V9H2v14h16v-3zM3 7h14c0-.911-.793-1.667-1.75-1.667H13.5c-.957 0-1.75-.755-1.75-1.666C11.75 2.755 10.957 2 10 2s-1.75.755-1.75 1.667c0 .911-.793 1.666-1.75 1.666H4.75C3.793 5.333 3 6.09 3 7z"
+              ></path>
+              <path
+                d="M4 19h6v2H4zM12 11H4v2h8zM4 17h4v-2H4zM15 15v-3l-4.5 4.5L15 21v-3l8.027-.032L23 15z"
+              ></path>
+            </svg>
+          </div>
+          <div id="copy-status-message-ubuntu" class="copy-button-text">
+            Copied!
+          </div>
+        </button>
+      </div>
+
+      <div class="platform-header">
+        <img src="/assets/debian.svg" width="50px" height="50px" alt="" />
+        <span>Debian</span>
+      </div>
+
+      <div class="copy-container">
+        <pre class="command debian">
+wget -qO- http://packhub.dev/sh/ubuntu/github/mominul/pack-exp2 | sh</pre
+        >
+        <button
+          id="copy-button-debian"
+          class="copy-button"
+          title="Copy command to clipboard to setup packhub"
+          type="button"
+        >
+          <div class="copy-icon">
+            <svg
+              width="24"
+              height="25"
+              viewBox="0 0 24 25"
+              xmlns="http://www.w3.org/2000/svg"
+              alt="Copy command to clipboard to setup packhub"
+            >
+              <path
+                d="M18 20h2v3c0 1-1 2-2 2H2c-.998 0-2-1-2-2V5c0-.911.755-1.667 1.667-1.667h5A3.323 3.323 0 0110 0a3.323 3.323 0 013.333 3.333h5C19.245 3.333 20 4.09 20 5v8.333h-2V9H2v14h16v-3zM3 7h14c0-.911-.793-1.667-1.75-1.667H13.5c-.957 0-1.75-.755-1.75-1.666C11.75 2.755 10.957 2 10 2s-1.75.755-1.75 1.667c0 .911-.793 1.666-1.75 1.666H4.75C3.793 5.333 3 6.09 3 7z"
+              ></path>
+              <path
+                d="M4 19h6v2H4zM12 11H4v2h8zM4 17h4v-2H4zM15 15v-3l-4.5 4.5L15 21v-3l8.027-.032L23 15z"
+              ></path>
+            </svg>
+          </div>
+          <div id="copy-status-message-debian" class="copy-button-text">
+            Copied!
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <p id="about">
+      Made with ❤️ by
+      <a href="https://github.com/mominul">Muhammad Mominul Huque</a> and ✨
+      <a href="https://github.com/mominul/packhub/graphs/contributors"
+        >contributors</a
+      >
+      ✨!
+    </p>
+  </main>
+
+  <script src="/assets/packhub.js"></script>
+</body>

@@ -1,0 +1,192 @@
+body {
+  margin-top: 2em;
+  background-color: white;
+  color: #515151;
+  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 300;
+  font-size: 25px;
+}
+
+pre {
+  font-family: "Fira Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 400;
+}
+
+.text-bold {
+  font-weight: 500;
+}
+
+header > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+header > div > h1 {
+  font-family: "Alfa Slab One", serif;
+  color: black;
+  font-size: 4rem;
+  margin-bottom: 0;
+  margin-top: 1rem;
+  line-height: 1;
+  font-weight: 300;
+  letter-spacing: 1px;
+}
+
+header > div > h2 {
+  color: black;
+  font-size: 2rem;
+  font-weight: 300;
+}
+
+header > div > h5 {
+  color: black;
+  font-size: 1.5rem;
+  font-weight: 300;
+}
+
+a {
+  color: #0b7261;
+  text-decoration: underline;
+}
+
+a:hover {
+  color: #0d8b75;
+  text-decoration: underline;
+}
+
+main {
+  width: 80%;
+  max-width: 1200px;
+  padding: 0 20px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body#idx p {
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+.instructions {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  border-radius: 3px;
+  border: 1px solid rgb(204, 204, 204);
+  box-shadow: 0px 1px 4px 0px rgb(204, 204, 204);
+  padding-bottom: 2rem;
+}
+
+.instructions > * {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+hr {
+  border-color: #0b7261;
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+#card > p {
+  width: 80%;
+}
+
+.platform-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.platform-header > span {
+  padding-left: 1rem;
+}
+
+.command::before {
+  color: black;
+  content: " $ ";
+  margin-left: 15px;
+}
+
+.command {
+  color: black;
+  padding: 1rem 1rem 1rem 0;
+  height: auto;
+  text-align: center;
+  border-radius: 10px 0px 0px 10px;
+  box-shadow: inset 0px 0px 20px 0px #f1eeee;
+  background-color: #f1eeee;
+  overflow: hidden;
+  font-size: 0.6em;
+  white-space: nowrap;
+  height: 26px;
+  line-height: 26px;
+  overflow-x: auto;
+}
+
+.github-link {
+  outline: none;
+  border: none;
+  display: inline-block;
+  background-color: #f1eeee;
+  border-radius: 10px;
+  font-size: 0.6em;
+  padding: 1rem 1rem 1rem 1rem;
+  overflow: hidden;
+  overflow-x: auto;
+  width: 60%;
+  margin-left: 50px;
+  margin-right: 50px;
+  text-align: center;
+}
+
+#card div.copy-container {
+  display: flex;
+  align-items: center;
+  width: 90%;
+  justify-content: center;
+}
+
+#card button.copy-button {
+  height: 58px;
+  margin: 0;
+  padding: 0 5px 0 5px;
+  border-radius: 0 10px 10px 0;
+  border-left-width: 0px;
+  border-left-style: solid;
+  border: none;
+  background-color: #d0d2d2;
+
+  &:hover {
+    background-color: #c0c2c2;
+  }
+}
+
+#card div.copy-icon {
+  position: relative;
+  width: fit-content;
+  height: fit-content;
+  top: 27px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#card div.copy-button-text {
+  transition: opacity 0.2s ease-in-out;
+  opacity: 0;
+  font-size: 10px;
+  color: #0b7261;
+  width: 41px;
+  height: 15px;
+  position: relative;
+  top: 5px;
+}
+
+#about {
+  font-size: 16px;
+  line-height: 2em;
+  text-align: center;
+}

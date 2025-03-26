@@ -9,4 +9,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - run: sudo apt update && sudo apt install -y clang llvm pkg-config nettle-dev
+      - run: cp .env.example .env
       - run: cargo test

@@ -1,17 +1,21 @@
 use askama::Template;
 use axum::{extract::Path, routing::get, Router};
-use mongodb::Client;
+
+use crate::state::AppState;
 
 #[derive(Template)]
 #[template(path = "apt-script.sh", escape = "none")]
 struct AptScript<'a> {
+    host: &'a str,
     distro: &'a str,
     owner: &'a str,
     repo: &'a str,
 }
 
 fn generate_apt_script(distro: &str, owner: &str, repo: &str) -> String {
+    let host = dotenvy::var("PACKHUB_DOMAIN").unwrap();
     let script = AptScript {
+        host: &host,
         distro,
         owner,
         repo,
@@ -23,7 +27,7 @@ async fn apt_script_handler(Path((distro, owner, repo)): Path<(String, String, S
     generate_apt_script(&distro, &owner, &repo)
 }
 
-pub fn script_routes() -> Router<Client> {
+pub fn script_routes() -> Router<AppState> {
     Router::new().route("/{distro}/github/{owner}/{repo}", get(apt_script_handler))
 }
 

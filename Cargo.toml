@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 axum = { version = "0.8", features = ["macros"] }
 axum-extra = { version = "0.10", features = ["typed-header"] }
+askama = "0.12"
 chrono = { version = "0.4.38", features = ["clock"] }
 dotenvy = "0.15"
 octocrab = "0.43"
@@ -15,10 +16,9 @@ regex = "1"
 semver = "1"
 lenient_semver = "0.4"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-tower-http = { version = "0.6", features = ["trace"] }
+tower-http = { version = "0.6", features = ["trace", "fs"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-askama = "0.12"
 reqwest = { version = "0.12", features = ["stream", "rustls-tls"] }
 ar = "0.9"
 libflate = "2"
@@ -29,12 +29,11 @@ md-5 = "0.10"
 rpm = "0.16"
 anyhow = "1"
 zstd = "0.13"
-pgp = "0.14"
-rand = { version = "0.8", features = ["getrandom"] }
 mongodb = "3"
 bson = { version = "2", features = ["chrono-0_4"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+sequoia-openpgp = "2.0.0"
 
 [dev-dependencies]
 insta = { version = "1", features = ["filters"] }

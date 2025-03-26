@@ -1,119 +1,109 @@
-use std::{fs, sync::LazyLock};
+use std::{fs, io::Write};
 
 use anyhow::Result;
-use axum::{routing::get, Router};
-use dotenvy::var;
-use mongodb::Client;
-use pgp::{
-    cleartext::CleartextSignedMessage, ser::Serialize, types::SecretKeyTrait, ArmorOptions,
-    Deserializable, KeyType, Message, SecretKeyParamsBuilder, SignedPublicKey, SignedSecretKey,
+use axum::{extract::State, routing::get, Router};
+use sequoia_openpgp::{
+    cert::prelude::*,
+    parse::Parse,
+    policy::StandardPolicy,
+    serialize::{
+        stream::{Armorer, Message, Signer},
+        SerializeInto,
+    },
 };
-use rand::rngs::OsRng;
 
-static PASSPHRASE: LazyLock<String> = LazyLock::new(|| var("PACKHUB_SIGN_PASSPHRASE").unwrap());
+use crate::state::AppState;
 
-pub fn load_secret_key_from_file() -> Result<SignedSecretKey> {
-    let secret_key = std::fs::read("secret_key.asc")?;
-    let (signed_secret_key, _) = SignedSecretKey::from_armor_single(secret_key.as_slice())?;
+fn generate_keys() -> Result<Cert> {
+    let (cert, _) = CertBuilder::new()
+        .add_userid("PackHub <sign@packhub.dev>")
+        .add_signing_subkey()
+        .generate()?;
 
-    Ok(signed_secret_key)
+    Ok(cert)
 }
 
-pub fn load_public_key_from_file() -> Result<SignedPublicKey> {
-    let public_key = std::fs::read("packhub.asc")?;
-    let (signed_public_key, _) = SignedPublicKey::from_armor_single(public_key.as_slice())?;
+pub fn generate_and_save_keys() -> Result<Cert> {
+    let cert = generate_keys()?;
 
-    Ok(signed_public_key)
+    let key = cert.as_tsk().to_vec()?;
+
+    fs::write("key.gpg", key)?;
+
+    Ok(cert)
 }
 
-pub fn clearsign_metadata(text: &str, secret_key: &SignedSecretKey) -> Result<String> {
-    let clear_text = CleartextSignedMessage::sign(OsRng, text, secret_key, || PASSPHRASE.clone())?;
+pub fn load_cert_from_file() -> Result<Cert> {
+    let key = fs::read("key.gpg")?;
+    let cert = Cert::from_bytes(&key)?;
 
-    Ok(clear_text.to_armored_string(ArmorOptions::default())?)
+    Ok(cert)
 }
 
-pub fn detached_sign_metadata(
-    file_name: &str,
-    content: &str,
-    secret_key: &SignedSecretKey,
-) -> Result<String> {
-    let message = Message::new_literal(file_name, content);
-    let message = message.sign(
-        OsRng,
-        &secret_key,
-        || PASSPHRASE.clone(),
-        secret_key.hash_alg(),
-    )?;
+pub fn clearsign_metadata(data: &str, cert: &Cert) -> Result<String> {
+    let keypair = cert
+        .keys()
+        .secret()
+        .with_policy(&StandardPolicy::new(), None)
+        .supported()
+        .alive()
+        .revoked(false)
+        .for_signing()
+        .nth(0)
+        .unwrap()
+        .key()
+        .clone()
+        .into_keypair()
+        .unwrap();
 
-    Ok(message
-        .into_signature()
-        .to_armored_string(ArmorOptions::default())?)
+    let mut sink = vec![];
+    let message = Message::new(&mut sink);
+    let mut signer = Signer::new(message, keypair)?.cleartext().build()?;
+
+    signer.write_all(data.as_bytes())?;
+    signer.finalize()?;
+
+    Ok(String::from_utf8(sink)?)
 }
 
-pub fn generate_secret_key() -> Result<SignedSecretKey> {
-    let mut key_params = SecretKeyParamsBuilder::default();
-    key_params
-        .key_type(KeyType::Rsa(2048))
-        .can_certify(false)
-        .can_sign(true)
-        .primary_user_id("Test <test@packhub.org>".into());
+pub fn detached_sign_metadata(content: &str, cert: &Cert) -> Result<String> {
+    let keypair = cert
+        .keys()
+        .secret()
+        .with_policy(&StandardPolicy::new(), None)
+        .supported()
+        .alive()
+        .revoked(false)
+        .for_signing()
+        .nth(0)
+        .unwrap()
+        .key()
+        .clone()
+        .into_keypair()
+        .unwrap();
 
-    let secret_key_params = key_params.build()?;
-    let secret_key = secret_key_params.generate(OsRng)?;
-    let passwd_fn = || PASSPHRASE.clone();
-    let signed_secret_key = secret_key.sign(OsRng, passwd_fn)?;
+    let mut sink = vec![];
+    let message = Armorer::new(Message::new(&mut sink)).build()?;
+    let mut signer = Signer::new(message, keypair)?.detached().build()?;
 
-    Ok(signed_secret_key)
+    signer.write_all(content.as_bytes())?;
+    signer.finalize()?;
+
+    Ok(String::from_utf8(sink)?)
 }
 
-pub fn generate_and_save_keys() -> Result<()> {
-    let secret_key = generate_secret_key()?;
-    let public_key = public_key_from_secret_key(&secret_key)?;
+/////////////////////////////////////// Axum handlers /////////////////////////////////////////////////
 
-    let secret_signed_key_armor = secret_key.to_armored_bytes(ArmorOptions::default())?;
-    fs::write("secret_key.asc", secret_signed_key_armor)?;
-
-    let public_signed_key_armor = public_key.to_armored_string(ArmorOptions::default())?;
-    fs::write("packhub.asc", public_signed_key_armor)?;
-
-    Ok(())
+async fn armored_public_key_handler(State(state): State<AppState>) -> Vec<u8> {
+    state.armored_public_key()
 }
 
-pub fn public_key_from_secret_key(secret_key: &SignedSecretKey) -> Result<SignedPublicKey> {
-    let public_key = secret_key.public_key();
-    Ok(public_key.sign(OsRng, &secret_key, || PASSPHRASE.clone())?)
+async fn dearmored_public_key_handler(State(state): State<AppState>) -> Vec<u8> {
+    state.dearmored_public_key()
 }
 
-fn dearmored_public_key() -> Vec<u8> {
-    let key = load_public_key_from_file().unwrap();
-    key.to_bytes().unwrap()
-}
-
-pub fn keys() -> Router<Client> {
+pub fn keys() -> Router<AppState> {
     Router::new()
-        .route(
-            "/packhub.asc",
-            get(|| async { fs::read_to_string("packhub.asc").unwrap() }),
-        )
-        .route("/packhub.gpg", get(dearmored_public_key()))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    const METADATA: &str = "Test Metadata";
-
-    #[test]
-    fn test_generate_key_and_message_verify() {
-        dotenvy::from_filename(".env.example").ok();
-
-        let secret_key = generate_secret_key().unwrap();
-        let public_key = public_key_from_secret_key(&secret_key).unwrap();
-
-        let clearsign_text = clearsign_metadata(METADATA, &secret_key).unwrap();
-
-        let (message, _) = CleartextSignedMessage::from_armor(clearsign_text.as_bytes()).unwrap();
-        assert!(message.verify(&public_key).is_ok());
-    }
+        .route("/packhub.asc", get(armored_public_key_handler))
+        .route("/packhub.gpg", get(dearmored_public_key_handler))
 }

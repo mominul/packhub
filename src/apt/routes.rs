@@ -7,22 +7,22 @@ use axum::{
     Router,
 };
 use axum_extra::{headers::UserAgent, typed_header::TypedHeader};
-use mongodb::Client;
 
 use crate::{
     apt::index::{gzip_compression, AptIndices},
     error::AppError,
-    pgp::{clearsign_metadata, detached_sign_metadata, load_secret_key_from_file},
     repository::Repository,
+    state::AppState,
+    REQWEST,
 };
 
 #[tracing::instrument(name = "Debian Release File", skip_all, fields(agent = agent.as_str()))]
 async fn release_index(
-    State(client): State<Client>,
+    State(state): State<AppState>,
     Path((distro, owner, repo, file)): Path<(String, String, String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<String, AppError> {
-    let mut repo = Repository::from_github(owner, repo, client).await;
+    let mut repo = Repository::from_github(owner, repo, &state).await;
     let packages = repo.select_package_apt(&distro, agent.as_str()).await?;
 
     let index = AptIndices::new(&packages)?;
@@ -33,15 +33,11 @@ async fn release_index(
     match file.as_str() {
         "Release" => Ok(release_file),
         "Release.gpg" => {
-            let secret_key = load_secret_key_from_file()?;
-            let signed_release_file =
-                detached_sign_metadata("Release", &release_file, &secret_key)?;
-
+            let signed_release_file = state.detached_sign_metadata(&release_file)?;
             Ok(signed_release_file)
         }
         "InRelease" => {
-            let secret_key = load_secret_key_from_file()?;
-            let signed_release_file = clearsign_metadata(&release_file, &secret_key)?;
+            let signed_release_file = state.clearsign_metadata(&release_file)?;
 
             Ok(signed_release_file)
         }
@@ -51,11 +47,11 @@ async fn release_index(
 
 #[tracing::instrument(name = "Debian Package metadata file", skip_all, fields(agent = agent.as_str()))]
 async fn packages_file(
-    State(client): State<Client>,
+    State(state): State<AppState>,
     Path((distro, owner, repo, file)): Path<(String, String, String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<Vec<u8>, AppError> {
-    let mut repo = Repository::from_github(owner, repo, client).await;
+    let mut repo = Repository::from_github(owner, repo, &state).await;
     let packages = repo.select_package_apt(&distro, agent.as_str()).await?;
 
     let index = AptIndices::new(&packages)?;
@@ -80,18 +76,22 @@ async fn empty_packages_file(
 
 #[tracing::instrument(name = "Debian Package proxy", skip_all)]
 async fn pool(
-    Path((owner, repo, ver, file)): Path<(String, String, String, String)>,
+    Path((_, owner, repo, ver, file)): Path<(String, String, String, String, String)>,
 ) -> Result<impl IntoResponse, AppError> {
     let url = format!("https://github.com/{owner}/{repo}/releases/download/{ver}/{file}");
-    let res = reqwest::get(url)
+    tracing::trace!("Proxying package from: {}", url);
+    let res = REQWEST
+        .get(url)
+        .send()
         .await
         .context("Error occurred while proxying package")?;
+    tracing::trace!("Proxying package respone: {}", res.status());
     let stream = Body::from_stream(res.bytes_stream());
 
     Ok(stream)
 }
 
-pub fn apt_routes() -> Router<Client> {
+pub fn apt_routes() -> Router<AppState> {
     Router::new()
         .route(
             "/{distro}/github/{owner}/{repo}/dists/stable/{file}",
@@ -105,5 +105,8 @@ pub fn apt_routes() -> Router<Client> {
             "/{distro}/github/{owner}/{repo}/dists/stable/main/binary-all/{index}",
             get(empty_packages_file),
         )
-        .route("/github/{owner}/{repo}/pool/stable/{ver}/{file}", get(pool))
+        .route(
+            "/{distro}/github/{owner}/{repo}/pool/stable/{ver}/{file}",
+            get(pool),
+        )
 }

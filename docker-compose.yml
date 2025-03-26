@@ -1,0 +1,27 @@
+services:
+  app:
+    image: mominul/packhub:latest
+    container_name: packhub_app
+    depends_on:
+      - mongodb
+    ports:
+      - "80:80"
+    volumes:
+      - ./.env:/app/.env
+      - ./key.gpg:/app/key.gpg
+
+
+  mongodb:
+    image: mongo:5.0.6
+    container_name: packhub_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pass
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:

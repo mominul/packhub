@@ -1,18 +1,18 @@
 #!/bin/bash
 
-sh -c 'echo -e "[obk]\nname=OpenBangla Keyboard\nbaseurl=http://localhost:3000/v1/rpm/github/mominul/pack-exp2\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=http://localhost:3000/keys/packhub.asc" > /etc/zypp/repos.d/obk.repo'
+sh -c 'echo -e "[obk]\nname=OpenBangla Keyboard\nbaseurl=http://localhost:3000/v1/rpm/github/mominul/pack-exp2\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=http://localhost:3000/v1/keys/packhub.asc" > /etc/zypp/repos.d/obk.repo'
 
 zypper --gpg-auto-import-keys refresh
 
 output=$(zypper search openbangla 2>&1)
 status=$?
 
-# Print the output of the dnf command
+# Print the output of the zypper command
 echo "$output"
 
 # Check if the dnf command was successful
 if [ $status -ne 0 ]; then
-    echo "Error: dnf search command failed." >&2
+    echo "Error: zypper search command failed." >&2
     exit $status
 fi
 

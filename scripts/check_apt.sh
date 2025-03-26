@@ -32,8 +32,23 @@ fi
 if echo "$output" | grep -q "openbangla-keyboard"; then
     echo
     echo "Package found successfully."
-    exit 0
 else
     echo "Error: package not found." >&2
     exit 1
 fi
+
+# check if apt can install the package
+apt_out=$(apt install openbangla-keyboard -y 2>&1)
+apt_status=$?
+
+# Print the output of the apt command
+echo "$apt_out"
+
+# Check if the apt command was successful
+if [ $apt_status -ne 0 ]; then
+    echo "Error: apt install command failed." >&2
+    exit $apt_status
+fi
+
+echo "Package installed successfully."
+exit 0
