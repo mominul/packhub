@@ -29,5 +29,4 @@ COPY --from=builder /app/target/release/packhub /app/packhub
 COPY /pages /app/pages
 
 EXPOSE 80
-ENTRYPOINT ["/app/packhub", "--generate-keys"]
-# ENTRYPOINT ["/app/packhub"]
+ENTRYPOINT ["/app/packhub"]
