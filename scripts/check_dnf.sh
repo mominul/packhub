@@ -17,7 +17,6 @@ fi
 if echo "$output" | grep -q "openbangla-keyboard"; then
     echo
     echo "Package found successfully."
-    exit 0
 else
     echo "Error: package not found." >&2
     exit 1
