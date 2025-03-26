@@ -5,7 +5,9 @@ use dotenvy::var;
 use mongodb::Client;
 use sequoia_openpgp::{serialize::SerializeInto, Cert};
 
-use crate::pgp::{clearsign_metadata, detached_sign_metadata, generate_and_save_keys, load_cert_from_file};
+use crate::pgp::{
+    clearsign_metadata, detached_sign_metadata, generate_and_save_keys, load_cert_from_file,
+};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -26,7 +28,7 @@ impl AppState {
             var("PACKHUB_DB_HOST").unwrap()
         );
 
-        let client = Client::with_uri_str(uri).await.unwrap();     
+        let client = Client::with_uri_str(uri).await.unwrap();
 
         let cert = if generate_keys {
             generate_and_save_keys().unwrap()

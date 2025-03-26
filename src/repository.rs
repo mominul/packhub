@@ -10,7 +10,8 @@ use crate::{
     db::PackageMetadata,
     package::Package,
     platform::{detect_rpm_os, AptPlatformDetection},
-    selector::select_packages, state::AppState,
+    selector::select_packages,
+    state::AppState,
 };
 
 static OCTOCRAB: LazyLock<Arc<Octocrab>> = LazyLock::new(|| octocrab::instance());

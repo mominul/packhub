@@ -11,7 +11,9 @@ use axum_extra::{headers::UserAgent, typed_header::TypedHeader};
 use crate::{
     apt::index::{gzip_compression, AptIndices},
     error::AppError,
-    repository::Repository, state::AppState, REQWEST,
+    repository::Repository,
+    state::AppState,
+    REQWEST,
 };
 
 #[tracing::instrument(name = "Debian Release File", skip_all, fields(agent = agent.as_str()))]
@@ -31,8 +33,7 @@ async fn release_index(
     match file.as_str() {
         "Release" => Ok(release_file),
         "Release.gpg" => {
-            let signed_release_file =
-                state.detached_sign_metadata(&release_file)?;
+            let signed_release_file = state.detached_sign_metadata(&release_file)?;
             Ok(signed_release_file)
         }
         "InRelease" => {
@@ -79,7 +80,9 @@ async fn pool(
 ) -> Result<impl IntoResponse, AppError> {
     let url = format!("https://github.com/{owner}/{repo}/releases/download/{ver}/{file}");
     tracing::trace!("Proxying package from: {}", url);
-    let res = REQWEST.get(url).send()
+    let res = REQWEST
+        .get(url)
+        .send()
         .await
         .context("Error occurred while proxying package")?;
     tracing::trace!("Proxying package respone: {}", res.status());
@@ -102,5 +105,8 @@ pub fn apt_routes() -> Router<AppState> {
             "/{distro}/github/{owner}/{repo}/dists/stable/main/binary-all/{index}",
             get(empty_packages_file),
         )
-        .route("/{distro}/github/{owner}/{repo}/pool/stable/{ver}/{file}", get(pool))
+        .route(
+            "/{distro}/github/{owner}/{repo}/pool/stable/{ver}/{file}",
+            get(pool),
+        )
 }

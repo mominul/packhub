@@ -21,9 +21,9 @@ pub mod pgp;
 mod platform;
 mod repository;
 mod rpm;
-pub mod state;
 mod script;
 mod selector;
+pub mod state;
 mod utils;
 
 static REQWEST: LazyLock<reqwest::Client> = LazyLock::new(|| {
