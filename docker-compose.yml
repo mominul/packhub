@@ -6,10 +6,12 @@ services:
       - mongodb
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./.env:/app/.env
       - ./key.gpg:/app/key.gpg
-
+      - ${PACKHUB_DOCKER_CERT_PEM}:/app/fullchain.pem
+      - ${PACKHUB_DOCKER_KEY_PEM}:/app/privkey.pem
 
   mongodb:
     image: mongo:5.0.6
@@ -18,8 +20,8 @@ services:
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_ROOT_USERNAME: ${PACKHUB_DB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${PACKHUB_DB_PASSWORD}
     volumes:
       - mongodb_data:/data/db
 

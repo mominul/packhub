@@ -1,5 +1,6 @@
 use std::{env::args, net::SocketAddr};
 
+use axum_server::tls_rustls::RustlsConfig;
 use dotenvy::{dotenv, var};
 use tracing::{info, Level};
 use tracing_subscriber::{filter::Targets, prelude::*};
@@ -33,13 +34,35 @@ async fn main() {
 
     let state = AppState::initialize(generate_keys).await;
 
-    let addr: SocketAddr = format!("0.0.0.0:{}", var("PACKHUB_PORT").unwrap())
+    let http_addr: SocketAddr = format!("0.0.0.0:{}", var("PACKHUB_HTTP_PORT").unwrap())
         .parse()
         .unwrap();
 
-    info!("listening on {}", addr);
+    let https_addr: SocketAddr = format!("0.0.0.0:{}", var("PACKHUB_HTTPS_PORT").unwrap())
+        .parse()
+        .unwrap();
 
-    // run it
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, app(state)).await.unwrap();
+    info!("listening on {}", http_addr);
+    info!("listening on {}", https_addr);
+
+    rustls::crypto::aws_lc_rs::default_provider()
+        .install_default()
+        .unwrap();
+
+    let config = RustlsConfig::from_pem_file(
+        var("PACKHUB_CERT_PEM").unwrap(),
+        var("PACKHUB_KEY_PEM").unwrap(),
+    )
+    .await
+    .unwrap();
+
+    let http_server = axum_server::bind(http_addr).serve(app(state.clone()).into_make_service());
+
+    let https_server =
+        axum_server::bind_rustls(https_addr, config).serve(app(state).into_make_service());
+
+    let http = tokio::spawn(async { http_server.await.unwrap() });
+    let https = tokio::spawn(async { https_server.await.unwrap() });
+
+    _ = tokio::join!(http, https);
 }

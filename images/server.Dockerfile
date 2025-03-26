@@ -29,4 +29,5 @@ COPY --from=builder /app/target/release/packhub /app/packhub
 COPY /pages /app/pages
 
 EXPOSE 80
+EXPOSE 443
 ENTRYPOINT ["/app/packhub"]

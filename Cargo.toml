@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 axum = { version = "0.8", features = ["macros"] }
 axum-extra = { version = "0.10", features = ["typed-header"] }
+axum-server = { version = "0.7", features = ["tls-rustls"] }
 askama = "0.12"
 chrono = { version = "0.4.38", features = ["clock"] }
 dotenvy = "0.15"
@@ -20,6 +21,7 @@ tower-http = { version = "0.6", features = ["trace", "fs"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 reqwest = { version = "0.12", features = ["stream", "rustls-tls"] }
+rustls = "0.23"
 ar = "0.9"
 libflate = "2"
 tar = "0.4"
