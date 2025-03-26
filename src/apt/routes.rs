@@ -75,12 +75,14 @@ async fn empty_packages_file(
 
 #[tracing::instrument(name = "Debian Package proxy", skip_all)]
 async fn pool(
-    Path((owner, repo, ver, file)): Path<(String, String, String, String)>,
+    Path((_, owner, repo, ver, file)): Path<(String, String, String, String, String)>,
 ) -> Result<impl IntoResponse, AppError> {
     let url = format!("https://github.com/{owner}/{repo}/releases/download/{ver}/{file}");
+    tracing::trace!("Proxying package from: {}", url);
     let res = REQWEST.get(url).send()
         .await
         .context("Error occurred while proxying package")?;
+    tracing::trace!("Proxying package respone: {}", res.status());
     let stream = Body::from_stream(res.bytes_stream());
 
     Ok(stream)
@@ -100,5 +102,5 @@ pub fn apt_routes() -> Router<AppState> {
             "/{distro}/github/{owner}/{repo}/dists/stable/main/binary-all/{index}",
             get(empty_packages_file),
         )
-        .route("/github/{owner}/{repo}/pool/stable/{ver}/{file}", get(pool))
+        .route("/{distro}/github/{owner}/{repo}/pool/stable/{ver}/{file}", get(pool))
 }

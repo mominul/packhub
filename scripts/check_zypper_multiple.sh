@@ -7,12 +7,12 @@ zypper --gpg-auto-import-keys refresh
 output=$(zypper search openbangla 2>&1)
 status=$?
 
-# Print the output of the dnf command
+# Print the output of the zypper command
 echo "$output"
 
 # Check if the dnf command was successful
 if [ $status -ne 0 ]; then
-    echo "Error: dnf search command failed." >&2
+    echo "Error: zypper search command failed." >&2
     exit $status
 fi
 
