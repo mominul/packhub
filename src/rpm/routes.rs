@@ -12,7 +12,7 @@ use zstd::encode_all;
 use crate::{
     error::AppError,
     repository::Repository,
-    rpm::{index::get_repomd_index, package::RPMPackage}, state::AppState,
+    rpm::{index::get_repomd_index, package::RPMPackage}, state::AppState, REQWEST,
 };
 
 use super::index::{get_filelists_index, get_other_index, get_primary_index};
@@ -57,7 +57,7 @@ async fn package(
     Path((owner, repo, ver, file)): Path<(String, String, String, String)>,
 ) -> Result<impl IntoResponse, AppError> {
     let url = format!("https://github.com/{owner}/{repo}/releases/download/{ver}/{file}");
-    let res = reqwest::get(url)
+    let res = REQWEST.get(url).send()
         .await
         .context("Error occurred while proxying package")?;
     let stream = res.bytes_stream();

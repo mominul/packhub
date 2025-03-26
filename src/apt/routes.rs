@@ -11,7 +11,7 @@ use axum_extra::{headers::UserAgent, typed_header::TypedHeader};
 use crate::{
     apt::index::{gzip_compression, AptIndices},
     error::AppError,
-    repository::Repository, state::AppState,
+    repository::Repository, state::AppState, REQWEST,
 };
 
 #[tracing::instrument(name = "Debian Release File", skip_all, fields(agent = agent.as_str()))]
@@ -78,7 +78,7 @@ async fn pool(
     Path((owner, repo, ver, file)): Path<(String, String, String, String)>,
 ) -> Result<impl IntoResponse, AppError> {
     let url = format!("https://github.com/{owner}/{repo}/releases/download/{ver}/{file}");
-    let res = reqwest::get(url)
+    let res = REQWEST.get(url).send()
         .await
         .context("Error occurred while proxying package")?;
     let stream = Body::from_stream(res.bytes_stream());
