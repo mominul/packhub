@@ -1,4 +1,5 @@
 target/
 images/
-data/
+data/*
+!data/self-signed-certs/
 .github/

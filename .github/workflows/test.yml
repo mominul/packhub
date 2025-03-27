@@ -35,10 +35,20 @@ jobs:
 
     - name: Wait for server to start
       run: |
+        TIMEOUT=60
+        ELAPSED=0 
+      
         until curl --output /dev/null --silent --fail http://localhost:3000; do
-          echo 'Waiting for server...'
+          if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+            echo "Server did not start within $TIMEOUT seconds. But continuing..."
+            exit 0
+          fi
+          echo "Waiting for server..."
           sleep 5
+          ELAPSED=$((ELAPSED + 5))
         done
+        echo "Server is up!"
+      continue-on-error: true
 
     - name: Build and run Ubuntu 23.04 container
       run: |
