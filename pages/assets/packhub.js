@@ -18,8 +18,8 @@ function handle_copy_button_click(e) {
         case 'copy-button-debian':
             process_copy_button_click('copy-status-message-debian', 'debian');
             break;
-        case 'copy-button-fedora':
-            process_copy_button_click('copy-status-message-fedora', 'fedora');
+        case 'copy-button-rpm':
+            process_copy_button_click('copy-status-message-rpm', 'rpm');
             break;
     }
 }
@@ -51,6 +51,14 @@ function set_debian(owner, repo) {
     ubuntu.textContent = `wget -qO- http://packhub.dev/sh/debian/github/${owner}/${repo} | sh`
 }
 
+function set_rpm(owner, repo) {
+    const rpm = document.querySelector(".command.rpm");
+
+    console.log("Setting Fedora install command for:", rpm);
+
+    rpm.textContent = `wget -qO- http://packhub.dev/sh/rpm/github/${owner}/${repo} | sh`
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const inputElement = document.querySelector(".github-link");
 
@@ -61,6 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (match) {
             set_ubuntu(match[1], match[2]);
             set_debian(match[1], match[2]);
+            set_rpm(match[1], match[2]);
         } else {
             console.log("Invalid or missing GitHub URL");
         }

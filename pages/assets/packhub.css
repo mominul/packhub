@@ -13,17 +13,34 @@ pre {
   font-weight: 400;
 }
 
+.header-padding {
+  padding-top: 1.5rem;
+}
+
+.text-code {
+  font-family: "Fira Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 300;
+  font-size: 1.4rem;
+}
+
 .text-bold {
   font-weight: 500;
 }
 
-header > div {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+.text-header {
+  margin-top: 3rem;
+  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 400;
 }
 
-header > div > h1 {
+.banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+h1 {
   font-family: "Alfa Slab One", serif;
   color: black;
   font-size: 4rem;
@@ -33,6 +50,18 @@ header > div > h1 {
   font-weight: 300;
   letter-spacing: 1px;
 }
+
+h1 sup {
+  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 10px;
+  color: #FFF;
+  background-color: #0b7261;
+  border-radius: 10px;
+  padding: 7px;
+  margin-left: 4px;
+  margin-bottom: 50px;
+}
+
 
 h2 {
   color: black;
@@ -44,6 +73,12 @@ h5 {
   color: black;
   font-size: 1.5rem;
   font-weight: 300;
+}
+
+.info p {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  font-size: 1rem;
 }
 
 a {
@@ -64,17 +99,12 @@ main {
   margin-right: auto;
 }
 
-body#idx p {
-  margin-top: 2em;
-  margin-bottom: 2em;
-}
-
 .instructions {
   margin-left: auto;
   margin-right: auto;
   margin-bottom: 2.5rem;
   text-align: center;
-  border-radius: 3px;
+  border-radius: 8px;
   border: 1px solid rgb(204, 204, 204);
   box-shadow: 0px 1px 4px 0px rgb(204, 204, 204);
   padding-bottom: 2rem;
@@ -195,4 +225,37 @@ hr {
   font-size: 16px;
   line-height: 2em;
   text-align: center;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin: 40px 0;
+}
+
+.feature-item {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.feature-item h3 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+}
+
+.feature-item p {
+  font-size: 1rem;
+  color: #555;
+}
+
+@media (max-width: 768px) {
+  .features-grid {
+    grid-template-columns: 1fr; /* Switch to a single column */
+  }
 }
