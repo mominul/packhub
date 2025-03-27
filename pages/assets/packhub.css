@@ -34,13 +34,13 @@ header > div > h1 {
   letter-spacing: 1px;
 }
 
-header > div > h2 {
+h2 {
   color: black;
   font-size: 2rem;
   font-weight: 300;
 }
 
-header > div > h5 {
+h5 {
   color: black;
   font-size: 1.5rem;
   font-weight: 300;
@@ -72,6 +72,7 @@ body#idx p {
 .instructions {
   margin-left: auto;
   margin-right: auto;
+  margin-bottom: 2.5rem;
   text-align: center;
   border-radius: 3px;
   border: 1px solid rgb(204, 204, 204);
@@ -86,12 +87,17 @@ body#idx p {
 
 hr {
   border-color: #0b7261;
-  margin-top: 2em;
-  margin-bottom: 2em;
+  margin-top: 2rem;
+  margin-bottom: 3rem;
 }
 
 #card > p {
   width: 80%;
+}
+
+.video {
+  margin-left: 3rem;
+  margin-right: 3rem;
 }
 
 .platform-header {

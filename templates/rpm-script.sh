@@ -1,0 +1,1 @@
+sh -c 'echo -e "[{{cased}}]\nname={{repo}}\nbaseurl=http://packhub.dev/v1/rpm/github/{{owner}}/{{repo}}\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=http://packhub.dev/v1/keys/packhub.asc" > /etc/yum.repos.d/{{cased}}.repo'

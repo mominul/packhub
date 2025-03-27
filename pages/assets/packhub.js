@@ -18,6 +18,9 @@ function handle_copy_button_click(e) {
         case 'copy-button-debian':
             process_copy_button_click('copy-status-message-debian', 'debian');
             break;
+        case 'copy-button-fedora':
+            process_copy_button_click('copy-status-message-fedora', 'fedora');
+            break;
     }
 }
 
