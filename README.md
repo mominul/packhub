@@ -1,5 +1,6 @@
-# PackHub - Decentralized Package Repositories for Linux (packhub.dev)
-
+# PackHub - Decentralized Package Repositories for Linux
+[![Build Status](https://github.com/mominul/packhub/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/mominul/packhub/actions?query=branch%3Amain)
+[![Rust](https://img.shields.io/badge/rust-1.85.1%2B-blue.svg?maxAge=3600)](https://blog.rust-lang.org/2021/10/21/Rust-1.56.0.html)
 [![asciicast](https://asciinema.org/a/pjL18xxjQJwd0S6WeELQpVqnf.svg)](https://asciinema.org/a/pjL18xxjQJwd0S6WeELQpVqnf)
 
 ## 🚀 Install Linux Packages Directly from GitHub!
@@ -16,13 +17,35 @@ PackHub dynamically creates virtual Linux package repositories (`apt`, `dnf`, `y
 - **Developer Freedom** – No need to maintain separate repositories or rely on a maintainer.
 - **User Empowerment** – Get the apps you need instantly, without waiting for repositories or manual downloads.
 
+## 🚀 Usage
 
+To install Linux packages from a GitHub repository using PackHub, the repository must have published Linux packages in its Releases. You'll also need to set up the PackHub repository in your system's package manager.
+
+Replace `OWNER` with the repository owner's name and `REPO` with the repository name. For example, for `https://github.com/sindresorhus/caprine`, use `sindresorhus` as `OWNER` and `caprine` as `REPO`.
+
+If you're unsure, visit [packhub.dev](https://packhub.dev) to generate the correct command for your repository.
+
+### Ubuntu-Based Distributions
+```bash
+wget -qO- http://packhub.dev/sh/ubuntu/github/OWNER/REPO | sh
+```
+
+### Debian-Based Distributions
+```bash
+wget -qO- http://packhub.dev/sh/debian/github/OWNER/REPO | sh
+```
+
+### RPM-Based Distributions (Fedora, openSUSE, etc.)
+```bash
+wget -qO- http://packhub.dev/sh/rpm/github/OWNER/REPO | sh
+```
+
+Once the PackHub repository is set up, you can install packages using your system’s package manager (`apt`, `dnf`, `yum`, etc.).
 
 ## 🔧 Built With
 
 - **Rust** – Ensuring performance, safety, and concurrency.
 - **Axum** – A powerful, async web framework for Rust.
-
 
 ## 🤝 Contributing
 We welcome contributions! To get started:

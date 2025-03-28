@@ -283,13 +283,35 @@ hr {
     text-align: justify;
   }
 
+  .github-link {
+    width: 80%;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+
   .platform-header {
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
   }
 
+  .platform-header > span {
+    padding-left: 0px;
+  }
+
   .about-contrib {
     display: block;
+  }
+
+  h2.text-header {
+    font-size: 1.5rem;
+  }
+
+  .info p {
+    font-size: 0.8rem;
+  }
+
+  p#about {
+    font-size: 0.9rem;
   }
 }
