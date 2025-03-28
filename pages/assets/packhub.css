@@ -258,4 +258,38 @@ hr {
   .features-grid {
     grid-template-columns: 1fr; /* Switch to a single column */
   }
+
+  header h2 {
+    text-align: center;
+  }
+
+  header h5 {
+    text-align: justify;
+  }
+}
+
+@media (max-width: 576px) {
+  .banner {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  header h2 {
+    text-align: center;
+  }
+
+  header h5 {
+    text-align: justify;
+  }
+
+  .platform-header {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .about-contrib {
+    display: block;
+  }
 }
