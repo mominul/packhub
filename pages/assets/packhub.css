@@ -275,6 +275,10 @@ hr {
     gap: 1.5rem;
   }
 
+  .banner h1 {
+    font-size: 3rem;
+  }
+
   header h2 {
     text-align: center;
   }
