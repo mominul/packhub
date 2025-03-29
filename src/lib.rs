@@ -15,6 +15,7 @@ use crate::state::AppState;
 
 mod apt;
 mod db;
+mod detect;
 mod error;
 mod package;
 pub mod pgp;

@@ -44,8 +44,14 @@ Once the PackHub repository is set up, you can install packages using your syste
 
 ## 🔧 Built With
 
-- **Rust** – Ensuring performance, safety, and concurrency.
-- **Axum** – A powerful, async web framework for Rust.
+- [**Rust**](https://www.rust-lang.org/) – Ensuring performance, safety, and concurrency.
+- [**Axum**](https://crates.io/crates/axum) – A powerful, async web framework for Rust.
+- [**Repology**](https://repology.org/) - Leverages its API to gather `apt` package versions from Ubuntu and Debian repositories.
+- [**octocrab**](https://crates.io/crates/octocrab) -  A modern, extensible GitHub API client. 
+- [**rpm**](https://crates.io/crates/rpm) -  A pure rust library for building and parsing RPMs.
+- [**sequoia-openpgp**](https://crates.io/crates/sequoia-openpgp) - OpenPGP key generation and message signing.
+
+Additional dependencies can be found in the `Cargo.toml` file.
 
 ## 🤝 Contributing
 We welcome contributions! To get started:

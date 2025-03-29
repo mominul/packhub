@@ -1,3 +1,8 @@
+//! This module contains the logic to select the best package for a given distribution.
+//! It filters the packages based on the distribution and version, and returns the best match.
+
+use std::collections::HashMap;
+
 use crate::{package::Package, utils::Dist};
 
 pub(crate) fn select_packages(from: &[Package], dist: Dist) -> Vec<&Package> {
@@ -23,23 +28,49 @@ pub(crate) fn select_packages(from: &[Package], dist: Dist) -> Vec<&Package> {
     }
 
     // Search for the exact distribution version match.
-    // TODO: Handle the case when there is no exact version match
-    //       but lower or higher version match is available.
+    // When there is no exact version match
+    // but lower version match is available,
+    // then we need to select the closest version.
     if !selective.is_empty() {
-        let mut exact = Vec::new();
-
+        // Group packages by name.
+        let mut packages_by_name: HashMap<&str, Vec<&Package>> = HashMap::new();
         for package in selective.iter() {
-            if Some(&dist) == package.distribution().as_ref() {
-                exact.push(*package);
+            if let Some(name) = package.name() {
+                packages_by_name.entry(name).or_default().push(*package);
             }
         }
 
-        // If we have exact match packages, then return them.
-        if !exact.is_empty() {
-            return exact;
+        // Sort the packages by target distribution version and cut off greater versions.
+        for (_, packages) in packages_by_name.iter_mut() {
+            packages.sort_by(|a, b| b.distribution().unwrap().cmp(a.distribution().unwrap()));
+            packages.retain(|i| dist >= *i.distribution().unwrap());
         }
 
-        // We have no exact match, so return the selective packages.
+        // Group by name and architecture
+        let mut grouped_by_name_and_arch: HashMap<_, Vec<_>> = HashMap::new();
+        for (name, packages) in packages_by_name.iter() {
+            for package in packages.iter() {
+                let arch = package.architecture();
+                grouped_by_name_and_arch
+                    .entry((name, arch))
+                    .or_default()
+                    .push(*package);
+            }
+        }
+
+        // Take the first package from each group.
+        // This will give us the packages that are closest to the target distribution.
+        let merged = grouped_by_name_and_arch
+            .into_iter()
+            .map(|(_, v)| v[0])
+            .collect::<Vec<_>>();
+
+        // If we have exact or relatively matched packages, then return them.
+        if !merged.is_empty() {
+            return merged;
+        }
+
+        // We have no exact or relative match, so return the selective packages.
         return selective;
     }
 
@@ -87,6 +118,15 @@ mod tests {
         .into()
     }
 
+    // We need to sort the packages to make the test deterministic.
+    // Because `select_packages` sorts the packages by the distribution
+    // which can change the order of the packages when multiple packages
+    // are present. So we need to sort the packages by their file name.
+    fn sort<'a>(mut v: Vec<&'a Package>) -> Vec<&'a Package> {
+        v.sort();
+        v
+    }
+
     /// A shorthand for `Package::detect_package()`
     fn package(p: &str) -> Package {
         Package::detect_package(p, String::new(), p.to_owned(), chrono::DateTime::UNIX_EPOCH)
@@ -98,15 +138,15 @@ mod tests {
         let packages: Vec<Package> = openbangla_keyboard_packages();
 
         assert_eq!(
-            select_packages(&packages, Dist::Ubuntu(Some("18.04".to_owned()))),
+            select_packages(&packages, Dist::ubuntu("18.04")),
             vec![&package("OpenBangla-Keyboard_2.0.0-ubuntu18.04.deb")]
         );
         assert_eq!(
-            select_packages(&packages, Dist::Ubuntu(Some("20.04".to_owned()))),
+            select_packages(&packages, Dist::ubuntu("20.04")),
             vec![&package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb")]
         );
         assert_eq!(
-            select_packages(&packages, Dist::Ubuntu(Some("22.04".to_owned()))),
+            select_packages(&packages, Dist::ubuntu("22.04")),
             vec![&package("OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb")]
         );
     }
@@ -116,7 +156,7 @@ mod tests {
         let packages: Vec<Package> = openbangla_keyboard_packages();
 
         assert_eq!(
-            select_packages(&packages, Dist::Fedora(Some("38".to_owned()))),
+            select_packages(&packages, Dist::fedora("38")),
             vec![&package("OpenBangla-Keyboard_2.0.0-fedora38.rpm")]
         );
     }
@@ -126,7 +166,7 @@ mod tests {
         let packages: Vec<Package> = openbangla_keyboard_packages();
 
         assert_eq!(
-            select_packages(&packages, Dist::Debian(Some("11".to_owned()))),
+            select_packages(&packages, Dist::debian("11")),
             vec![&package("OpenBangla-Keyboard_2.0.0-debian11.deb")]
         );
     }
@@ -136,7 +176,7 @@ mod tests {
         let packages = multiple_packages();
 
         assert_eq!(
-            select_packages(&packages, Dist::Ubuntu(Some("22.04".to_owned()))),
+            sort(select_packages(&packages, Dist::ubuntu("22.04"))),
             vec![
                 &package("fcitx-openbangla_3.0.0.deb"),
                 &package("ibus-openbangla_3.0.0.deb")
@@ -144,7 +184,7 @@ mod tests {
         );
 
         assert_eq!(
-            select_packages(&packages, Dist::Fedora(Some("39".to_owned()))),
+            sort(select_packages(&packages, Dist::fedora("39"))),
             vec![
                 &package("fcitx-openbangla_3.0.0-fedora.rpm"),
                 &package("ibus-openbangla_3.0.0-fedora.rpm")
@@ -152,11 +192,73 @@ mod tests {
         );
 
         assert_eq!(
-            select_packages(&packages, Dist::Tumbleweed),
+            sort(select_packages(&packages, Dist::Tumbleweed)),
             vec![
-                &package("ibus-openbangla_3.0.0-opensuse-tumbleweed.rpm"),
-                &package("fcitx-openbangla_3.0.0-opensuse-tumbleweed.rpm")
+                &package("fcitx-openbangla_3.0.0-opensuse-tumbleweed.rpm"),
+                &package("ibus-openbangla_3.0.0-opensuse-tumbleweed.rpm")
             ]
+        );
+    }
+
+    #[test]
+    fn test_package_selection_closest() {
+        let packages: Vec<Package> = openbangla_keyboard_packages();
+
+        assert_eq!(
+            select_packages(&packages, Dist::fedora("41")),
+            vec![&package("OpenBangla-Keyboard_2.0.0-fedora38.rpm")]
+        );
+        assert_eq!(
+            select_packages(&packages, Dist::ubuntu("24.04")),
+            vec![&package("OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb")]
+        );
+
+        let packages = [
+            package("flameshot-12.1.0-1-lp15.2.x86_64.rpm"),
+            package("flameshot-12.1.0-1.debian-10.amd64.deb"),
+            package("flameshot-12.1.0-1.debian-10.arm64.deb"),
+            package("flameshot-12.1.0-1.debian-10.armhf.deb"),
+            package("flameshot-12.1.0-1.debian-11.amd64.deb"),
+            package("flameshot-12.1.0-1.debian-11.arm64.deb"),
+            package("flameshot-12.1.0-1.debian-11.armhf.deb"),
+            package("flameshot-12.1.0-1.fc35.x86_64.rpm"),
+            package("flameshot-12.1.0-1.fc36.x86_64.rpm"),
+            package("flameshot-12.1.0-1.ubuntu-20.04.amd64.deb"),
+            package("flameshot-12.1.0-1.ubuntu-22.04.amd64.deb"),
+        ];
+
+        assert_eq!(
+            select_packages(&packages, Dist::fedora("39")),
+            vec![&package("flameshot-12.1.0-1.fc36.x86_64.rpm")]
+        );
+
+        assert_eq!(
+            select_packages(&packages, Dist::ubuntu("21.04")),
+            vec![&package("flameshot-12.1.0-1.ubuntu-20.04.amd64.deb")]
+        );
+
+        assert_eq!(
+            select_packages(&packages, Dist::ubuntu("24.04")),
+            vec![&package("flameshot-12.1.0-1.ubuntu-22.04.amd64.deb")]
+        );
+
+        assert_eq!(
+            sort(select_packages(&packages, Dist::debian("12"))),
+            vec![
+                &package("flameshot-12.1.0-1.debian-11.amd64.deb"),
+                &package("flameshot-12.1.0-1.debian-11.arm64.deb"),
+                &package("flameshot-12.1.0-1.debian-11.armhf.deb")
+            ]
+        );
+    }
+
+    #[test]
+    fn test_package_selection_without_dist() {
+        let packages = [package("caprine_2.60.3_amd64.deb")];
+
+        assert_eq!(
+            select_packages(&packages, Dist::ubuntu("24.04")),
+            vec![&package("caprine_2.60.3_amd64.deb")]
         );
     }
 }

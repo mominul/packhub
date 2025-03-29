@@ -67,10 +67,10 @@ impl AptPlatformDetection {
 
             if key.starts_with("ubuntu") {
                 let ver = key.trim_start_matches("ubuntu_");
-                ubuntu.insert(requirement, Dist::Ubuntu(Some(ver.replace("_", "."))));
+                ubuntu.insert(requirement, Dist::ubuntu(&ver.replace("_", ".")));
             } else if key.starts_with("debian") {
                 let ver = key.trim_start_matches("debian_");
-                debian.insert(requirement, Dist::Debian(Some(ver.to_owned())));
+                debian.insert(requirement, Dist::debian(ver));
             }
         }
 
@@ -143,7 +143,7 @@ pub fn detect_opensuse_tumbleweed(agent: &str) -> bool {
 
 pub fn detect_rpm_os(agent: &str) -> Option<Dist> {
     if let Some(ver) = get_fedora_version(agent) {
-        Some(Dist::Fedora(Some(ver.to_owned())))
+        Some(Dist::fedora(ver))
     } else if detect_opensuse_tumbleweed(agent) {
         Some(Dist::Tumbleweed)
     } else {
@@ -162,41 +162,41 @@ mod tests {
         // Ubuntu
         assert_eq!(
             platform.detect_ubuntu_for_apt("Debian APT-HTTP/1.3 (2.0.2)"),
-            Dist::Ubuntu(Some("20.04".to_owned()))
+            Dist::ubuntu("20.04")
         );
         assert_eq!(
             platform.detect_ubuntu_for_apt("Debian APT-HTTP/1.3 (2.0.9)"),
-            Dist::Ubuntu(Some("20.04".to_owned()))
+            Dist::ubuntu("20.04")
         );
         assert_eq!(
             platform.detect_ubuntu_for_apt("Debian APT-HTTP/1.3 (2.4.5)"),
-            Dist::Ubuntu(Some("22.04".to_owned()))
+            Dist::ubuntu("22.04")
         );
         assert_eq!(
             platform.detect_ubuntu_for_apt("Debian APT-HTTP/1.3 (2.4.8)"),
-            Dist::Ubuntu(Some("22.04".to_owned()))
+            Dist::ubuntu("22.04")
         );
         assert_eq!(
             platform.detect_ubuntu_for_apt("Debian APT-HTTP/1.3 (2.4.10)"),
-            Dist::Ubuntu(Some("22.04".to_owned()))
+            Dist::ubuntu("22.04")
         );
         assert_eq!(
             platform.detect_ubuntu_for_apt("Debian APT-HTTP/1.3 (2.7.14build2)"),
-            Dist::Ubuntu(Some("24.04".to_owned()))
+            Dist::ubuntu("24.04")
         );
 
         // Debian
         assert_eq!(
             platform.detect_debian_for_apt("Debian APT-HTTP/1.3 (1.8.2.3)"),
-            Dist::Debian(Some("10".to_owned()))
+            Dist::debian("10")
         );
         assert_eq!(
             platform.detect_debian_for_apt("Debian APT-HTTP/1.3 (2.2.4)"),
-            Dist::Debian(Some("11".to_owned()))
+            Dist::debian("11")
         );
         assert_eq!(
             platform.detect_debian_for_apt("Debian APT-HTTP/1.3 (2.6.1)"),
-            Dist::Debian(Some("12".to_owned()))
+            Dist::debian("12")
         );
         // assert_eq!(
         //     platform.detect_debian_for_apt("Debian APT-HTTP/1.3 (2.9.23)"),

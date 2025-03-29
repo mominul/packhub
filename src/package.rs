@@ -4,13 +4,14 @@ use anyhow::{bail, Result};
 use chrono::{DateTime, Utc};
 
 use crate::{
-    utils::{Dist, Type},
+    detect::PackageInfo,
+    utils::{Arch, Dist, Type},
     REQWEST,
 };
 
 struct InnerPackage {
     tipe: Type,
-    dist: Option<Dist>,
+    info: PackageInfo,
     url: String,
     ver: String,
     data: Mutex<Data>,
@@ -62,7 +63,7 @@ impl Ord for Package {
 impl PartialEq for InnerPackage {
     fn eq(&self, other: &Self) -> bool {
         self.tipe == other.tipe
-            && self.dist == other.dist
+            && self.info == other.info
             && self.url == other.url
             && self.ver == other.ver
             && *self.data.lock().unwrap() == *other.data.lock().unwrap()
@@ -79,26 +80,15 @@ impl Package {
     ) -> Result<Package> {
         // Split the extension first.
         // If we don't recognize it, then return error.
-        let Some((tipe, splitted)) = split_extention(name) else {
+        let Some(tipe) = split_extention(name) else {
             bail!("Unknown package type: {}", name);
         };
 
-        let mut dist: Option<Dist> = None;
-        let sections: Vec<&str> = splitted.split(['-', '_']).collect();
-
-        for section in sections {
-            match section {
-                dst if dst.contains("ubuntu") => dist = Some(Dist::Ubuntu(parse_version(dst))),
-                dst if dst.contains("debian") => dist = Some(Dist::Debian(parse_version(dst))),
-                dst if dst.contains("fedora") => dist = Some(Dist::Fedora(parse_version(dst))),
-                dst if dst.contains("tumbleweed") => dist = Some(Dist::Tumbleweed),
-                _ => (),
-            }
-        }
+        let info = PackageInfo::parse_package(name);
 
         let inner = InnerPackage {
             tipe,
-            dist,
+            info,
             url,
             ver,
             data: Mutex::new(Data::None),
@@ -110,13 +100,29 @@ impl Package {
         })
     }
 
+    /// Name of the package
+    pub fn name(&self) -> Option<&str> {
+        self.inner.info.name.as_deref()
+    }
+
+    /// Architecture of the package.
+    /// By default, it is `amd64`.
+    pub fn architecture(&self) -> Arch {
+        self.inner
+            .info
+            .architecture
+            .as_ref()
+            .cloned()
+            .unwrap_or_default()
+    }
+
     pub fn ty(&self) -> &Type {
         &self.inner.tipe
     }
 
     /// Return the distribution for which it was packaged
-    pub fn distribution(&self) -> &Option<Dist> {
-        &self.inner.dist
+    pub fn distribution(&self) -> Option<&Dist> {
+        self.inner.info.distro.as_ref()
     }
 
     /// Version of the package
@@ -177,29 +183,7 @@ impl Package {
     }
 }
 
-/// Parses the version from the distribution identifier `dist`.
-///
-/// For instance, for a distribution identifier `ubuntu22.10` it will
-/// parse the version as `22.10`.
-fn parse_version(dist: &str) -> Option<String> {
-    split_at_numeric(dist).map(|s| s.to_owned())
-}
-
-/// Splits the string `s` at the first occurence of a numeric digit.
-///
-/// It is used to extract version number from strings, such as for "ubuntu24.10" it would
-/// return "24.10".
-fn split_at_numeric(s: &str) -> Option<&str> {
-    for (curr, (index, next)) in s.chars().zip(s.char_indices().skip(1)) {
-        if curr.is_ascii_alphabetic() && next.is_ascii_digit() {
-            return Some(&s[index..]);
-        }
-    }
-
-    None
-}
-
-fn split_extention(s: &str) -> Option<(Type, &str)> {
+fn split_extention(s: &str) -> Option<Type> {
     let mut str = String::with_capacity(3);
     let mut index = 0;
 
@@ -216,8 +200,6 @@ fn split_extention(s: &str) -> Option<(Type, &str)> {
         return None;
     }
 
-    let splitted = &s[0..index];
-
     // `str` is in reverse order, so we try to match it reversely.
     let tipe = match str.as_str() {
         "bed" => Type::Deb,
@@ -225,7 +207,7 @@ fn split_extention(s: &str) -> Option<(Type, &str)> {
         _ => return None,
     };
 
-    Some((tipe, splitted))
+    Some(tipe)
 }
 
 #[cfg(test)]
@@ -242,10 +224,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(pack.version(), "2.0.0");
-        assert_eq!(
-            *pack.distribution(),
-            Some(Dist::Ubuntu(Some("22.04".to_owned())))
-        );
+        assert_eq!(pack.distribution(), Some(&Dist::ubuntu("22.04")));
         assert_eq!(*pack.ty(), Type::Deb);
 
         let pack = Package::detect_package(
@@ -256,10 +235,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(pack.version(), "2.0.0");
-        assert_eq!(
-            *pack.distribution(),
-            Some(Dist::Fedora(Some("36".to_owned())))
-        );
+        assert_eq!(pack.distribution(), Some(&Dist::fedora("36")));
         assert_eq!(*pack.ty(), Type::Rpm);
 
         let pack = Package::detect_package(
@@ -270,7 +246,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(pack.version(), "v2.56.1");
-        assert_eq!(*pack.distribution(), None);
+        assert_eq!(pack.distribution(), None);
         assert_eq!(*pack.ty(), Type::Deb);
 
         let pack = Package::detect_package(
@@ -281,7 +257,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(pack.version(), "3.0.0");
-        assert_eq!(*pack.distribution(), Some(Dist::Tumbleweed));
+        assert_eq!(pack.distribution(), Some(&Dist::Tumbleweed));
         assert_eq!(*pack.ty(), Type::Rpm);
     }
 
@@ -307,25 +283,13 @@ mod tests {
     fn test_split_extension() {
         assert_eq!(
             split_extention("OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb"),
-            Some((Type::Deb, "OpenBangla-Keyboard_2.0.0-ubuntu22.04"))
+            Some(Type::Deb)
         );
         assert_eq!(
             split_extention("OpenBangla-Keyboard_2.0.0-fedora36.rpm"),
-            Some((Type::Rpm, "OpenBangla-Keyboard_2.0.0-fedora36"))
+            Some(Type::Rpm)
         );
         assert_eq!(split_extention("caprine_2.56.1_amd64.snap"), None);
         assert_eq!(split_extention("deb"), None);
-    }
-
-    #[test]
-    fn test_split_test() {
-        assert_eq!(split_at_numeric("ubuntu24.10"), Some("24.10"));
-        assert_eq!(split_at_numeric("ubuntu"), None);
-    }
-
-    #[test]
-    fn test_parse_version() {
-        assert_eq!(parse_version("ubuntu22.10").unwrap(), "22.10".to_owned());
-        assert_eq!(parse_version("fedora37").unwrap(), "37".to_owned());
     }
 }
