@@ -118,9 +118,8 @@ pub fn gzip_compression(data: &[u8]) -> Vec<u8> {
     encoder.write_all(data).unwrap();
 
     let gzip = encoder.finish();
-    let gzip = gzip.into_result().unwrap();
 
-    gzip
+    gzip.into_result().unwrap()
 }
 
 #[cfg(test)]

@@ -23,7 +23,7 @@ impl PackageMetadata {
 
         Some(Self {
             name: package.file_name().to_owned(),
-            created_at: package.creation_date().clone(),
+            created_at: *package.creation_date(),
             metadata,
         })
     }

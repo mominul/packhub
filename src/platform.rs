@@ -127,7 +127,7 @@ fn fresh_version(mut ver: Version) -> Version {
     ver
 }
 
-fn get_apt_version<'a>(agent: &'a str) -> &'a str {
+fn get_apt_version(agent: &str) -> &str {
     APT.captures(agent).unwrap().get(1).unwrap().as_str()
 }
 

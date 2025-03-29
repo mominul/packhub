@@ -30,11 +30,11 @@ impl Dist {
 
     pub fn set_version(&mut self, version: Option<&str>) {
         match self {
-            Dist::Debian(ref mut ver) => *ver = version.map(|v| parse(v).ok()).flatten(),
-            Dist::Ubuntu(ref mut ver) => *ver = version.map(|v| parse(v).ok()).flatten(),
-            Dist::Fedora(ref mut ver) => *ver = version.map(|v| parse(v).ok()).flatten(),
+            Dist::Debian(ref mut ver) => *ver = version.and_then(|v| parse(v).ok()),
+            Dist::Ubuntu(ref mut ver) => *ver = version.and_then(|v| parse(v).ok()),
+            Dist::Fedora(ref mut ver) => *ver = version.and_then(|v| parse(v).ok()),
             Dist::Tumbleweed => {}
-            Dist::Leap(ref mut ver) => *ver = version.map(|v| parse(v).ok()).flatten(),
+            Dist::Leap(ref mut ver) => *ver = version.and_then(|v| parse(v).ok()),
         }
     }
 
@@ -55,19 +55,14 @@ impl Dist {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash, Default)]
 pub enum Arch {
+    #[default]
     Amd64,
     Arm64,
     Armhf,
     Armv7,
     Aarch64,
-}
-
-impl Default for Arch {
-    fn default() -> Self {
-        Arch::Amd64
-    }
 }
 
 impl FromStr for Arch {

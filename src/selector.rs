@@ -61,8 +61,8 @@ pub(crate) fn select_packages(from: &[Package], dist: Dist) -> Vec<&Package> {
         // Take the first package from each group.
         // This will give us the packages that are closest to the target distribution.
         let merged = grouped_by_name_and_arch
-            .into_iter()
-            .map(|(_, v)| v[0])
+            .into_values()
+            .map(|v| v[0])
             .collect::<Vec<_>>();
 
         // If we have exact or relatively matched packages, then return them.

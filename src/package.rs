@@ -135,7 +135,7 @@ impl Package {
     }
 
     pub fn file_name(&self) -> &str {
-        &self.inner.url.split('/').last().unwrap()
+        self.inner.url.split('/').last().unwrap()
     }
 
     /// Download package data

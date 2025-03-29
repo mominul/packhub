@@ -86,8 +86,7 @@ impl PackageInfo {
         if let Some(caps) = ARCH_RE.captures(filename) {
             architecture = caps
                 .get(1)
-                .map(|m| m.as_str().to_lowercase().parse().ok())
-                .flatten();
+                .and_then(|m| m.as_str().to_lowercase().parse().ok());
         }
 
         // Extract distro and version (e.g., "fedora" and "38")

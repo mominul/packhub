@@ -14,7 +14,7 @@ use crate::{
     state::AppState,
 };
 
-static OCTOCRAB: LazyLock<Arc<Octocrab>> = LazyLock::new(|| octocrab::instance());
+static OCTOCRAB: LazyLock<Arc<Octocrab>> = LazyLock::new(octocrab::instance);
 
 pub struct Repository {
     collection: Collection<PackageMetadata>,
@@ -104,7 +104,7 @@ impl Repository {
 
         let packages: Vec<Package> = select_packages(&self.packages, dist)
             .into_iter()
-            .map(|p| p.clone())
+            .cloned()
             .collect();
 
         debug!("Packages selected {:?}", packages);
@@ -125,7 +125,7 @@ impl Repository {
         };
         let packages: Vec<Package> = select_packages(&self.packages, dist)
             .into_iter()
-            .map(|p| p.clone())
+            .cloned()
             .collect();
 
         debug!("Packages selected {:?}", packages);
