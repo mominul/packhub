@@ -1,8 +1,5 @@
-use std::sync::{Arc, LazyLock};
-
 use anyhow::{bail, Result};
 use mongodb::Collection;
-use octocrab::Octocrab;
 use tokio::task::JoinSet;
 use tracing::{debug, error};
 
@@ -13,8 +10,6 @@ use crate::{
     selector::select_packages,
     state::AppState,
 };
-
-static OCTOCRAB: LazyLock<Arc<Octocrab>> = LazyLock::new(octocrab::instance);
 
 pub struct Repository {
     collection: Collection<PackageMetadata>,
@@ -32,7 +27,8 @@ impl Repository {
             .collection::<PackageMetadata>(&project);
 
         let mut packages = Vec::new();
-        let release = OCTOCRAB
+        let release = state
+            .github()
             .repos(owner, repo)
             .releases()
             .get_latest()

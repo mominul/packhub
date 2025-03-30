@@ -19,6 +19,10 @@ async fn main() {
         .with(filter)
         .init();
 
+    rustls::crypto::aws_lc_rs::default_provider()
+        .install_default()
+        .unwrap();
+
     if dotenv().is_err() {
         info!("No .env file found");
     }
@@ -44,10 +48,6 @@ async fn main() {
 
     info!("listening on {}", http_addr);
     info!("listening on {}", https_addr);
-
-    rustls::crypto::aws_lc_rs::default_provider()
-        .install_default()
-        .unwrap();
 
     let config = RustlsConfig::from_pem_file(
         var("PACKHUB_CERT_PEM").unwrap(),

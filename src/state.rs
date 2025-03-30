@@ -3,6 +3,7 @@ use std::sync::Arc;
 use anyhow::Result;
 use dotenvy::var;
 use mongodb::Client;
+use octocrab::{Octocrab, OctocrabBuilder};
 use sequoia_openpgp::{serialize::SerializeInto, Cert};
 
 use crate::pgp::{
@@ -17,6 +18,7 @@ pub struct AppState {
 struct InnerState {
     db: Client,
     cert: Cert,
+    github: Octocrab,
 }
 
 impl AppState {
@@ -36,14 +38,28 @@ impl AppState {
             load_cert_from_file().unwrap()
         };
 
+        let github = OctocrabBuilder::default()
+            .personal_token(var("PACKHUB_GITHUB_PAT").unwrap())
+            .build()
+            .unwrap();
+
         Self {
-            state: Arc::new(InnerState { db: client, cert }),
+            state: Arc::new(InnerState {
+                db: client,
+                cert,
+                github,
+            }),
         }
     }
 
     /// Get a reference to the MongoDB client.
     pub fn db(&self) -> &Client {
         &self.state.db
+    }
+
+    /// Get a reference to the GitHub client.
+    pub fn github(&self) -> &Octocrab {
+        &self.state.github
     }
 
     pub fn clearsign_metadata(&self, data: &str) -> Result<String> {
