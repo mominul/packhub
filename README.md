@@ -1,8 +1,7 @@
 # PackHub - Decentralized Package Repositories for Linux
 [![Build Status](https://github.com/mominul/packhub/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/mominul/packhub/actions?query=branch%3Amain)
 [![Rust](https://img.shields.io/badge/rust-1.85.1%2B-blue.svg?maxAge=3600)](https://blog.rust-lang.org/2021/10/21/Rust-1.56.0.html)
-[![asciicast](https://asciinema.org/a/pjL18xxjQJwd0S6WeELQpVqnf.svg)](https://asciinema.org/a/pjL18xxjQJwd0S6WeELQpVqnf)
-
+[![asciicast](/pages/assets/asciinema.svg)](https://asciinema.org/a/ncMOerw3L7RwhTXqA3Ck7T7En)
 ## 🚀 Install Linux Packages Directly from GitHub!
 PackHub dynamically creates virtual Linux package repositories (`apt`, `dnf`, `yum`, etc.) on the fly, pulling directly from GitHub Releases. No need for centralized repositories—just seamless installations.
 
