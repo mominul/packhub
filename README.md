@@ -34,9 +34,14 @@ wget -qO- http://packhub.dev/sh/ubuntu/github/OWNER/REPO | sh
 wget -qO- http://packhub.dev/sh/debian/github/OWNER/REPO | sh
 ```
 
-### RPM-Based Distributions (Fedora, openSUSE, etc.)
+### Fedora
 ```bash
-wget -qO- http://packhub.dev/sh/rpm/github/OWNER/REPO | sh
+wget -qO- http://packhub.dev/sh/yum/github/OWNER/REPO | sh
+```
+
+### openSUSE
+```bash
+wget -qO- http://packhub.dev/sh/zypp/github/OWNER/REPO | sh
 ```
 
 Once the PackHub repository is set up, you can install packages using your system’s package manager (`apt`, `dnf`, `yum`, etc.).
