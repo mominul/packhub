@@ -40,10 +40,16 @@ impl AppState {
             load_cert_from_file().unwrap()
         };
 
-        let github = OctocrabBuilder::default()
-            .personal_token(var("PACKHUB_GITHUB_PAT").unwrap())
-            .build()
-            .unwrap();
+        let pat = var("PACKHUB_GITHUB_PAT").unwrap();
+
+        let github = if pat != "" {
+            OctocrabBuilder::default()
+                .personal_token(var("PACKHUB_GITHUB_PAT").unwrap())
+                .build()
+                .unwrap()
+        } else {
+            OctocrabBuilder::default().build().unwrap()
+        };
 
         Self {
             state: Arc::new(InnerState {
