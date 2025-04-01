@@ -1,15 +1,15 @@
 use std::{sync::LazyLock, time::Duration};
 
 use axum::{
+    Router,
     body::{Body, HttpBody},
     http::Response,
-    Router,
 };
 use tower_http::{
     services::{ServeDir, ServeFile},
     trace::TraceLayer,
 };
-use tracing::{debug, Span};
+use tracing::{Span, debug};
 
 use crate::state::AppState;
 

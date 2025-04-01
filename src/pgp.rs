@@ -1,30 +1,32 @@
 use std::{fs, io::Write};
 
 use anyhow::Result;
-use axum::{extract::State, routing::get, Router};
+use axum::{Router, extract::State, routing::get};
 use sequoia_openpgp::{
     cert::prelude::*,
+    crypto::Password,
     parse::Parse,
     policy::StandardPolicy,
     serialize::{
-        stream::{Armorer, Message, Signer},
         SerializeInto,
+        stream::{Armorer, Message, Signer},
     },
 };
 
 use crate::state::AppState;
 
-fn generate_keys() -> Result<Cert> {
+fn generate_keys(passphrase: &Password) -> Result<Cert> {
     let (cert, _) = CertBuilder::new()
         .add_userid("PackHub <sign@packhub.dev>")
+        .set_password(Some(passphrase.clone()))
         .add_signing_subkey()
         .generate()?;
 
     Ok(cert)
 }
 
-pub fn generate_and_save_keys() -> Result<Cert> {
-    let cert = generate_keys()?;
+pub fn generate_and_save_keys(passphrase: &Password) -> Result<Cert> {
+    let cert = generate_keys(passphrase)?;
 
     let key = cert.as_tsk().to_vec()?;
 
@@ -40,11 +42,12 @@ pub fn load_cert_from_file() -> Result<Cert> {
     Ok(cert)
 }
 
-pub fn clearsign_metadata(data: &str, cert: &Cert) -> Result<String> {
-    let keypair = cert
+pub fn clearsign_metadata(data: &str, cert: &Cert, passphrase: &Password) -> Result<String> {
+    let binding = StandardPolicy::new();
+    let key = cert
         .keys()
         .secret()
-        .with_policy(&StandardPolicy::new(), None)
+        .with_policy(&binding, None)
         .supported()
         .alive()
         .revoked(false)
@@ -52,9 +55,10 @@ pub fn clearsign_metadata(data: &str, cert: &Cert) -> Result<String> {
         .next()
         .unwrap()
         .key()
-        .clone()
-        .into_keypair()
-        .unwrap();
+        .clone();
+
+    let decrypted_key = key.decrypt_secret(passphrase)?;
+    let keypair = decrypted_key.into_keypair()?;
 
     let mut sink = vec![];
     let message = Message::new(&mut sink);
@@ -66,11 +70,12 @@ pub fn clearsign_metadata(data: &str, cert: &Cert) -> Result<String> {
     Ok(String::from_utf8(sink)?)
 }
 
-pub fn detached_sign_metadata(content: &str, cert: &Cert) -> Result<String> {
-    let keypair = cert
+pub fn detached_sign_metadata(content: &str, cert: &Cert, passphrase: &Password) -> Result<String> {
+    let binding = StandardPolicy::new();
+    let key = cert
         .keys()
         .secret()
-        .with_policy(&StandardPolicy::new(), None)
+        .with_policy(&binding, None)
         .supported()
         .alive()
         .revoked(false)
@@ -78,9 +83,10 @@ pub fn detached_sign_metadata(content: &str, cert: &Cert) -> Result<String> {
         .next()
         .unwrap()
         .key()
-        .clone()
-        .into_keypair()
-        .unwrap();
+        .clone();
+
+    let decrypted_key = key.decrypt_secret(passphrase)?;
+    let keypair = decrypted_key.into_keypair()?;
 
     let mut sink = vec![];
     let message = Armorer::new(Message::new(&mut sink)).build()?;
@@ -106,4 +112,79 @@ pub fn keys() -> Router<AppState> {
     Router::new()
         .route("/packhub.asc", get(armored_public_key_handler))
         .route("/packhub.gpg", get(dearmored_public_key_handler))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Read;
+
+    use anyhow::Result;
+    use sequoia_openpgp::{
+        cert::prelude::*,
+        parse::Parse,
+        parse::stream::{MessageLayer, MessageStructure, VerificationHelper, VerifierBuilder},
+        policy::StandardPolicy,
+    };
+
+    use super::*;
+
+    struct VerificationHelperImpl {
+        public_key: Cert,
+    }
+
+    impl VerificationHelper for VerificationHelperImpl {
+        fn get_certs(
+            &mut self,
+            _ids: &[sequoia_openpgp::KeyHandle],
+        ) -> sequoia_openpgp::Result<Vec<Cert>> {
+            Ok(vec![self.public_key.clone()])
+        }
+
+        fn check(&mut self, structure: MessageStructure<'_>) -> sequoia_openpgp::Result<()> {
+            for layer in structure.into_iter() {
+                match layer {
+                    MessageLayer::SignatureGroup { ref results } => {
+                        // Simply check if all signatures are valid
+                        if !results.iter().any(|r| r.is_ok()) {
+                            return Err(anyhow::anyhow!("No valid signature"));
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn test_pgp_sign_and_verify() -> Result<()> {
+        let passphrase = "secure-passphrase".into();
+
+        // Generate new PGP key pair
+        let cert = generate_keys(&passphrase)?;
+        let message = "Test message to be signed";
+
+        // Sign the message using cleartext signing
+        let signed_message = clearsign_metadata(message, &cert, &passphrase)?;
+
+        // Set up verification
+        let helper = VerificationHelperImpl {
+            public_key: cert.clone(),
+        };
+        let policy = StandardPolicy::new();
+
+        // Create verifier with our helper
+        let mut verifier = VerifierBuilder::from_bytes(signed_message.as_bytes())?
+            .with_policy(&policy, None, helper)?;
+
+        // Read the verified content
+        let mut verified_content = Vec::new();
+        verifier.read_to_end(&mut verified_content)?;
+        let verified_text = String::from_utf8(verified_content)?;
+
+        // Verify the content matches original message
+        assert_eq!(verified_text.trim(), message.trim());
+
+        Ok(())
+    }
 }

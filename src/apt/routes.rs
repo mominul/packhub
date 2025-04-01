@@ -1,19 +1,19 @@
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use axum::{
+    Router,
     body::Body,
     extract::{Path, State},
     response::IntoResponse,
     routing::get,
-    Router,
 };
 use axum_extra::{headers::UserAgent, typed_header::TypedHeader};
 
 use crate::{
-    apt::index::{gzip_compression, AptIndices},
+    REQWEST,
+    apt::index::{AptIndices, gzip_compression},
     error::AppError,
     repository::Repository,
     state::AppState,
-    REQWEST,
 };
 
 #[tracing::instrument(name = "Debian Release File", skip_all, fields(agent = agent.as_str()))]

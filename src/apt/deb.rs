@@ -1,7 +1,7 @@
 use std::io::Read;
 use std::sync::LazyLock;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use libflate::gzip::Decoder;
 use md5::Md5;
 use regex::Regex;
@@ -12,7 +12,7 @@ use sha2::{Sha256, Sha512};
 
 use crate::{
     package::{Data, Package},
-    utils::{hashsum, Arch},
+    utils::{Arch, hashsum},
 };
 
 static ARCH: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"Architecture: (\w+)"#).unwrap());

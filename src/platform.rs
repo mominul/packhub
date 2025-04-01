@@ -5,7 +5,7 @@ use lenient_semver::parse;
 use regex::Regex;
 use semver::{Version, VersionReq};
 
-use crate::{utils::Dist, REQWEST};
+use crate::{REQWEST, utils::Dist};
 
 static PRE_RELEASE_STRIPER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(\d+)\D").unwrap());
 static APT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"Debian APT.+\((.+)\)"#).unwrap());

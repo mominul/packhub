@@ -1,4 +1,4 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use rpm::{DependencyFlags, FileMode, IndexSignatureTag};
 use serde::{Deserialize, Serialize};
 use serde_json::{from_str, to_string};

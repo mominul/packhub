@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use mongodb::Collection;
 use tokio::task::JoinSet;
 use tracing::{debug, error};
@@ -6,7 +6,7 @@ use tracing::{debug, error};
 use crate::{
     db::PackageMetadata,
     package::Package,
-    platform::{detect_rpm_os, AptPlatformDetection},
+    platform::{AptPlatformDetection, detect_rpm_os},
     selector::select_packages,
     state::AppState,
 };

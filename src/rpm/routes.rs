@@ -1,20 +1,20 @@
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use axum::{
+    Router,
     body::Body,
     extract::{Path, State},
     response::IntoResponse,
     routing::get,
-    Router,
 };
 use axum_extra::{headers::UserAgent, typed_header::TypedHeader};
 use zstd::encode_all;
 
 use crate::{
+    REQWEST,
     error::AppError,
     repository::Repository,
     rpm::{index::get_repomd_index, package::RPMPackage},
     state::AppState,
-    REQWEST,
 };
 
 use super::index::{get_filelists_index, get_other_index, get_primary_index};

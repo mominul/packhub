@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use askama::Template;
-use axum::{extract::Path, routing::get, Router};
+use axum::{Router, extract::Path, routing::get};
 
 use crate::{error::AppError, state::AppState};
 

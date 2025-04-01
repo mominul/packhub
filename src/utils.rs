@@ -3,7 +3,7 @@ use std::{ops::Add, str::FromStr};
 use anyhow::Result;
 use lenient_semver::parse;
 use semver::Version;
-use sha1::digest::{generic_array::ArrayLength, Digest, OutputSizeUser};
+use sha1::digest::{Digest, OutputSizeUser, generic_array::ArrayLength};
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub enum Dist {
@@ -30,11 +30,11 @@ impl Dist {
 
     pub fn set_version(&mut self, version: Option<&str>) {
         match self {
-            Dist::Debian(ref mut ver) => *ver = version.and_then(|v| parse(v).ok()),
-            Dist::Ubuntu(ref mut ver) => *ver = version.and_then(|v| parse(v).ok()),
-            Dist::Fedora(ref mut ver) => *ver = version.and_then(|v| parse(v).ok()),
+            Dist::Debian(ver) => *ver = version.and_then(|v| parse(v).ok()),
+            Dist::Ubuntu(ver) => *ver = version.and_then(|v| parse(v).ok()),
+            Dist::Fedora(ver) => *ver = version.and_then(|v| parse(v).ok()),
             Dist::Tumbleweed => {}
-            Dist::Leap(ref mut ver) => *ver = version.and_then(|v| parse(v).ok()),
+            Dist::Leap(ver) => *ver = version.and_then(|v| parse(v).ok()),
         }
     }
 

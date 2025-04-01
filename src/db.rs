@@ -51,7 +51,7 @@ mod tests {
     use mongodb::Client;
     use testcontainers_modules::{
         mongo::Mongo,
-        testcontainers::{runners::AsyncRunner, ContainerAsync},
+        testcontainers::{ContainerAsync, runners::AsyncRunner},
     };
 
     use crate::apt::DebianPackage;

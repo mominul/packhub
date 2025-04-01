@@ -1,12 +1,12 @@
 use std::sync::{Arc, Mutex};
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use chrono::{DateTime, Utc};
 
 use crate::{
+    REQWEST,
     detect::PackageInfo,
     utils::{Arch, Dist, Type},
-    REQWEST,
 };
 
 struct InnerPackage {

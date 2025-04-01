@@ -4,7 +4,7 @@ use anyhow::Result;
 use dotenvy::var;
 use mongodb::Client;
 use octocrab::{Octocrab, OctocrabBuilder};
-use sequoia_openpgp::{serialize::SerializeInto, Cert};
+use sequoia_openpgp::{Cert, crypto::Password, serialize::SerializeInto};
 
 use crate::pgp::{
     clearsign_metadata, detached_sign_metadata, generate_and_save_keys, load_cert_from_file,
@@ -19,6 +19,7 @@ struct InnerState {
     db: Client,
     cert: Cert,
     github: Octocrab,
+    passphrase: Password,
 }
 
 impl AppState {
@@ -31,9 +32,10 @@ impl AppState {
         );
 
         let client = Client::with_uri_str(uri).await.unwrap();
+        let passphrase = var("PACKHUB_SIGN_PASSPHRASE").unwrap().into();
 
         let cert = if generate_keys {
-            generate_and_save_keys().unwrap()
+            generate_and_save_keys(&passphrase).unwrap()
         } else {
             load_cert_from_file().unwrap()
         };
@@ -48,6 +50,7 @@ impl AppState {
                 db: client,
                 cert,
                 github,
+                passphrase,
             }),
         }
     }
@@ -63,11 +66,11 @@ impl AppState {
     }
 
     pub fn clearsign_metadata(&self, data: &str) -> Result<String> {
-        clearsign_metadata(data, &self.state.cert)
+        clearsign_metadata(data, &self.state.cert, &self.state.passphrase)
     }
 
     pub fn detached_sign_metadata(&self, data: &str) -> Result<String> {
-        detached_sign_metadata(data, &self.state.cert)
+        detached_sign_metadata(data, &self.state.cert, &self.state.passphrase)
     }
 
     pub fn armored_public_key(&self) -> Vec<u8> {

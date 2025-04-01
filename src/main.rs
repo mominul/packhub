@@ -2,7 +2,7 @@ use std::{env::args, net::SocketAddr};
 
 use axum_server::tls_rustls::RustlsConfig;
 use dotenvy::{dotenv, var};
-use tracing::{info, Level};
+use tracing::{Level, info};
 use tracing_subscriber::{filter::Targets, prelude::*};
 
 use packhub::{app, state::AppState};
