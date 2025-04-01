@@ -1,6 +1,6 @@
 #!/bin/bash
 
-zypper install wget sudo -y
+zypper --non-interactive install wget sudo
 
 echo
 echo "Running the package key and repository setup script"
