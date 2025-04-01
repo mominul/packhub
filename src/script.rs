@@ -30,14 +30,16 @@ struct RPMScript<'a> {
     host: &'a str,
     owner: &'a str,
     repo: &'a str,
+    mgr: &'a str,
 }
 
-fn generate_rpm_script(owner: &str, repo: &str) -> String {
+fn generate_rpm_script(owner: &str, repo: &str, mgr: &str) -> String {
     let host = dotenvy::var("PACKHUB_DOMAIN").unwrap();
     let script = RPMScript {
         host: &host,
         owner,
         repo,
+        mgr,
     };
     script.render().unwrap()
 }
@@ -47,7 +49,8 @@ async fn script_handler(
 ) -> Result<String, AppError> {
     match distro.as_str() {
         "ubuntu" | "debian" => Ok(generate_apt_script(&distro, &owner, &repo)),
-        "rpm" => Ok(generate_rpm_script(&owner, &repo)),
+        "yum" => Ok(generate_rpm_script(&owner, &repo, "yum.repos.d")),
+        "zypp" => Ok(generate_rpm_script(&owner, &repo, "zypp/repos.d")),
         _ => Err(anyhow!("Script Generation: Unsupported distro: {}", distro).into()),
     }
 }
@@ -70,7 +73,10 @@ mod tests {
 
     #[test]
     fn test_script_generation_rpm() {
-        let script = generate_rpm_script("OpenBangla", "OpenBangla-Keyboard");
-        assert_snapshot!(script);
+        let yum = generate_rpm_script("OpenBangla", "OpenBangla-Keyboard", "yum.repos.d");
+        assert_snapshot!(yum);
+
+        let zypp = generate_rpm_script("OpenBangla", "OpenBangla-Keyboard", "zypp/repos.d");
+        assert_snapshot!(zypp);
     }
 }

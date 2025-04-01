@@ -4,7 +4,7 @@ echo "Welcome to package key and repository setup script for {{repo}}"
 echo "This script will add the repository key and repository to your system."
 echo "Please make sure you have sudo access to run this script."
 
-echo -e "[{{repo}}]\nname={{repo}}\nbaseurl={{host}}/v1/rpm/github/{{owner}}/{{repo}}\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey={{host}}/v1/keys/packhub.asc" | sudo tee /etc/yum.repos.d/{{repo}}.repo > /dev/null
+echo -e "[{{repo}}]\nname={{repo}}\nbaseurl={{host}}/v1/rpm/github/{{owner}}/{{repo}}\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey={{host}}/v1/keys/packhub.asc" | sudo tee /etc/{{mgr}}/{{repo}}.repo > /dev/null
 
 echo
 echo "Repository has been added to your system."
