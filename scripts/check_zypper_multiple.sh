@@ -1,6 +1,19 @@
 #!/bin/bash
 
+zypper install wget sudo -y
+
+echo
+echo "Running the package key and repository setup script"
+
 wget -qO- http://localhost:3000/sh/zypp/github/mominul/pack-exp2 | sh
+return_value=$?
+if [ $return_value -ne 0 ]; then
+    echo "The script failed with exit code $return_value"
+    # Handle error case here
+    exit $return_value
+else
+    echo "Package key and repository setup script ran successfully."
+fi
 
 zypper --gpg-auto-import-keys refresh
 
