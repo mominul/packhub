@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::{collections::HashMap, io::Write};
 
 use anyhow::Result;
 use askama::Template;
@@ -8,11 +8,15 @@ use md5::Md5;
 use sha1::Sha1;
 use sha2::{Sha256, Sha512};
 
-use crate::{apt::deb::DebianPackage, package::Package, utils::hashsum};
+use crate::{
+    apt::deb::DebianPackage,
+    package::Package,
+    utils::{Arch, hashsum},
+};
 
 #[derive(Debug)]
 pub struct AptIndices {
-    packages: Vec<DebianPackage>,
+    packages: HashMap<Arch, Vec<DebianPackage>>,
     date: DateTime<Utc>,
 }
 
@@ -42,7 +46,7 @@ struct Files {
 
 impl AptIndices {
     pub fn new(packages: &[Package]) -> Result<AptIndices> {
-        let mut debian = Vec::new();
+        let mut debian: HashMap<Arch, Vec<DebianPackage>> = HashMap::new();
         // Find the latest date from the list of packages
         let mut date = DateTime::UNIX_EPOCH;
         for package in packages {
@@ -51,7 +55,17 @@ impl AptIndices {
             }
 
             match DebianPackage::from_package(package) {
-                Ok(deb) => debian.push(deb),
+                Ok(deb) => {
+                    if let Some(arch) = deb.get_arch() {
+                        debian.entry(arch).or_default().push(deb);
+                    } else {
+                        tracing::error!(
+                            "Debian package architecture not found for package: {:?}",
+                            package
+                        );
+                        continue;
+                    }
+                }
                 Err(e) => {
                     tracing::error!("Error occurred when extracting debian control data: {e}");
                     continue;
@@ -64,41 +78,46 @@ impl AptIndices {
         })
     }
 
-    pub fn get_package_index(&self) -> String {
+    pub fn get_package_index(&self, arch: &Arch) -> String {
         let index = PackageIndex {
-            packages: self.packages.as_slice(),
+            packages: self.packages.get(arch).unwrap(),
         };
         index.render().unwrap().trim().to_owned()
     }
 
     pub fn get_release_index(&self) -> String {
+        let name = ". stable";
         let date = self.date.to_rfc2822();
 
-        let packages = self.get_package_index();
-        let packages = packages.as_bytes();
+        let mut files = vec![];
 
-        let name = ". stable"; //format!("{} stable", self.deb.get_package());
+        for arch in self.packages.keys() {
+            let packages = self.get_package_index(arch);
+            let packages = packages.as_bytes();
+            let packages_gz = gzip_compression(packages);
 
-        let packages_gz = gzip_compression(packages);
+            files.extend([
+                Files {
+                    sha256: hashsum::<Sha256>(packages),
+                    size: packages.len(),
+                    path: format!("main/binary-{}/Packages", arch),
+                    md5: hashsum::<Md5>(packages),
+                    sha1: hashsum::<Sha1>(packages),
+                    sha512: hashsum::<Sha512>(packages),
+                },
+                Files {
+                    sha256: hashsum::<Sha256>(&packages_gz),
+                    size: packages_gz.len(),
+                    path: format!("main/binary-{}/Packages.gz", arch),
+                    md5: hashsum::<Md5>(&packages_gz),
+                    sha1: hashsum::<Sha1>(&packages_gz),
+                    sha512: hashsum::<Sha512>(&packages_gz),
+                },
+            ]);
+        }
 
-        let files = vec![
-            Files {
-                sha256: hashsum::<Sha256>(packages),
-                size: packages.len(),
-                path: "main/binary-amd64/Packages".to_string(),
-                md5: hashsum::<Md5>(packages),
-                sha1: hashsum::<Sha1>(packages),
-                sha512: hashsum::<Sha512>(packages),
-            },
-            Files {
-                sha256: hashsum::<Sha256>(&packages_gz),
-                size: packages_gz.len(),
-                path: "main/binary-amd64/Packages.gz".to_string(),
-                md5: hashsum::<Md5>(&packages_gz),
-                sha1: hashsum::<Sha1>(&packages_gz),
-                sha512: hashsum::<Sha512>(&packages_gz),
-            },
-        ];
+        // Sort the files
+        files.sort_by(|a, b| a.path.cmp(&b.path));
 
         let index = ReleaseIndex {
             date,
@@ -130,6 +149,7 @@ mod tests {
     use insta::assert_snapshot;
 
     use super::*;
+    use crate::package::tests::package_with_ver;
 
     #[test]
     fn test_apt_indices() {
@@ -142,7 +162,7 @@ mod tests {
         let indices = AptIndices::new(&packages).unwrap();
 
         // Packages
-        let packages = indices.get_package_index();
+        let packages = indices.get_package_index(&Arch::Amd64);
         assert_snapshot!(packages);
 
         // Release
@@ -152,11 +172,11 @@ mod tests {
 
     #[test]
     fn test_multiple_packages() {
-        let package1 = Package::detect_package("fcitx-openbangla_3.0.0.deb", "3.0.0".to_owned(), "https://github.com/mominul/pack-exp2/releases/download/3.0.0/fcitx-openbangla_3.0.0.deb".to_owned(), DateTime::UNIX_EPOCH).unwrap();
+        let package1 = package_with_ver("fcitx-openbangla_3.0.0.deb", "3.0.0");
         let data = fs::read("data/fcitx-openbangla_3.0.0.deb").unwrap();
         package1.set_package_data(data);
 
-        let package2 = Package::detect_package("ibus-openbangla_3.0.0.deb", "3.0.0".to_owned(), "https://github.com/mominul/pack-exp2/releases/download/3.0.0/ibus-openbangla_3.0.0.deb".to_owned(), DateTime::UNIX_EPOCH).unwrap();
+        let package2 = package_with_ver("ibus-openbangla_3.0.0.deb", "3.0.0");
         let data = fs::read("data/ibus-openbangla_3.0.0.deb").unwrap();
         package2.set_package_data(data);
 
@@ -165,11 +185,52 @@ mod tests {
         let indices = AptIndices::new(&packages).unwrap();
 
         // Packages
-        let packages = indices.get_package_index();
+        let packages = indices.get_package_index(&Arch::Amd64);
         assert_snapshot!(packages);
         assert_eq!(packages.as_bytes().len(), 2729);
         let packages_gz = gzip_compression(packages.as_bytes());
         assert_eq!(packages_gz.len(), 1105);
+
+        // Release
+        let release = indices.get_release_index();
+        assert_snapshot!(release);
+    }
+
+    #[test]
+    fn test_multiple_architectures() {
+        let package1 = package_with_ver("fastfetch-linux-aarch64.deb", "2.40.3");
+        let data = fs::read("data/fastfetch-linux-aarch64.deb").unwrap();
+        package1.set_package_data(data);
+
+        let package2 = package_with_ver("fastfetch-linux-amd64.deb", "2.40.3");
+        let data = fs::read("data/fastfetch-linux-amd64.deb").unwrap();
+        package2.set_package_data(data);
+
+        let package3 = package_with_ver("fastfetch-linux-armv6l.deb", "2.40.3");
+        let data = fs::read("data/fastfetch-linux-armv6l.deb").unwrap();
+        package3.set_package_data(data);
+
+        let package4 = package_with_ver("fastfetch-linux-armv7l.deb", "2.40.3");
+        let data = fs::read("data/fastfetch-linux-armv7l.deb").unwrap();
+        package4.set_package_data(data);
+
+        let package5 = package_with_ver("fastfetch-linux-ppc64le.deb", "2.40.3");
+        let data = fs::read("data/fastfetch-linux-ppc64le.deb").unwrap();
+        package5.set_package_data(data);
+
+        let package6 = package_with_ver("fastfetch-linux-riscv64.deb", "2.40.3");
+        let data = fs::read("data/fastfetch-linux-riscv64.deb").unwrap();
+        package6.set_package_data(data);
+
+        let package7 = package_with_ver("fastfetch-linux-s390x.deb", "2.40.3");
+        let data = fs::read("data/fastfetch-linux-s390x.deb").unwrap();
+        package7.set_package_data(data);
+
+        let packages = [
+            package1, package2, package3, package4, package5, package6, package7,
+        ];
+
+        let indices = AptIndices::new(&packages).unwrap();
 
         // Release
         let release = indices.get_release_index();

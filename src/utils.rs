@@ -1,4 +1,4 @@
-use std::{ops::Add, str::FromStr};
+use std::{fmt::Display, ops::Add, str::FromStr};
 
 use anyhow::Result;
 use lenient_semver::parse;
@@ -60,9 +60,12 @@ pub enum Arch {
     #[default]
     Amd64,
     Arm64,
-    Armhf,
+    Armhf, // Hard Float ABI ARM. Compatible with armv7 and armv6
     Armv7,
     Aarch64,
+    PPC64le,
+    RiscV64,
+    S390x,
 }
 
 impl FromStr for Arch {
@@ -75,8 +78,28 @@ impl FromStr for Arch {
             "aarch64" => Ok(Arch::Aarch64),
             "arm64" => Ok(Arch::Arm64),
             "armhf" => Ok(Arch::Armhf),
+            "armv6l" => Ok(Arch::Armhf),
             "armv7" => Ok(Arch::Armv7),
+            "armv7l" => Ok(Arch::Armv7),
+            "ppc64le" => Ok(Arch::PPC64le),
+            "riscv64" => Ok(Arch::RiscV64),
+            "s390x" => Ok(Arch::S390x),
             _ => Err(()),
+        }
+    }
+}
+
+impl Display for Arch {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Arch::Amd64 => write!(f, "amd64"),
+            Arch::Arm64 => write!(f, "arm64"),
+            Arch::Armhf => write!(f, "armhf"),
+            Arch::Armv7 => write!(f, "armhf"),
+            Arch::Aarch64 => write!(f, "arm64"),
+            Arch::PPC64le => write!(f, "ppc64el"),
+            Arch::RiscV64 => write!(f, "riscv64"),
+            Arch::S390x => write!(f, "s390x"),
         }
     }
 }

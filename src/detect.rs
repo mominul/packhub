@@ -10,8 +10,10 @@ static NAME_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?i)^([a-z0-9_.-]+?)(?:[-_](?:v?\d.*))").unwrap());
 
 // Regex to capture architecture
-static ARCH_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?i)(x86_64|amd64|aarch64|arm64|armhf|armv7)").unwrap());
+static ARCH_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(x86_64|amd64|aarch64|arm64|armhf|armv7|s390x|armv6l|ppc64le|riscv64)")
+        .unwrap()
+});
 
 static DISTRO_PATTERNS: LazyLock<Vec<(Regex, Dist)>> = LazyLock::new(|| {
     vec![
@@ -223,5 +225,29 @@ mod tests {
         assert_eq!(info.name, Some("caprine".into()));
         assert_eq!(info.distro, None); // No distro pattern matched
         assert_eq!(info.architecture, Some(Arch::Amd64));
+    }
+
+    #[test]
+    fn test_detect_arch() {
+        let info = PackageInfo::parse_package("fastfetch-linux-s390x.deb");
+        assert_eq!(info.architecture, Some(Arch::S390x));
+
+        let info = PackageInfo::parse_package("fastfetch-linux-armv6l.deb");
+        assert_eq!(info.architecture, Some(Arch::Armhf));
+
+        let info = PackageInfo::parse_package("fastfetch-linux-aarch64.deb");
+        assert_eq!(info.architecture, Some(Arch::Aarch64));
+
+        let info = PackageInfo::parse_package("fastfetch-linux-armv7l.deb");
+        assert_eq!(info.architecture, Some(Arch::Armv7));
+
+        let info = PackageInfo::parse_package("fastfetch-linux-ppc64le.deb");
+        assert_eq!(info.architecture, Some(Arch::PPC64le));
+
+        let info = PackageInfo::parse_package("fastfetch-linux-amd64.deb");
+        assert_eq!(info.architecture, Some(Arch::Amd64));
+
+        let info = PackageInfo::parse_package("fastfetch-linux-riscv64.deb");
+        assert_eq!(info.architecture, Some(Arch::RiscV64));
     }
 }

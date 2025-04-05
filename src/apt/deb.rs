@@ -16,7 +16,6 @@ use crate::{
 };
 
 static ARCH: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"Architecture: (\w+)"#).unwrap());
-static PACKAGE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"Package: (.+)"#).unwrap());
 
 /// Debian package (.deb)
 #[derive(Serialize, Deserialize, Debug)]
@@ -75,23 +74,14 @@ impl DebianPackage {
     }
 
     /// Get the architecture for which the package is built for.
-    pub fn get_arch(&self) -> Result<Arch, ()> {
+    pub fn get_arch(&self) -> Option<Arch> {
         ARCH.captures(&self.control)
             .unwrap()
             .get(1)
             .unwrap()
             .as_str()
             .parse()
-    }
-
-    /// Get the package name.
-    pub fn get_package(&self) -> &str {
-        PACKAGE
-            .captures(&self.control)
-            .unwrap()
-            .get(1)
-            .unwrap()
-            .as_str()
+            .ok()
     }
 }
 
@@ -136,32 +126,30 @@ fn read_control_file(data: &[u8]) -> Result<String> {
 mod tests {
     use std::fs::read;
 
-    use chrono::DateTime;
-
     use super::*;
+    use crate::package::tests::package;
 
     #[test]
     fn test_parsing() {
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), DateTime::UNIX_EPOCH).unwrap();
+        let package = package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb");
         let data = read("data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb").unwrap();
         package.set_package_data(data);
 
         let deb = DebianPackage::from_package(&package).unwrap();
-        assert_eq!(deb.get_arch(), Ok(Arch::Amd64));
-        assert_eq!(deb.get_package(), "openbangla-keyboard");
+        assert_eq!(deb.get_arch(), Some(Arch::Amd64));
     }
 
     #[test]
     #[should_panic]
     fn test_without_data() {
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), DateTime::UNIX_EPOCH).unwrap();
+        let package = package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb");
 
         let _ = DebianPackage::from_package(&package).unwrap();
     }
 
     #[test]
     fn test_loading_from_metadata() {
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), DateTime::UNIX_EPOCH).unwrap();
+        let package = package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb");
         let data = read("data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb").unwrap();
         package.set_package_data(data);
 

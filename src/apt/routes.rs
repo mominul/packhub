@@ -14,6 +14,7 @@ use crate::{
     error::AppError,
     repository::Repository,
     state::AppState,
+    utils::Arch,
 };
 
 #[tracing::instrument(name = "Debian Release File", skip_all, fields(agent = agent.as_str()))]
@@ -48,7 +49,7 @@ async fn release_index(
 #[tracing::instrument(name = "Debian Package metadata file", skip_all, fields(agent = agent.as_str()))]
 async fn packages_file(
     State(state): State<AppState>,
-    Path((distro, owner, repo, file)): Path<(String, String, String, String)>,
+    Path((distro, owner, repo, arch, file)): Path<(String, String, String, String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<Vec<u8>, AppError> {
     let mut repo = Repository::from_github(owner, repo, &state).await;
@@ -57,9 +58,13 @@ async fn packages_file(
     let index = AptIndices::new(&packages)?;
     repo.save_package_metadata().await;
 
+    let Ok(arch) = arch.parse::<Arch>() else {
+        return Err(anyhow!("Unknown architecture: {arch}").into());
+    };
+
     match file.as_str() {
-        "Packages" => Ok(index.get_package_index().as_bytes().to_owned()),
-        "Packages.gz" => Ok(gzip_compression(index.get_package_index().as_bytes())),
+        "Packages" => Ok(index.get_package_index(&arch).as_bytes().to_owned()),
+        "Packages.gz" => Ok(gzip_compression(index.get_package_index(&arch).as_bytes())),
         file => Err(anyhow!("Unknown file requested: {file}").into()),
     }
 }
@@ -98,7 +103,7 @@ pub fn apt_routes() -> Router<AppState> {
             get(release_index),
         )
         .route(
-            "/{distro}/github/{owner}/{repo}/dists/stable/main/binary-amd64/{index}",
+            "/{distro}/github/{owner}/{repo}/dists/stable/main/binary-{arch}/{index}",
             get(packages_file),
         )
         .route(

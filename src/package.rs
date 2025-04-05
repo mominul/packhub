@@ -211,8 +211,24 @@ fn split_extention(s: &str) -> Option<Type> {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
+
+    /// A shorthand for `Package::detect_package()`
+    ///
+    /// For testing purpose.
+    pub(crate) fn package(p: &str) -> Package {
+        Package::detect_package(p, String::new(), p.to_owned(), chrono::DateTime::UNIX_EPOCH)
+            .unwrap()
+    }
+
+    /// A shorthand for `Package::detect_package()`
+    ///
+    /// For testing purpose.
+    pub(crate) fn package_with_ver(p: &str, v: &str) -> Package {
+        Package::detect_package(p, v.to_owned(), p.to_owned(), chrono::DateTime::UNIX_EPOCH)
+            .unwrap()
+    }
 
     #[test]
     fn test_package() {

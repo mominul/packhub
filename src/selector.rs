@@ -80,6 +80,7 @@ pub(crate) fn select_packages(from: &[Package], dist: Dist) -> Vec<&Package> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::package::tests::package;
 
     fn openbangla_keyboard_packages() -> Vec<Package> {
         [
@@ -125,12 +126,6 @@ mod tests {
     fn sort<'a>(mut v: Vec<&'a Package>) -> Vec<&'a Package> {
         v.sort();
         v
-    }
-
-    /// A shorthand for `Package::detect_package()`
-    fn package(p: &str) -> Package {
-        Package::detect_package(p, String::new(), p.to_owned(), chrono::DateTime::UNIX_EPOCH)
-            .unwrap()
     }
 
     #[test]
