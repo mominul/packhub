@@ -6,12 +6,12 @@ expression: get_repomd_index(&packages)
 <repomd xmlns="http://linux.duke.edu/metadata/repo" xmlns:rpm="http://linux.duke.edu/metadata/rpm">
   <revision>1699461612</revision>
   <data type="primary">
-    <checksum type="sha256">59791bbe72b4d52069f21f494dab6c484fd420fcf839f48a070a380bac137571</checksum>
-    <open-checksum type="sha256">8e5be2e9da3b2b3546b7ba9cb8607d3514d0dd5c27b3727353b0bbab3fa35ffe</open-checksum>
+    <checksum type="sha256">acd512d27f4a86955aaf017633a86fefc6e655d98f09cd29dc0fb0d1bf6bb10f</checksum>
+    <open-checksum type="sha256">6626d360f5285336ecddc887b2f93a2ae11ea96be2326e63fc74a6c297f3f9bc</open-checksum>
     <location href="repodata/primary.xml.zst"/>
     <timestamp>1699461612</timestamp>
-    <size>1364</size>
-    <open-size>6134</open-size>
+    <size>1380</size>
+    <open-size>6204</open-size>
   </data>
   <data type="filelists">
     <checksum type="sha256">e1f5a56b0524fd542e9bc028c73fbcc313f50cdd6c23ba6209cd2361d28859d6</checksum>

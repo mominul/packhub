@@ -16,15 +16,15 @@ pub struct RPMPackage {
     pub version: String,
     pub release: String,
     pub arch: String,
-    pub vendor: String,
-    pub url: String,
-    pub license: String,
-    pub summary: String,
-    pub description: String,
-    pub group: String,
+    pub vendor: Option<String>,
+    pub url: Option<String>,
+    pub license: Option<String>,
+    pub summary: Option<String>,
+    pub description: Option<String>,
+    pub group: Option<String>,
     pub build_time: u64,
-    pub build_host: String,
-    pub source: String,
+    pub build_host: Option<String>,
+    pub source: Option<String>,
     pub provides: Vec<Dependency>,
     pub requires: Vec<Dependency>,
     pub sha256: String,
@@ -58,7 +58,7 @@ impl RPMPackage {
     pub fn from_package(package: &Package) -> Result<RPMPackage> {
         // If the metadata is already available, then build the RPMPackage from it
         if let Data::Metadata(metadata) = package.data() {
-            let rpm: RPMPackage = from_str(&metadata)?;
+            let rpm: RPMPackage = from_str(&metadata).context("Error while loading RPMPackage from saved Package metadata")?;
             return Ok(rpm);
         }
 
@@ -80,15 +80,15 @@ impl RPMPackage {
         let version = header.get_version()?.to_owned();
         let release = header.get_release()?.to_owned();
         let arch = header.get_arch()?.to_owned();
-        let vendor = header.get_vendor()?.to_owned();
-        let url = header.get_url()?.to_owned();
-        let license = header.get_license()?.to_owned();
-        let summary = header.get_summary()?.to_owned();
-        let description = header.get_description()?.to_owned();
-        let group = header.get_group()?.to_owned();
+        let vendor = header.get_vendor().ok().map(|v| v.to_owned());
+        let url = header.get_url().ok().map(|v| v.to_owned());
+        let license = header.get_license().ok().map(|v| v.to_owned());
+        let summary = header.get_summary().ok().map(|v| v.to_owned());
+        let description = header.get_description().ok().map(|v| v.to_owned());
+        let group = header.get_group().ok().map(|v| v.to_owned());
         let build_time = header.get_build_time()?;
-        let build_host = header.get_build_host()?.to_owned();
-        let source = header.get_source_rpm()?.to_owned();
+        let build_host = header.get_build_host().ok().map(|v| v.to_owned());
+        let source = header.get_source_rpm().ok().map(|v| v.to_owned());
         let range = header.get_package_segment_offsets();
         let header_start = range.header;
         let header_end = range.payload;
@@ -189,15 +189,21 @@ fn flag_to_condition(flags: DependencyFlags) -> String {
 mod tests {
     use std::fs::read;
 
-    use chrono::DateTime;
     use insta::assert_debug_snapshot;
 
+    use crate::package::tests::package_with_ver;
     use super::*;
 
     #[test]
     fn test_parser() {
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm".to_owned(), DateTime::UNIX_EPOCH).unwrap();
+        let package = package_with_ver("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0");
         let data = read("data/OpenBangla-Keyboard_2.0.0-fedora38.rpm").unwrap();
+        package.set_package_data(data);
+        let parsed = RPMPackage::from_package(&package).unwrap();
+        assert_debug_snapshot!(parsed);
+
+        let package = package_with_ver("fastfetch-linux-amd64.rpm", "2.40.3");
+        let data = read("data/fastfetch-linux-amd64.rpm").unwrap();
         package.set_package_data(data);
         let parsed = RPMPackage::from_package(&package).unwrap();
         assert_debug_snapshot!(parsed);
@@ -206,14 +212,14 @@ mod tests {
     #[test]
     #[should_panic]
     fn test_package_without_data() {
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm".to_owned(), DateTime::UNIX_EPOCH).unwrap();
+        let package = package_with_ver("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0");
 
         RPMPackage::from_package(&package).unwrap();
     }
 
     #[test]
     fn test_loading_from_metadata() {
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm".to_owned(), DateTime::UNIX_EPOCH).unwrap();
+        let package = package_with_ver("OpenBangla-Keyboard_2.0.0-fedora38.rpm", "2.0.0");
         let data = read("data/OpenBangla-Keyboard_2.0.0-fedora38.rpm").unwrap();
         package.set_package_data(data);
         let _ = RPMPackage::from_package(&package).unwrap();

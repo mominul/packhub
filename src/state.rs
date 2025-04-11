@@ -71,11 +71,11 @@ impl AppState {
         &self.state.github
     }
 
-    pub fn clearsign_metadata(&self, data: &str) -> Result<String> {
+    pub fn clearsign_metadata(&self, data: &str) -> Result<Vec<u8>> {
         clearsign_metadata(data, &self.state.cert, &self.state.passphrase)
     }
 
-    pub fn detached_sign_metadata(&self, data: &str) -> Result<String> {
+    pub fn detached_sign_metadata(&self, data: &str) -> Result<Vec<u8>> {
         detached_sign_metadata(data, &self.state.cert, &self.state.passphrase)
     }
 

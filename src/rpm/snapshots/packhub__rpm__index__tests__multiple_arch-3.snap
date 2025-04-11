@@ -1,0 +1,36 @@
+---
+source: src/rpm/index.rs
+expression: get_other_index(&packages)
+---
+<?xml version="1.0" encoding="UTF-8"?>
+<otherdata xmlns="http://linux.duke.edu/metadata/other" packages="7">
+
+<package pkgid="0318870bee582652669cbff9f41c21abc91eb9e98b12c8d0265a2332d4efb0cf" name="fastfetch" arch="aarch64">
+  <version epoch="0" ver="2.40.3" rel="1"/>
+</package>
+
+<package pkgid="b86a9564343ca858c5a5a1c7942964917255882853ad844de69b2ef07e12e99d" name="fastfetch" arch="x86_64">
+  <version epoch="0" ver="2.40.3" rel="1"/>
+</package>
+
+<package pkgid="60f253a11ca3c8cfc367170ff3095298a009c974e346b1d0a76fbce150aae10e" name="fastfetch" arch="armv6l">
+  <version epoch="0" ver="2.40.3" rel="1"/>
+</package>
+
+<package pkgid="6d3b0b5ea04abe7f5c92f0908f1819ac418ad76cef9b0162edc87863bdb895dc" name="fastfetch" arch="armv7l">
+  <version epoch="0" ver="2.40.3" rel="1"/>
+</package>
+
+<package pkgid="fd34074b0d87d03c7a0e8d606d0d6bac73b693e8db3b1d572ab86eb04ba3bcfc" name="fastfetch" arch="ppc64le">
+  <version epoch="0" ver="2.40.3" rel="1"/>
+</package>
+
+<package pkgid="9578dc2b4d1e60e72f6540f00dc4b83af4198ce6f44079880bed3be9f653d47b" name="fastfetch" arch="s390x">
+  <version epoch="0" ver="2.40.3" rel="1"/>
+</package>
+
+<package pkgid="3c65954b1de511fa09166f46145c443e7859bc86b6972ea891b554c9677b8fa4" name="fastfetch" arch="riscv64">
+  <version epoch="0" ver="2.40.3" rel="1"/>
+</package>
+
+</otherdata>

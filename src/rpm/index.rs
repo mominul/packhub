@@ -114,8 +114,7 @@ mod tests {
     use chrono::DateTime;
     use insta::assert_snapshot;
 
-    use crate::package::Package;
-
+    use crate::package::{tests::package_with_ver, Package};
     use super::*;
 
     #[test]
@@ -132,6 +131,53 @@ mod tests {
 
         assert_snapshot!(get_other_index(&packages));
 
+        assert_snapshot!(get_repomd_index(&packages));
+    }
+
+    #[test]
+    fn test_multiple_arch() {
+        let package = package_with_ver("fastfetch-linux-aarch64.rpm", "2.40.3");
+        let data = read("data/fastfetch-linux-aarch64.rpm").unwrap();
+        package.set_package_data(data);
+        let package1 = RPMPackage::from_package(&package).unwrap();
+
+        let package = package_with_ver("fastfetch-linux-amd64.rpm", "2.40.3");
+        let data = read("data/fastfetch-linux-amd64.rpm").unwrap();
+        package.set_package_data(data);
+        let package2 = RPMPackage::from_package(&package).unwrap();
+
+        let package = package_with_ver("fastfetch-linux-armv6l.rpm", "2.40.3");
+        let data = read("data/fastfetch-linux-armv6l.rpm").unwrap();
+        package.set_package_data(data);
+        let package3 = RPMPackage::from_package(&package).unwrap();
+
+        let package = package_with_ver("fastfetch-linux-armv7l.rpm", "2.40.3");
+        let data = read("data/fastfetch-linux-armv7l.rpm").unwrap();
+        package.set_package_data(data);
+        let package4 = RPMPackage::from_package(&package).unwrap();
+
+        let package = package_with_ver("fastfetch-linux-ppc64le.rpm", "2.40.3");
+        let data = read("data/fastfetch-linux-ppc64le.rpm").unwrap();
+        package.set_package_data(data);
+        let package5 = RPMPackage::from_package(&package).unwrap();
+
+        let package = package_with_ver("fastfetch-linux-s390x.rpm", "2.40.3");
+        let data = read("data/fastfetch-linux-s390x.rpm").unwrap();
+        package.set_package_data(data);
+        let package6 = RPMPackage::from_package(&package).unwrap();
+
+        let package = package_with_ver("fastfetch-linux-riscv64.rpm", "2.40.3");
+        let data = read("data/fastfetch-linux-riscv64.rpm").unwrap();
+        package.set_package_data(data);
+        let package7 = RPMPackage::from_package(&package).unwrap();
+
+        let packages = vec![
+            package1, package2, package3, package4, package5, package6, package7,
+        ];
+
+        assert_snapshot!(get_primary_index(&packages));
+        assert_snapshot!(get_filelists_index(&packages));
+        assert_snapshot!(get_other_index(&packages));
         assert_snapshot!(get_repomd_index(&packages));
     }
 }

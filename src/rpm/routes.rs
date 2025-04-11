@@ -30,8 +30,8 @@ async fn index(
         .select_package_rpm(agent.as_str())
         .await?
         .into_iter()
-        .map(|p| RPMPackage::from_package(&p).unwrap())
-        .collect();
+        .map(|p| RPMPackage::from_package(&p).context(format!("Error while parsing package into RPMPackage: {p:?}")))
+        .collect::<Result<Vec<_>, _>>()?;
 
     repo.save_package_metadata().await;
 
@@ -39,13 +39,10 @@ async fn index(
         "repomd.xml" => Ok(get_repomd_index(&packages).into_bytes()),
         "repomd.xml.asc" => {
             let metadata = get_repomd_index(&packages);
-            let signature = state.detached_sign_metadata(&metadata)?.into_bytes();
+            let signature = state.detached_sign_metadata(&metadata)?;
             Ok(signature)
         }
-        "repomd.xml.key" => {
-            let public_key = std::fs::read_to_string("packhub.asc").unwrap();
-            Ok(public_key.into_bytes())
-        }
+        "repomd.xml.key" => Ok(state.armored_public_key()),
         "primary.xml.zst" => Ok(encode_all(get_primary_index(&packages).as_bytes(), 0)?),
         "filelists.xml.zst" => Ok(encode_all(get_filelists_index(&packages).as_bytes(), 0)?),
         "other.xml.zst" => Ok(encode_all(get_other_index(&packages).as_bytes(), 0)?),

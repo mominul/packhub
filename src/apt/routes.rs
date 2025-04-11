@@ -22,7 +22,7 @@ async fn release_index(
     State(state): State<AppState>,
     Path((distro, owner, repo, file)): Path<(String, String, String, String)>,
     TypedHeader(agent): TypedHeader<UserAgent>,
-) -> Result<String, AppError> {
+) -> Result<Vec<u8>, AppError> {
     let mut repo = Repository::from_github(owner, repo, &state).await;
     let packages = repo.select_package_apt(&distro, agent.as_str()).await?;
 
@@ -32,14 +32,13 @@ async fn release_index(
     let release_file = index.get_release_index();
 
     match file.as_str() {
-        "Release" => Ok(release_file),
+        "Release" => Ok(release_file.into_bytes()),
         "Release.gpg" => {
             let signed_release_file = state.detached_sign_metadata(&release_file)?;
             Ok(signed_release_file)
         }
         "InRelease" => {
             let signed_release_file = state.clearsign_metadata(&release_file)?;
-
             Ok(signed_release_file)
         }
         file => Err(anyhow!("Unknown file requested: {file}").into()),

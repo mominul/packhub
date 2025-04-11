@@ -10,21 +10,37 @@ expression: get_primary_index(&packages)
   <arch>x86_64</arch>
   <version epoch="0" ver="2.0.0" rel="1.fc38"/>
   <checksum type="sha256" pkgid="YES">4ea19432c75d1b7ddc6dc2adbb10301fea142913834decd0455e1249cbaf3c14</checksum>
+  
   <summary>OpenSource Bengali input method</summary>
-  <description>OpenBangla Keyboard is an OpenSource, Unicode compliant Bengali Input Method for GNU/Linux systems. It&#x27;s a full fledged Bengali input method with typing automation tools, includes many famous typing methods such as Avro Phonetic, Probhat, Munir Optima, National (Jatiya) etc.
+  
+  
+  <description>OpenBangla Keyboard is an OpenSource, Unicode compliant Bengali Input Method for GNU/Linux systems. It&#39;s a full fledged Bengali input method with typing automation tools, includes many famous typing methods such as Avro Phonetic, Probhat, Munir Optima, National (Jatiya) etc.
 
 Most of the features of Avro Keyboard are present in OpenBangla Keyboard. So Avro Keyboard users will feel at home with OpenBangla Keyboard in Linux.</description>
+  
   <packager></packager>
+  
   <url>https://openbangla.github.io/</url>
+  
   <time file="1699461612" build="1684606381"/>
   <size package="4615096" installed="12106690" archive="12112024"/>
   <location href="package/2.0.0/OpenBangla-Keyboard_2.0.0-fedora38.rpm"/>
   <format>
+    
     <rpm:license>GPLv3</rpm:license>
+    
+    
     <rpm:vendor>OpenBangla Team</rpm:vendor>
+    
+    
     <rpm:group>unknown</rpm:group>
+    
+    
     <rpm:buildhost>3aebfc71f602</rpm:buildhost>
+    
+    
     <rpm:sourcerpm>openbangla-keyboard-2.0.0-1.fc38.src.rpm</rpm:sourcerpm>
+       
     <rpm:header-range start="4504" end="14821"/>
     <rpm:provides>
     

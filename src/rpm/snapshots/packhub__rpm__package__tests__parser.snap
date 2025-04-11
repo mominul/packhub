@@ -8,15 +8,31 @@ RPMPackage {
     version: "2.0.0",
     release: "1.fc38",
     arch: "x86_64",
-    vendor: "OpenBangla Team",
-    url: "https://openbangla.github.io/",
-    license: "GPLv3",
-    summary: "OpenSource Bengali input method",
-    description: "OpenBangla Keyboard is an OpenSource, Unicode compliant Bengali Input Method for GNU/Linux systems. It's a full fledged Bengali input method with typing automation tools, includes many famous typing methods such as Avro Phonetic, Probhat, Munir Optima, National (Jatiya) etc.\n\nMost of the features of Avro Keyboard are present in OpenBangla Keyboard. So Avro Keyboard users will feel at home with OpenBangla Keyboard in Linux.",
-    group: "unknown",
+    vendor: Some(
+        "OpenBangla Team",
+    ),
+    url: Some(
+        "https://openbangla.github.io/",
+    ),
+    license: Some(
+        "GPLv3",
+    ),
+    summary: Some(
+        "OpenSource Bengali input method",
+    ),
+    description: Some(
+        "OpenBangla Keyboard is an OpenSource, Unicode compliant Bengali Input Method for GNU/Linux systems. It's a full fledged Bengali input method with typing automation tools, includes many famous typing methods such as Avro Phonetic, Probhat, Munir Optima, National (Jatiya) etc.\n\nMost of the features of Avro Keyboard are present in OpenBangla Keyboard. So Avro Keyboard users will feel at home with OpenBangla Keyboard in Linux.",
+    ),
+    group: Some(
+        "unknown",
+    ),
     build_time: 1684606381,
-    build_host: "3aebfc71f602",
-    source: "openbangla-keyboard-2.0.0-1.fc38.src.rpm",
+    build_host: Some(
+        "3aebfc71f602",
+    ),
+    source: Some(
+        "openbangla-keyboard-2.0.0-1.fc38.src.rpm",
+    ),
     provides: [
         Dependency {
             dependency: "application()",

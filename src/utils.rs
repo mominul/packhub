@@ -89,6 +89,8 @@ impl FromStr for Arch {
     }
 }
 
+// Currently follows the naming convention of Debian
+// https://www.debian.org/ports/#portlist-released
 impl Display for Arch {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

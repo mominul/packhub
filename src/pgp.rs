@@ -42,7 +42,7 @@ pub fn load_cert_from_file() -> Result<Cert> {
     Ok(cert)
 }
 
-pub fn clearsign_metadata(data: &str, cert: &Cert, passphrase: &Password) -> Result<String> {
+pub fn clearsign_metadata(data: &str, cert: &Cert, passphrase: &Password) -> Result<Vec<u8>> {
     let binding = StandardPolicy::new();
     let key = cert
         .keys()
@@ -67,10 +67,10 @@ pub fn clearsign_metadata(data: &str, cert: &Cert, passphrase: &Password) -> Res
     signer.write_all(data.as_bytes())?;
     signer.finalize()?;
 
-    Ok(String::from_utf8(sink)?)
+    Ok(sink)
 }
 
-pub fn detached_sign_metadata(content: &str, cert: &Cert, passphrase: &Password) -> Result<String> {
+pub fn detached_sign_metadata(content: &str, cert: &Cert, passphrase: &Password) -> Result<Vec<u8>> {
     let binding = StandardPolicy::new();
     let key = cert
         .keys()
@@ -95,7 +95,7 @@ pub fn detached_sign_metadata(content: &str, cert: &Cert, passphrase: &Password)
     signer.write_all(content.as_bytes())?;
     signer.finalize()?;
 
-    Ok(String::from_utf8(sink)?)
+    Ok(sink)
 }
 
 /////////////////////////////////////// Axum handlers /////////////////////////////////////////////////
@@ -174,7 +174,7 @@ mod tests {
         let policy = StandardPolicy::new();
 
         // Create verifier with our helper
-        let mut verifier = VerifierBuilder::from_bytes(signed_message.as_bytes())?
+        let mut verifier = VerifierBuilder::from_bytes(&signed_message)?
             .with_policy(&policy, None, helper)?;
 
         // Read the verified content

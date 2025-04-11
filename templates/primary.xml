@@ -6,19 +6,35 @@
   <arch>{{ package.arch }}</arch>
   <version epoch="{{ package.epoch }}" ver="{{ package.version }}" rel="{{ package.release }}"/>
   <checksum type="sha256" pkgid="YES">{{ package.sha256 }}</checksum>
-  <summary>{{ package.summary }}</summary>
-  <description>{{ package.description }}</description>
+  {% if let Some(summary) = package.summary %}
+  <summary>{{ summary }}</summary>
+  {% endif %}
+  {% if let Some(description) = package.description %}
+  <description>{{ description }}</description>
+  {% endif %}
   <packager></packager>
-  <url>{{ package.url }}</url>
+  {% if let Some(url) = package.url %}
+  <url>{{ url }}</url>
+  {% endif %}
   <time file="{{ package.pkg_time }}" build="{{ package.build_time }}"/>
   <size package="{{ package.pkg_size }}" installed="{{ package.installed_size }}" archive="{{ package.archive_size }}"/>
   <location href="{{ package.location }}"/>
   <format>
-    <rpm:license>{{ package.license }}</rpm:license>
-    <rpm:vendor>{{ package.vendor }}</rpm:vendor>
-    <rpm:group>{{ package.group }}</rpm:group>
-    <rpm:buildhost>{{ package.build_host }}</rpm:buildhost>
-    <rpm:sourcerpm>{{ package.source }}</rpm:sourcerpm>
+    {% if let Some(license) = package.license %}
+    <rpm:license>{{ license }}</rpm:license>
+    {% endif %}
+    {% if let Some(vendor) = package.vendor %}
+    <rpm:vendor>{{ vendor }}</rpm:vendor>
+    {% endif %}
+    {% if let Some(group) = package.group %}
+    <rpm:group>{{ group }}</rpm:group>
+    {% endif %}
+    {% if let Some(build_host) = package.build_host %}
+    <rpm:buildhost>{{ build_host }}</rpm:buildhost>
+    {% endif %}
+    {% if let Some(source) = package.source %}
+    <rpm:sourcerpm>{{ source }}</rpm:sourcerpm>
+    {% endif %}   
     <rpm:header-range start="{{ package.header_start }}" end="{{ package.header_end }}"/>
     <rpm:provides>
     {% for provide in package.provides %}

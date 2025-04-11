@@ -1,0 +1,777 @@
+---
+source: src/rpm/index.rs
+expression: get_primary_index(&packages)
+---
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xmlns="http://linux.duke.edu/metadata/common" xmlns:rpm="http://linux.duke.edu/metadata/rpm" packages="7">
+
+<package type="rpm">
+  <name>fastfetch</name>
+  <arch>aarch64</arch>
+  <version epoch="0" ver="2.40.3" rel="1"/>
+  <checksum type="sha256" pkgid="YES">0318870bee582652669cbff9f41c21abc91eb9e98b12c8d0265a2332d4efb0cf</checksum>
+  
+  <summary>Fast neofetch-like system information tool</summary>
+  
+  
+  <description>DESCRIPTION
+===========
+
+This is an installer created using CPack (https://cmake.org). No additional installation instructions provided.</description>
+  
+  <packager></packager>
+  
+  <url>https://github.com/fastfetch-cli/fastfetch</url>
+  
+  <time file="0" build="1743815923"/>
+  <size package="14349" installed="4453126" archive="4461824"/>
+  <location href="package/2.40.3/fastfetch-linux-aarch64.rpm"/>
+  <format>
+    
+    <rpm:license>MIT</rpm:license>
+    
+    
+    <rpm:vendor>Humanity</rpm:vendor>
+    
+    
+    <rpm:group>unknown</rpm:group>
+    
+    
+    <rpm:buildhost>fv-az888-37.dvsane4ksfzelhofvpftuz2bdb.xx.internal.cloudapp.net</rpm:buildhost>
+    
+    
+    <rpm:sourcerpm>fastfetch-2.40.3-1.src.rpm</rpm:sourcerpm>
+       
+    <rpm:header-range start="4504" end="14349"/>
+    <rpm:provides>
+    
+      
+      <rpm:entry name="fastfetch" flags="EQ" epoch="0" ver="2.40.3-1" rel="1"/>
+      
+    
+      
+      <rpm:entry name="fastfetch(aarch-64)" flags="EQ" epoch="0" ver="2.40.3-1" rel="1"/>
+      
+    
+    </rpm:provides>
+    <rpm:requires>
+    
+      
+      <rpm:entry name="ld-linux-aarch64.so.1()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="ld-linux-aarch64.so.1(GLIBC_2.17)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.17)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.28)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.33)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.34)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libm.so.6()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libm.so.6(GLIBC_2.17)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="rtld(GNU_HASH)"/>
+      
+    
+    </rpm:requires>
+  </format>
+</package>
+
+<package type="rpm">
+  <name>fastfetch</name>
+  <arch>x86_64</arch>
+  <version epoch="0" ver="2.40.3" rel="1"/>
+  <checksum type="sha256" pkgid="YES">b86a9564343ca858c5a5a1c7942964917255882853ad844de69b2ef07e12e99d</checksum>
+  
+  <summary>Fast neofetch-like system information tool</summary>
+  
+  
+  <description>DESCRIPTION
+===========
+
+This is an installer created using CPack (https://cmake.org). No additional installation instructions provided.</description>
+  
+  <packager></packager>
+  
+  <url>https://github.com/fastfetch-cli/fastfetch</url>
+  
+  <time file="0" build="1743815950"/>
+  <size package="14604" installed="29484355" archive="29493112"/>
+  <location href="package/2.40.3/fastfetch-linux-amd64.rpm"/>
+  <format>
+    
+    <rpm:license>MIT</rpm:license>
+    
+    
+    <rpm:vendor>Humanity</rpm:vendor>
+    
+    
+    <rpm:group>unknown</rpm:group>
+    
+    
+    <rpm:buildhost>fv-az772-168.zboo4qir1psufltgxvkvdwdv1g.dx.internal.cloudapp.net</rpm:buildhost>
+    
+    
+    <rpm:sourcerpm>fastfetch-2.40.3-1.src.rpm</rpm:sourcerpm>
+       
+    <rpm:header-range start="4504" end="14604"/>
+    <rpm:provides>
+    
+      
+      <rpm:entry name="fastfetch" flags="EQ" epoch="0" ver="2.40.3-1" rel="1"/>
+      
+    
+      
+      <rpm:entry name="fastfetch(x86-64)" flags="EQ" epoch="0" ver="2.40.3-1" rel="1"/>
+      
+    
+    </rpm:provides>
+    <rpm:requires>
+    
+      
+      <rpm:entry name="libc.so.6()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.14)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.17)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.2.5)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.28)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.3)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.3.4)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.4)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.7)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.8)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.9)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libdl.so.2()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libdl.so.2(GLIBC_2.2.5)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libm.so.6()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libm.so.6(GLIBC_2.2.5)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libpthread.so.0()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libpthread.so.0(GLIBC_2.2.5)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="rtld(GNU_HASH)"/>
+      
+    
+    </rpm:requires>
+  </format>
+</package>
+
+<package type="rpm">
+  <name>fastfetch</name>
+  <arch>armv6l</arch>
+  <version epoch="0" ver="2.40.3" rel="1"/>
+  <checksum type="sha256" pkgid="YES">60f253a11ca3c8cfc367170ff3095298a009c974e346b1d0a76fbce150aae10e</checksum>
+  
+  <summary>Fast neofetch-like system information tool</summary>
+  
+  
+  <description>DESCRIPTION
+===========
+
+This is an installer created using CPack (https://cmake.org). No additional installation instructions provided.</description>
+  
+  <packager></packager>
+  
+  <url>https://github.com/fastfetch-cli/fastfetch</url>
+  
+  <time file="0" build="1743816853"/>
+  <size package="14173" installed="16604476" archive="16613172"/>
+  <location href="package/2.40.3/fastfetch-linux-armv6l.rpm"/>
+  <format>
+    
+    <rpm:license>MIT</rpm:license>
+    
+    
+    <rpm:vendor>Humanity</rpm:vendor>
+    
+    
+    <rpm:group>unknown</rpm:group>
+    
+    
+    <rpm:buildhost>1f844b9c7a7b</rpm:buildhost>
+    
+    
+    <rpm:sourcerpm>fastfetch-2.40.3-1.src.rpm</rpm:sourcerpm>
+       
+    <rpm:header-range start="4504" end="14173"/>
+    <rpm:provides>
+    
+      
+      <rpm:entry name="fastfetch" flags="EQ" epoch="0" ver="2.40.3-1" rel="1"/>
+      
+    
+      
+      <rpm:entry name="fastfetch(armv6l-32)" flags="EQ" epoch="0" ver="2.40.3-1" rel="1"/>
+      
+    
+    </rpm:provides>
+    <rpm:requires>
+    
+      
+      <rpm:entry name="libc.so.6"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.28)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.34)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.4)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.7)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.9)"/>
+      
+    
+      
+      <rpm:entry name="libm.so.6"/>
+      
+    
+      
+      <rpm:entry name="libm.so.6(GLIBC_2.4)"/>
+      
+    
+      
+      <rpm:entry name="rtld(GNU_HASH)"/>
+      
+    
+    </rpm:requires>
+  </format>
+</package>
+
+<package type="rpm">
+  <name>fastfetch</name>
+  <arch>armv7l</arch>
+  <version epoch="0" ver="2.40.3" rel="1"/>
+  <checksum type="sha256" pkgid="YES">6d3b0b5ea04abe7f5c92f0908f1819ac418ad76cef9b0162edc87863bdb895dc</checksum>
+  
+  <summary>Fast neofetch-like system information tool</summary>
+  
+  
+  <description>DESCRIPTION
+===========
+
+This is an installer created using CPack (https://cmake.org). No additional installation instructions provided.</description>
+  
+  <packager></packager>
+  
+  <url>https://github.com/fastfetch-cli/fastfetch</url>
+  
+  <time file="0" build="1743816905"/>
+  <size package="14288" installed="22705849" archive="22714604"/>
+  <location href="package/2.40.3/fastfetch-linux-armv7l.rpm"/>
+  <format>
+    
+    <rpm:license>MIT</rpm:license>
+    
+    
+    <rpm:vendor>Humanity</rpm:vendor>
+    
+    
+    <rpm:group>unknown</rpm:group>
+    
+    
+    <rpm:buildhost>edfb8fea83b9</rpm:buildhost>
+    
+    
+    <rpm:sourcerpm>fastfetch-2.40.3-1.src.rpm</rpm:sourcerpm>
+       
+    <rpm:header-range start="4504" end="14288"/>
+    <rpm:provides>
+    
+      
+      <rpm:entry name="fastfetch" flags="EQ" epoch="0" ver="2.40.3-1" rel="1"/>
+      
+    
+    </rpm:provides>
+    <rpm:requires>
+    
+      
+      <rpm:entry name="ld-linux-armhf.so.3"/>
+      
+    
+      
+      <rpm:entry name="ld-linux-armhf.so.3(GLIBC_2.4)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.17)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.28)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.4)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.7)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.8)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.9)"/>
+      
+    
+      
+      <rpm:entry name="libdl.so.2"/>
+      
+    
+      
+      <rpm:entry name="libdl.so.2(GLIBC_2.4)"/>
+      
+    
+      
+      <rpm:entry name="libm.so.6"/>
+      
+    
+      
+      <rpm:entry name="libm.so.6(GLIBC_2.4)"/>
+      
+    
+      
+      <rpm:entry name="libpthread.so.0"/>
+      
+    
+      
+      <rpm:entry name="libpthread.so.0(GLIBC_2.4)"/>
+      
+    
+      
+      <rpm:entry name="rtld(GNU_HASH)"/>
+      
+    
+    </rpm:requires>
+  </format>
+</package>
+
+<package type="rpm">
+  <name>fastfetch</name>
+  <arch>ppc64le</arch>
+  <version epoch="0" ver="2.40.3" rel="1"/>
+  <checksum type="sha256" pkgid="YES">fd34074b0d87d03c7a0e8d606d0d6bac73b693e8db3b1d572ab86eb04ba3bcfc</checksum>
+  
+  <summary>Fast neofetch-like system information tool</summary>
+  
+  
+  <description>DESCRIPTION
+===========
+
+This is an installer created using CPack (https://cmake.org). No additional installation instructions provided.</description>
+  
+  <packager></packager>
+  
+  <time file="0" build="1743816850"/>
+  <size package="14332" installed="28956387" archive="28965144"/>
+  <location href="package/2.40.3/fastfetch-linux-ppc64le.rpm"/>
+  <format>
+    
+    <rpm:license>MIT</rpm:license>
+    
+    
+    <rpm:vendor>Humanity</rpm:vendor>
+    
+    
+    <rpm:group>unknown</rpm:group>
+    
+    
+    <rpm:buildhost>d6e92c211299</rpm:buildhost>
+    
+    
+    <rpm:sourcerpm>fastfetch-2.40.3-1.src.rpm</rpm:sourcerpm>
+       
+    <rpm:header-range start="4504" end="14332"/>
+    <rpm:provides>
+    
+      
+      <rpm:entry name="fastfetch" flags="EQ" epoch="0" ver="2.40.3-1" rel="1"/>
+      
+    
+      
+      <rpm:entry name="fastfetch(ppc-64)" flags="EQ" epoch="0" ver="2.40.3-1" rel="1"/>
+      
+    
+    </rpm:provides>
+    <rpm:requires>
+    
+      
+      <rpm:entry name="/bin/sh"/>
+      
+    
+      
+      <rpm:entry name="/bin/sh"/>
+      
+    
+      
+      <rpm:entry name="/bin/sh"/>
+      
+    
+      
+      <rpm:entry name="/bin/sh"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.17)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.28)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libdl.so.2()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libdl.so.2(GLIBC_2.17)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libm.so.6()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libm.so.6(GLIBC_2.17)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libpthread.so.0()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libpthread.so.0(GLIBC_2.17)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="rtld(GNU_HASH)"/>
+      
+    
+    </rpm:requires>
+  </format>
+</package>
+
+<package type="rpm">
+  <name>fastfetch</name>
+  <arch>s390x</arch>
+  <version epoch="0" ver="2.40.3" rel="1"/>
+  <checksum type="sha256" pkgid="YES">9578dc2b4d1e60e72f6540f00dc4b83af4198ce6f44079880bed3be9f653d47b</checksum>
+  
+  <summary>Fast neofetch-like system information tool</summary>
+  
+  
+  <description>DESCRIPTION
+===========
+
+This is an installer created using CPack (https://cmake.org). No additional installation instructions provided.</description>
+  
+  <packager></packager>
+  
+  <time file="0" build="1743816792"/>
+  <size package="14572" installed="27865187" archive="27873944"/>
+  <location href="package/2.40.3/fastfetch-linux-s390x.rpm"/>
+  <format>
+    
+    <rpm:license>MIT</rpm:license>
+    
+    
+    <rpm:vendor>Humanity</rpm:vendor>
+    
+    
+    <rpm:group>unknown</rpm:group>
+    
+    
+    <rpm:buildhost>172a5f6f4874</rpm:buildhost>
+    
+    
+    <rpm:sourcerpm>fastfetch-2.40.3-1.src.rpm</rpm:sourcerpm>
+       
+    <rpm:header-range start="4504" end="14572"/>
+    <rpm:provides>
+    
+      
+      <rpm:entry name="fastfetch" flags="EQ" epoch="0" ver="2.40.3-1" rel="1"/>
+      
+    
+      
+      <rpm:entry name="fastfetch(s390-64)" flags="EQ" epoch="0" ver="2.40.3-1" rel="1"/>
+      
+    
+    </rpm:provides>
+    <rpm:requires>
+    
+      
+      <rpm:entry name="/bin/sh"/>
+      
+    
+      
+      <rpm:entry name="/bin/sh"/>
+      
+    
+      
+      <rpm:entry name="/bin/sh"/>
+      
+    
+      
+      <rpm:entry name="/bin/sh"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.17)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.2)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.28)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.3)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.3.4)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.4)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.7)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.8)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.9)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libdl.so.2()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libdl.so.2(GLIBC_2.2)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libm.so.6()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libm.so.6(GLIBC_2.2)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libpthread.so.0()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libpthread.so.0(GLIBC_2.2)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="rtld(GNU_HASH)"/>
+      
+    
+    </rpm:requires>
+  </format>
+</package>
+
+<package type="rpm">
+  <name>fastfetch</name>
+  <arch>riscv64</arch>
+  <version epoch="0" ver="2.40.3" rel="1"/>
+  <checksum type="sha256" pkgid="YES">3c65954b1de511fa09166f46145c443e7859bc86b6972ea891b554c9677b8fa4</checksum>
+  
+  <summary>Fast neofetch-like system information tool</summary>
+  
+  
+  <description>DESCRIPTION
+===========
+
+This is an installer created using CPack (https://cmake.org). No additional installation instructions provided.</description>
+  
+  <packager></packager>
+  
+  <url>https://github.com/fastfetch-cli/fastfetch</url>
+  
+  <time file="0" build="1743816724"/>
+  <size package="14373" installed="2802518" archive="2811216"/>
+  <location href="package/2.40.3/fastfetch-linux-riscv64.rpm"/>
+  <format>
+    
+    <rpm:license>MIT</rpm:license>
+    
+    
+    <rpm:vendor>Humanity</rpm:vendor>
+    
+    
+    <rpm:group>unknown</rpm:group>
+    
+    
+    <rpm:buildhost>4f4f03450c46</rpm:buildhost>
+    
+    
+    <rpm:sourcerpm>fastfetch-2.40.3-1.src.rpm</rpm:sourcerpm>
+       
+    <rpm:header-range start="4504" end="14373"/>
+    <rpm:provides>
+    
+      
+      <rpm:entry name="fastfetch" flags="EQ" epoch="0" ver="2.40.3-1" rel="1"/>
+      
+    
+      
+      <rpm:entry name="fastfetch(riscv-64)" flags="EQ" epoch="0" ver="2.40.3-1" rel="1"/>
+      
+    
+    </rpm:provides>
+    <rpm:requires>
+    
+      
+      <rpm:entry name="ld-linux-riscv64-lp64d.so.1()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="ld-linux-riscv64-lp64d.so.1(GLIBC_2.27)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.27)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.28)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.33)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libc.so.6(GLIBC_2.34)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libm.so.6()(64bit)"/>
+      
+    
+      
+      <rpm:entry name="libm.so.6(GLIBC_2.27)(64bit)"/>
+      
+    
+      
+      <rpm:entry name="rtld(GNU_HASH)"/>
+      
+    
+    </rpm:requires>
+  </format>
+</package>
+
+</metadata>
