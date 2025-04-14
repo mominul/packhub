@@ -1,28 +1,19 @@
 :root {
   --base-color: #ffffff;
-  --item-heading: #f9f9f9;
+  --item-color: #f9f9f9;
   --item-text: #555555;
   --button-color: #2A2A2A;
   --heading-color: #000000;
   --secondary-heading: #515151;
 }
 
-body {
-  margin-top: 2em;
-  background-color: var(--base-color);
-  color: var(--secondary-heading);
-  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-weight: 300;
-  font-size: 25px;
-}
-
 .darkmode {
   --base-color: #2A2A2A;
   --item-color: #333333;
+  --item-text: #cccccc;
   --button-color: #ffffff;
   --heading-color: #f0f0f0;
   --secondary-heading: #bbbbbb;
-  --item-text: #cccccc;
 }
 
 #theme-switch{
@@ -50,6 +41,15 @@ body {
 }
 .darkmode #theme-switch svg:last-child{
   display: block;
+}
+
+body {
+  margin-top: 2em;
+  background-color: var(--base-color);
+  color: var(--secondary-heading);
+  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 300;
+  font-size: 25px;
 }
 
 pre {
