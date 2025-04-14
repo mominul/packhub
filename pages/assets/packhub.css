@@ -2,7 +2,7 @@
   --base-color: #ffffff;
   --item-color: #f9f9f9;
   --item-text: #555555;
-  --button-color: #2A2A2A;
+  --icon-color: #2A2A2A;
   --heading-color: #000000;
   --secondary-heading: #515151;
 }
@@ -11,7 +11,7 @@
   --base-color: #2A2A2A;
   --item-color: #333333;
   --item-text: #cccccc;
-  --button-color: #ffffff;
+  --icon-color: #ffffff;
   --heading-color: #f0f0f0;
   --secondary-heading: #bbbbbb;
 }
@@ -22,7 +22,7 @@
   width: 50px;
   padding: 0;
   border-radius: 50%;
-  background-color: var(--button-color);
+  background-color: var(--icon-color);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -286,6 +286,10 @@ hr {
   padding: 20px;
   text-align: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.feature-item svg path {
+  fill: var(--icon-color);
 }
 
 .feature-item h3 {
