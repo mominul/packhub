@@ -12,7 +12,7 @@ static APT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"Debian APT.+\((.+)\
 static FEDORA: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"libdnf \(Fedora Linux (\d+);"#).unwrap());
 static TUMBLEWEED: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"ZYpp.+openSUSE-Tumbleweed"#).unwrap());
+    LazyLock::new(|| Regex::new(r#"ZYpp.+"#).unwrap());
 
 /// Detects platform based on the user-agent string of `apt` package manager.
 pub struct AptPlatformDetection {
@@ -225,6 +225,9 @@ mod tests {
     fn test_detect_opensuse() {
         assert!(detect_opensuse_tumbleweed(
             "ZYpp 17.31.15 (curl 8.5.0) openSUSE-Tumbleweed-x86_64"
+        ));
+        assert!(detect_opensuse_tumbleweed(
+            "ZYpp 17.37.17 (curl 8.15.0)"
         ));
     }
 }
