@@ -58,7 +58,8 @@ impl RPMPackage {
     pub fn from_package(package: &Package) -> Result<RPMPackage> {
         // If the metadata is already available, then build the RPMPackage from it
         if let Data::Metadata(metadata) = package.data() {
-            let rpm: RPMPackage = from_str(&metadata).context("Error while loading RPMPackage from saved Package metadata")?;
+            let rpm: RPMPackage = from_str(&metadata)
+                .context("Error while loading RPMPackage from saved Package metadata")?;
             return Ok(rpm);
         }
 
@@ -191,8 +192,8 @@ mod tests {
 
     use insta::assert_debug_snapshot;
 
-    use crate::package::tests::package_with_ver;
     use super::*;
+    use crate::package::tests::package_with_ver;
 
     #[test]
     fn test_parser() {

@@ -114,8 +114,8 @@ mod tests {
     use chrono::DateTime;
     use insta::assert_snapshot;
 
-    use crate::package::{tests::package_with_ver, Package};
     use super::*;
+    use crate::package::{Package, tests::package_with_ver};
 
     #[test]
     fn test_rpm_indices() {

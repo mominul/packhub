@@ -3,9 +3,15 @@ use std::{fs, io::Write};
 use anyhow::Result;
 use axum::{Router, extract::State, routing::get};
 use sequoia_openpgp::{
-    armor::Kind, cert::prelude::*, crypto::Password, parse::Parse, policy::StandardPolicy, serialize::{
-        stream::{Armorer, Message, Signer}, SerializeInto
-    }
+    armor::Kind,
+    cert::prelude::*,
+    crypto::Password,
+    parse::Parse,
+    policy::StandardPolicy,
+    serialize::{
+        SerializeInto,
+        stream::{Armorer, Message, Signer},
+    },
 };
 
 use crate::state::AppState;
@@ -65,7 +71,11 @@ pub fn clearsign_metadata(data: &str, cert: &Cert, passphrase: &Password) -> Res
     Ok(sink)
 }
 
-pub fn detached_sign_metadata(content: &str, cert: &Cert, passphrase: &Password) -> Result<Vec<u8>> {
+pub fn detached_sign_metadata(
+    content: &str,
+    cert: &Cert,
+    passphrase: &Password,
+) -> Result<Vec<u8>> {
     let binding = StandardPolicy::new();
     let key = cert
         .keys()
@@ -84,7 +94,9 @@ pub fn detached_sign_metadata(content: &str, cert: &Cert, passphrase: &Password)
     let keypair = decrypted_key.into_keypair()?;
 
     let mut sink = vec![];
-    let message = Armorer::new(Message::new(&mut sink)).kind(Kind::Signature).build()?;
+    let message = Armorer::new(Message::new(&mut sink))
+        .kind(Kind::Signature)
+        .build()?;
     let mut signer = Signer::new(message, keypair)?.detached().build()?;
 
     signer.write_all(content.as_bytes())?;
@@ -169,8 +181,8 @@ mod tests {
         let policy = StandardPolicy::new();
 
         // Create verifier with our helper
-        let mut verifier = VerifierBuilder::from_bytes(&signed_message)?
-            .with_policy(&policy, None, helper)?;
+        let mut verifier =
+            VerifierBuilder::from_bytes(&signed_message)?.with_policy(&policy, None, helper)?;
 
         // Read the verified content
         let mut verified_content = Vec::new();

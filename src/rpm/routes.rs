@@ -30,7 +30,11 @@ async fn index(
         .select_package_rpm(agent.as_str())
         .await?
         .into_iter()
-        .map(|p| RPMPackage::from_package(&p).context(format!("Error while parsing package into RPMPackage: {p:?}")))
+        .map(|p| {
+            RPMPackage::from_package(&p).context(format!(
+                "Error while parsing package into RPMPackage: {p:?}"
+            ))
+        })
         .collect::<Result<Vec<_>, _>>()?;
 
     repo.save_package_metadata().await;
