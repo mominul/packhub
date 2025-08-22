@@ -50,30 +50,30 @@ jobs:
         echo "Server is up!"
       continue-on-error: true
 
-    - name: Build and run Ubuntu 23.04 container
+    - name: Build and run Ubuntu 24.04 container
       run: |
         docker build -t ubuntu24.04 -f images/ubuntu24.04.Dockerfile scripts/
         docker run --name ubuntu24.04-test --network host ubuntu24.04 || true
     
-    - name: Build and run Fedora 38 container
+    - name: Build and run Fedora 42 container
       run: |
-        docker build -t fedora38 -f images/fedora38.Dockerfile scripts/
-        docker run --name fedora38-test --network host fedora38 || true
+        docker build -t fedora42 -f images/fedora42.Dockerfile scripts/
+        docker run --name fedora42-test --network host fedora42 || true
 
     - name: Build and run Debian 12 container
       run: |
         docker build -t debian12 -f images/debian12.Dockerfile scripts/
         docker run --name debian12-test --network host debian12 || true
 
-    - name: Build and run Ubuntu 23.04 container for checking multiple package support
+    - name: Build and run Ubuntu 24.04 container for checking multiple package support
       run: |
         docker build -t ubuntu24.04-multi -f images/ubuntu24.04-multi-package.Dockerfile scripts/
         docker run --name ubuntu24.04-multitest --network host ubuntu24.04-multi || true
     
-    - name: Build and run Fedora 38 container for checking multiple package support
+    - name: Build and run Fedora 42 container for checking multiple package support
       run: |
-        docker build -t fedora38 -f images/fedora38-multi-package.Dockerfile scripts/
-        docker run --name fedora38-multitest --network host fedora38 || true
+        docker build -t fedora42 -f images/fedora42-multi-package.Dockerfile scripts/
+        docker run --name fedora42-multitest --network host fedora42 || true
 
     - name: Build and run Debian 12 container for checking multiple package support
       run: |
@@ -92,12 +92,12 @@ jobs:
     - name: Check client containers' statuses
       run: |
         if [ "$(docker inspect -f '{{.State.ExitCode}}' ubuntu24.04-test)" -ne 0 ]; then
-          echo "Test on Ubuntu 23.04 failed"
+          echo "Test on Ubuntu 24.04 failed"
           exit 1
         fi
       
-        if [ "$(docker inspect -f '{{.State.ExitCode}}' fedora38-test)" -ne 0 ]; then
-          echo "Test on Fedora 38 failed"
+        if [ "$(docker inspect -f '{{.State.ExitCode}}' fedora42-test)" -ne 0 ]; then
+          echo "Test on Fedora 42 failed"
           exit 1
         fi
 
@@ -111,8 +111,8 @@ jobs:
           exit 1
         fi
 
-        if [ "$(docker inspect -f '{{.State.ExitCode}}' fedora38-multitest)" -ne 0 ]; then
-          echo "Test on Fedora 38 failed multiple package support failed"
+        if [ "$(docker inspect -f '{{.State.ExitCode}}' fedora42-multitest)" -ne 0 ]; then
+          echo "Test on Fedora 42 failed multiple package support failed"
           exit 1
         fi
 

@@ -1,4 +1,4 @@
-FROM fedora:39
+FROM fedora:42
 
 WORKDIR /app
 
