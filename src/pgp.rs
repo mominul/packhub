@@ -3,14 +3,9 @@ use std::{fs, io::Write};
 use anyhow::Result;
 use axum::{Router, extract::State, routing::get};
 use sequoia_openpgp::{
-    cert::prelude::*,
-    crypto::Password,
-    parse::Parse,
-    policy::StandardPolicy,
-    serialize::{
-        SerializeInto,
-        stream::{Armorer, Message, Signer},
-    },
+    armor::Kind, cert::prelude::*, crypto::Password, parse::Parse, policy::StandardPolicy, serialize::{
+        stream::{Armorer, Message, Signer}, SerializeInto
+    }
 };
 
 use crate::state::AppState;
@@ -89,7 +84,7 @@ pub fn detached_sign_metadata(content: &str, cert: &Cert, passphrase: &Password)
     let keypair = decrypted_key.into_keypair()?;
 
     let mut sink = vec![];
-    let message = Armorer::new(Message::new(&mut sink)).build()?;
+    let message = Armorer::new(Message::new(&mut sink)).kind(Kind::Signature).build()?;
     let mut signer = Signer::new(message, keypair)?.detached().build()?;
 
     signer.write_all(content.as_bytes())?;
