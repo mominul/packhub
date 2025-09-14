@@ -14,3 +14,6 @@ packhub.asc
 secret_key.asc
 .env
 key.gpg
+
+.DS_Store
+**/.DS_Store

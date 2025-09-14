@@ -1,6 +1,6 @@
-use std::{path::Path, pin::Pin, process::ExitCode, time::Duration};
+use std::{collections::HashMap, path::Path, pin::Pin, time::Duration};
 
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Result, bail};
 use testcontainers_modules::{
     mongo::Mongo,
     testcontainers::{
@@ -21,6 +21,13 @@ struct InfraTest {
     mongo: ContainerAsync<Mongo>,
     server: ContainerAsync<GenericImage>,
     distro: Vec<ContainerAsync<GenericImage>>,
+}
+
+struct Distro {
+    image: String,
+    tag: String,
+    env: Option<HashMap<String, String>>,
+    script: String,
 }
 
 // async fn logger(container: &ContainerAsync<GenericImage>, ) {
@@ -57,7 +64,6 @@ async fn streaming_print(mut stream: Pin<Box<dyn AsyncBufRead + Send>>, prefix: 
     let mut buffer = [0; 1024];
     while let Ok(n) = stream.read(&mut buffer).await {
         if n == 0 {
-            println!("{prefix}: ################### Stream ended prematurely #################");
             break;
         }
         print!("{prefix}: {}", String::from_utf8_lossy(&buffer[..n]));
@@ -111,7 +117,7 @@ async fn server_health_check() {
 
 async fn setup_server() -> Result<ContainerAsync<GenericImage>> {
     let container = GenericBuildableImage::new("packhub-test-server", "latest")
-        .with_dockerfile("images/server-ci-2.Dockerfile")
+        .with_dockerfile("images/server-ci.Dockerfile")
         .with_file("./scripts/run_server.sh", "run_server.sh")
         .with_file("../src", "src")
         .with_file("../pages", "pages")
@@ -122,97 +128,91 @@ async fn setup_server() -> Result<ContainerAsync<GenericImage>> {
         // .with_data("../Cargo.lock", "Cargo.lock")
         .build_image()
         .await?
-        // .with_wait_for(WaitFor::http(
-        //     HttpWaitStrategy::new("/") // GET /
-        //         .with_port(3000.tcp()) // use mapped host port for 3000
-        //         .with_expected_status_code(200_u16) // treat 200 as “up”
-        //         .with_poll_interval(Duration::from_secs(5)),
-        // ))
-        // .with_startup_timeout(Duration::from_secs(60)) // total timeout ~ your TIMEOUT
         .with_network("host")
         .with_mapped_port(3000, 3000.tcp())
         .start()
         .await?;
 
-    // println!("after await\n");
-
-    // println!("Container logs:\n");
-
-    // let stdout = container.stdout(true);
-
-    // streaming_print(stdout).await;
     server_health_check().await;
 
-    // println!("Server Container logs:\n");
     let stdout = container.stdout(true);
     tokio::spawn(async move {
         streaming_print(stdout, "server").await;
     });
 
-    // println!("\nServer Container error logs:\n");
     let stderr = container.stderr(true);
 
     tokio::spawn(async move {
         streaming_print(stderr, "server").await;
     });
 
-    // let e = container.exit_code().await?;
-    // println!("\nServer Container exit code: {:?}", e);
-
     Ok(container)
 }
 
-async fn setup_distro() -> Result<ContainerAsync<GenericImage>> {
-    let container = GenericImage::new("ubuntu", "24.04")
-        .with_entrypoint("./check_apt.sh")
-        // .with_entrypoint("./run_distro.sh")
+async fn setup_distro(distro: Distro) -> Result<()> {
+    let mut container = GenericImage::new(&distro.image, &distro.tag)
+        .with_entrypoint(&format!("./{}", &distro.script))
         .with_platform("linux/amd64")
-        .with_env_var("DIST", "ubuntu")
-        .with_copy_to("check_apt.sh", Path::new("scripts/check_apt.sh"))
-        // .with_copy_to("run_distro.sh", Path::new("scripts/run_distro.sh"))
-        .with_network("host")
-        .start()
-        .await?;
+        .with_copy_to(
+            &distro.script,
+            Path::new(&format!("scripts/{}", &distro.script)),
+        )
+        .with_network("host");
 
-    // let mut buffer = String::new();
-    // container.stdout(true).read_to_string(&mut buffer).await?;
-    // container.stderr(true).read_to_string(&mut buffer).await?;
+    if let Some(env) = distro.env {
+        for (key, value) in env {
+            container = container.with_env_var(key, value);
+        }
+    }
 
-    // println!("Container logs:\n{}", buffer);
+    let container = container.start().await?;
 
-    println!("Distribution Container logs:\n");
     let stdout = container.stdout(true);
-    streaming_print(stdout, "ubuntu:24.04 stdout").await;
 
-    println!("\nDistribution Container error logs:\n");
+    tokio::spawn(async move {
+        streaming_print(stdout, "ubuntu:24.04").await;
+    });
+
     let stderr = container.stderr(true);
-    streaming_print(stderr, "ubuntu:24.04 stderr").await;
 
-    // let e = container.exit_code().await?;
-    // println!("\nDistribution Container exit code: {:?}", e);
+    tokio::spawn(async move {
+        streaming_print(stderr, "ubuntu:24.04").await;
+    });
 
-    Ok(container)
-}
-
-#[tokio::main]
-async fn main() -> Result<()> {
-    // setup_mongo_container().await?;
-    // setup_server().await?;
-    // setup_distro().await?;
-    let infra = InfraTest::setup_infra().await?;
-    let container = setup_distro().await?;
     loop {
         let Some(code) = container.exit_code().await? else {
             continue;
         };
 
         if code == 0 {
-            println!("Distribution Container exited successfully");
+            println!(
+                "Distribution Container {}:{} exited successfully",
+                distro.image, distro.tag
+            );
             break;
         } else {
-            println!("Distribution Container exited with error code: {}", code);
+            println!(
+                "Distribution Container {}:{} exited with error code: {}",
+                distro.image, distro.tag, code
+            );
             break;
         }
     }
+
+    Ok(())
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let infra = InfraTest::setup_infra().await?;
+
+    setup_distro(Distro {
+        image: "ubuntu".to_owned(),
+        tag: "24.04".to_owned(),
+        env: Some([("DIST".to_owned(), "ubuntu".to_owned())].into()),
+        script: "check_apt.sh".to_owned(),
+    })
+    .await?;
+
     Ok(())
 }
