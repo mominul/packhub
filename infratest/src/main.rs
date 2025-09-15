@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::Path, pin::Pin, time::Duration};
+use std::{path::Path, pin::Pin, time::Duration};
 
 use anyhow::{Result, bail};
 use testcontainers_modules::{
@@ -11,29 +11,58 @@ use testcontainers_modules::{
 };
 use tokio::{
     io::{AsyncBufRead, AsyncReadExt},
-    task::JoinHandle,
+    task::{JoinHandle, JoinSet},
     time::sleep,
 };
-
-mod logger;
 
 struct InfraTest {
     mongo: ContainerAsync<Mongo>,
     server: ContainerAsync<GenericImage>,
-    distro: Vec<ContainerAsync<GenericImage>>,
+    distro: JoinSet<Result<Distro>>,
 }
 
+#[derive(Debug, Hash, PartialEq, Eq)]
 struct Distro {
+    name: String,
     image: String,
     tag: String,
-    env: Option<HashMap<String, String>>,
+    env: Option<Vec<(String, String)>>,
     script: String,
 }
 
-// async fn logger(container: &ContainerAsync<GenericImage>, ) {
-//     let mut stream = container.logs().await.unwrap();
-//     streaming_print(stream).await;
-// }
+#[derive(Debug)]
+struct DistroError {
+    distro: Distro,
+    code: i64,
+}
+
+impl std::fmt::Display for DistroError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Distribution Container {}({}:{}) exited with error code: {}",
+            self.distro.name, self.distro.image, self.distro.tag, self.code
+        )
+    }
+}
+
+impl std::error::Error for DistroError {}
+
+impl Distro {
+    fn new(name: &str, image: &str, tag: &str, script: &str, env: Option<&[(&str, &str)]>) -> Self {
+        Distro {
+            name: name.to_owned(),
+            image: image.to_owned(),
+            tag: tag.to_owned(),
+            env: env.map(|env| {
+                env.into_iter()
+                    .map(|(k, v)| (k.to_string(), v.to_string()))
+                    .collect::<Vec<(String, String)>>()
+            }),
+            script: script.to_owned(),
+        }
+    }
+}
 
 async fn flatten<T>(handle: JoinHandle<Result<T>>) -> Result<T> {
     match handle.await {
@@ -55,8 +84,50 @@ impl InfraTest {
         Ok(Self {
             mongo,
             server,
-            distro: Vec::new(),
+            distro: JoinSet::new(),
         })
+    }
+
+    fn add_distro(&mut self, distro: Distro) {
+        self.distro.spawn(async move { setup_distro(distro).await });
+    }
+
+    async fn run_distros(&mut self) -> Result<()> {
+        let mut success = Vec::new();
+        let mut failed = Vec::new();
+        while let Some(result) = self.distro.join_next().await {
+            match result {
+                Ok(Ok(distro)) => success.push(distro),
+                Ok(Err(err)) => {
+                    match err.downcast::<DistroError>() {
+                        Ok(err) => failed.push(err),
+                        Err(_) => bail!("Unexpected error in running distro"),
+                    };
+                }
+                Err(err) => bail!("Distro task failed: {err}"),
+            };
+        }
+
+        println!();
+
+        for distro in success {
+            println!(
+                "Successfully ran distro {}({}:{})",
+                distro.name, distro.image, distro.tag
+            );
+        }
+
+        if !failed.is_empty() {
+            println!();
+            for err in failed {
+                println!(
+                    "Failed to run distro {}({}:{}) exit code: {}",
+                    err.distro.name, err.distro.image, err.distro.tag, err.code
+                );
+            }
+        }
+
+        Ok(())
     }
 }
 
@@ -101,10 +172,9 @@ async fn server_health_check() {
             _ => {
                 if elapsed >= timeout_secs {
                     println!(
-                        "Server did not start within {} seconds. But continuing...",
+                        "Error: Server did not start within {} seconds.",
                         timeout_secs
                     );
-                    // exit 0 (like the shell script: continue-on-error)
                     return;
                 }
                 println!("Waiting for server...");
@@ -149,7 +219,7 @@ async fn setup_server() -> Result<ContainerAsync<GenericImage>> {
     Ok(container)
 }
 
-async fn setup_distro(distro: Distro) -> Result<()> {
+async fn setup_distro(distro: Distro) -> Result<Distro> {
     let mut container = GenericImage::new(&distro.image, &distro.tag)
         .with_entrypoint(&format!("./{}", &distro.script))
         .with_platform("linux/amd64")
@@ -159,7 +229,7 @@ async fn setup_distro(distro: Distro) -> Result<()> {
         )
         .with_network("host");
 
-    if let Some(env) = distro.env {
+    if let Some(ref env) = distro.env {
         for (key, value) in env {
             container = container.with_env_var(key, value);
         }
@@ -169,14 +239,18 @@ async fn setup_distro(distro: Distro) -> Result<()> {
 
     let stdout = container.stdout(true);
 
+    let name = format!("{}({}:{})", &distro.name, &distro.image, &distro.tag);
+
+    let name2 = name.clone();
+
     tokio::spawn(async move {
-        streaming_print(stdout, "ubuntu:24.04").await;
+        streaming_print(stdout, &name).await;
     });
 
     let stderr = container.stderr(true);
 
     tokio::spawn(async move {
-        streaming_print(stderr, "ubuntu:24.04").await;
+        streaming_print(stderr, &name2).await;
     });
 
     loop {
@@ -185,34 +259,74 @@ async fn setup_distro(distro: Distro) -> Result<()> {
         };
 
         if code == 0 {
-            println!(
-                "Distribution Container {}:{} exited successfully",
-                distro.image, distro.tag
-            );
-            break;
+            return Ok(distro);
         } else {
-            println!(
-                "Distribution Container {}:{} exited with error code: {}",
-                distro.image, distro.tag, code
-            );
-            break;
+            return Err(anyhow::Error::new(DistroError { distro, code }));
         }
     }
-
-    Ok(())
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let infra = InfraTest::setup_infra().await?;
+    let mut infra = InfraTest::setup_infra().await?;
 
-    setup_distro(Distro {
-        image: "ubuntu".to_owned(),
-        tag: "24.04".to_owned(),
-        env: Some([("DIST".to_owned(), "ubuntu".to_owned())].into()),
-        script: "check_apt.sh".to_owned(),
-    })
-    .await?;
+    infra.add_distro(Distro::new(
+        "single-pkg",
+        "ubuntu",
+        "24.04",
+        "check_apt.sh",
+        Some(&[("DIST", "ubuntu")]),
+    ));
+
+    infra.add_distro(Distro::new(
+        "multi-pkg",
+        "ubuntu",
+        "24.04",
+        "check_apt_multiple.sh",
+        Some(&[("DIST", "ubuntu")]),
+    ));
+
+    infra.add_distro(Distro::new(
+        "single-pkg",
+        "debian",
+        "12",
+        "check_apt.sh",
+        Some(&[("DIST", "debian")]),
+    ));
+
+    infra.add_distro(Distro::new(
+        "multi-pkg",
+        "debian",
+        "12",
+        "check_apt_multiple.sh",
+        Some(&[("DIST", "debian")]),
+    ));
+
+    infra.add_distro(Distro::new(
+        "single-pkg",
+        "fedora",
+        "42",
+        "check_dnf.sh",
+        None,
+    ));
+
+    infra.add_distro(Distro::new(
+        "multi-pkg",
+        "fedora",
+        "42",
+        "check_dnf_multiple.sh",
+        None,
+    ));
+
+    infra.add_distro(Distro::new(
+        "multi-pkg",
+        "opensuse/tumbleweed",
+        "latest",
+        "check_zypper_multiple.sh",
+        None,
+    ));
+
+    infra.run_distros().await?;
 
     Ok(())
 }
