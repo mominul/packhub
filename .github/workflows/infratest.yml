@@ -1,0 +1,19 @@
+name: Linux Distribution Test Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  infratest:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .env file
+      run: |
+        cp .env.example .env
+
+    - name: Build and run infratest
+      run: |
+        cd infratest
+        cargo run
