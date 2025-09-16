@@ -80,7 +80,7 @@ pub(crate) async fn setup_server() -> Result<ContainerAsync<GenericImage>> {
         .with_file("../data/self-signed-certs", "data/self-signed-certs")
         .with_file("../.env", ".env")
         .with_file("../Cargo.toml", "Cargo.toml")
-        .with_file("../Cargo.lock", "Cargo.lock")
+        // .with_file("../Cargo.lock", "Cargo.lock")
         .build_image()
         .await?
         .with_network("host")
