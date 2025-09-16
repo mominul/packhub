@@ -29,8 +29,9 @@ impl InfraTest {
         let handle1 = tokio::spawn(setup_mongo_container());
         let handle2 = tokio::spawn(setup_server());
 
-        let Ok((mongo, server)) = tokio::try_join!(flatten(handle1), flatten(handle2)) else {
-            bail!("Failed to setup infrastructure");
+        let (mongo, server) = match tokio::try_join!(flatten(handle1), flatten(handle2)) {
+            Ok((mongo, server)) => (mongo, server),
+            Err(err) => bail!("Failed to setup infrastructure: {err}"),
         };
 
         Ok(Self {
