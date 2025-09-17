@@ -10,4 +10,6 @@ RUN cargo build
 
 EXPOSE 3000
 
-ENTRYPOINT ["scripts/run_server.sh"]
+COPY --chmod=0755 run_server.sh /sbin/run_server
+
+ENTRYPOINT ["/sbin/run_server"]
