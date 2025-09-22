@@ -7,7 +7,16 @@
   --secondary-heading: #515151;
 }
 
-.darkmode {
+.light {
+  --base-color: #ffffff;
+  --item-color: #f9f9f9;
+  --item-text: #555555;
+  --icon-color: #2A2A2A;
+  --heading-color: #000000;
+  --secondary-heading: #515151;
+}
+
+.dark {
   --base-color: #2A2A2A;
   --item-color: #333333;
   --item-text: #cccccc;
@@ -16,31 +25,47 @@
   --secondary-heading: #bbbbbb;
 }
 
-#theme-switch{
-  border: none;
-  height: 50px;
+@media (prefers-color-scheme: light) {
+  .system {
+  --base-color: #ffffff;
+  --item-color: #f9f9f9;
+  --item-text: #555555;
+  --icon-color: #2A2A2A;
+  --heading-color: #000000;
+  --secondary-heading: #515151;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .system {
+  --base-color: #2A2A2A;
+  --item-color: #333333;
+  --item-text: #cccccc;
+  --icon-color: #ffffff;
+  --heading-color: #f0f0f0;
+  --secondary-heading: #bbbbbb;
+  }
+}
+
+.theme-btn {
   width: 50px;
-  padding: 0;
-  border-radius: 50%;
+  height: 50px;
+  cursor: pointer;
   background-color: var(--icon-color);
+  border: none;
+  border-radius: 50%;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  transition: transform 0.3s, background-color 0.3s;
   position: absolute;
   top: 25px;
   right: 25px;
 }
-#theme-switch svg{
+
+.theme-btn svg {
   fill: var(--base-color);
-}
-#theme-switch svg:last-child{
-  display: none;
-}
-.darkmode #theme-switch svg:first-child{
-  display: none;
-}
-.darkmode #theme-switch svg:last-child{
-  display: block;
+  transition: fill 0.3s;
 }
 
 body {
