@@ -34,7 +34,6 @@ async fn script_handler(
         ReleaseChannel::Stable
     };
 
-
     match distro.as_str() {
         "ubuntu" | "debian" => Ok(apt::generate_apt_script(&distro, &owner, &repo, &channel)),
         "yum" => Ok(rpm::generate_rpm_script(

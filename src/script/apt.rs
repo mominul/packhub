@@ -11,7 +11,12 @@ pub(crate) struct AptScript<'a> {
     pub(crate) channel: &'a ReleaseChannel,
 }
 
-pub(crate) fn generate_apt_script(distro: &str, owner: &str, repo: &str, channel: &ReleaseChannel) -> String {
+pub(crate) fn generate_apt_script(
+    distro: &str,
+    owner: &str,
+    repo: &str,
+    channel: &ReleaseChannel,
+) -> String {
     let host = dotenvy::var("PACKHUB_DOMAIN").unwrap();
     let script = AptScript {
         host: &host,

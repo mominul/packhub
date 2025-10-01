@@ -1,6 +1,6 @@
-use askama::Template;
-use crate::utils::ReleaseChannel;
 use crate::utils::AppVersion;
+use crate::utils::ReleaseChannel;
+use askama::Template;
 
 #[derive(Template)]
 #[template(path = "rpm-script.sh", escape = "none")]
