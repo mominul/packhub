@@ -1,0 +1,16 @@
+---
+source: src/script/rpm.rs
+expression: zypp
+---
+#!/bin/sh
+
+echo "Welcome to package key and repository setup script for OpenBangla-Keyboard"
+echo "This script will add the repository key and repository to your system."
+echo "Please make sure you have sudo access to run this script."
+
+echo -e "[OpenBangla-Keyboard]\nname=OpenBangla-Keyboard\nbaseurl=http://localhost:3000/v2/rpm/github/OpenBangla/OpenBangla-Keyboard/stable\nenabled=1\ngpgcheck=0\nrepo_gpgcheck=1\ngpgkey=http://localhost:3000/v1/keys/packhub.asc" | sudo tee /etc/zypp/repos.d/OpenBangla-Keyboard.repo > /dev/null
+
+echo
+echo "Repository has been added to your system."
+echo "Please update your package lists to start using the repository."
+echo "Use 'dnf update' or 'yum update' or 'zypper refresh' depending on your package manager."

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io::Write};
+use std::{collections::BTreeMap, io::Write};
 
 use anyhow::Result;
 use askama::Template;
@@ -11,20 +11,20 @@ use sha2::{Sha256, Sha512};
 use crate::{
     apt::deb::DebianPackage,
     package::Package,
-    utils::{Arch, hashsum},
+    utils::{Arch, ReleaseChannel, hashsum},
 };
 
 #[derive(Debug)]
 pub struct AptIndices {
-    packages: HashMap<Arch, Vec<DebianPackage>>,
+    packages: BTreeMap<Arch, Vec<DebianPackage>>,
     date: DateTime<Utc>,
 }
 
 #[derive(Template)]
 #[template(path = "Release")]
 struct ReleaseIndex<'a> {
-    origin: &'a str,
-    label: &'a str,
+    channel: &'a ReleaseChannel,
+    arch: Vec<String>,
     date: String,
     files: Vec<Files>,
 }
@@ -46,7 +46,7 @@ struct Files {
 
 impl AptIndices {
     pub fn new(packages: &[Package]) -> Result<AptIndices> {
-        let mut debian: HashMap<Arch, Vec<DebianPackage>> = HashMap::new();
+        let mut debian: BTreeMap<Arch, Vec<DebianPackage>> = BTreeMap::new();
         // Find the latest date from the list of packages
         let mut date = DateTime::UNIX_EPOCH;
         for package in packages {
@@ -85,8 +85,7 @@ impl AptIndices {
         index.render().unwrap().trim().to_owned()
     }
 
-    pub fn get_release_index(&self) -> String {
-        let name = ". stable";
+    pub fn get_release_index(&self, channel: &ReleaseChannel) -> String {
         let date = self.date.to_rfc2822();
 
         let mut files = vec![];
@@ -122,8 +121,8 @@ impl AptIndices {
         let index = ReleaseIndex {
             date,
             files,
-            origin: name,
-            label: name,
+            channel,
+            arch: self.packages.keys().map(|s| s.to_string()).collect(),
         };
 
         index.render().unwrap()
@@ -166,7 +165,7 @@ mod tests {
         assert_snapshot!(packages);
 
         // Release
-        let release = indices.get_release_index();
+        let release = indices.get_release_index(&ReleaseChannel::Stable);
         assert_snapshot!(release);
     }
 
@@ -192,7 +191,7 @@ mod tests {
         assert_eq!(packages_gz.len(), 1105);
 
         // Release
-        let release = indices.get_release_index();
+        let release = indices.get_release_index(&ReleaseChannel::Stable);
         assert_snapshot!(release);
     }
 
@@ -233,7 +232,7 @@ mod tests {
         let indices = AptIndices::new(&packages).unwrap();
 
         // Release
-        let release = indices.get_release_index();
+        let release = indices.get_release_index(&ReleaseChannel::Stable);
         assert_snapshot!(release);
     }
 }

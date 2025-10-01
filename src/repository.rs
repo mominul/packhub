@@ -1,6 +1,8 @@
 use anyhow::{Result, bail};
+use futures_util::TryStreamExt;
 use mongodb::Collection;
-use tokio::task::JoinSet;
+use octocrab::{Octocrab, models::repos::Release};
+use tokio::{pin, task::JoinSet};
 use tracing::{debug, error};
 
 use crate::{
@@ -9,6 +11,7 @@ use crate::{
     platform::{AptPlatformDetection, detect_rpm_os},
     selector::select_packages,
     state::AppState,
+    utils::ReleaseChannel,
 };
 
 pub struct Repository {
@@ -19,7 +22,12 @@ pub struct Repository {
 }
 
 impl Repository {
-    pub async fn from_github(owner: String, repo: String, state: &AppState) -> Self {
+    pub async fn from_github(
+        owner: &str,
+        repo: &str,
+        release: &ReleaseChannel,
+        state: &AppState,
+    ) -> Self {
         let project = format!("{owner}/{repo}");
         let collection = state
             .db()
@@ -27,13 +35,22 @@ impl Repository {
             .collection::<PackageMetadata>(&project);
 
         let mut packages = Vec::new();
-        let release = state
-            .github()
-            .repos(owner, repo)
-            .releases()
-            .get_latest()
-            .await
-            .unwrap();
+
+        let release = match release {
+            ReleaseChannel::Stable => state
+                .github()
+                .repos(owner, repo)
+                .releases()
+                .get_latest()
+                .await
+                .unwrap(),
+            ReleaseChannel::Unstable => github_latest_prerelease(state.github(), &owner, &repo)
+                .await
+                .unwrap()
+                .unwrap_or_else(|| {
+                    panic!("No pre-release found for the repository: {owner}/{repo}")
+                }),
+        };
 
         for asset in release.assets {
             let package = Package::detect_package(
@@ -162,4 +179,35 @@ impl Repository {
 
         Ok(result)
     }
+}
+
+/// Fetch the latest pre-release from a GitHub repository.
+/// This can be a release (stable) but certainly ignores draft releases.
+async fn github_latest_prerelease(
+    octo: &Octocrab,
+    owner: &str,
+    repo: &str,
+) -> Result<Option<Release>> {
+    // GitHub returns releases in reverse-chronological order (newest first).
+    // Grab up to 10 per page and scan until we find the first release that's not a draft but can be a pre-release.
+    let stream = octo
+        .repos(owner, repo)
+        .releases()
+        .list()
+        .per_page(10)
+        .send()
+        .await?
+        .into_stream(&octo);
+
+    pin!(stream);
+
+    while let Some(release) = stream.try_next().await? {
+        if release.draft {
+            continue;
+        }
+
+        return Ok(Some(release));
+    }
+
+    Ok(None)
 }

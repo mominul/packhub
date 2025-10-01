@@ -1,6 +1,6 @@
 ---
-source: src/script.rs
-expression: apt_script
+source: src/script/apt.rs
+expression: apt_script_unstable
 ---
 #!/bin/sh
 
@@ -12,7 +12,7 @@ echo "Downloading and installing the repository key..."
 wget -qO- http://localhost:3000/v1/keys/packhub.gpg | sudo tee /etc/apt/keyrings/packhub.gpg > /dev/null
 echo
 echo "Adding the repository to your system..."
-echo "deb [signed-by=/etc/apt/keyrings/packhub.gpg] http://localhost:3000/v1/apt/ubuntu/github/OpenBangla/OpenBangla-Keyboard stable main" | sudo tee /etc/apt/sources.list.d/OpenBangla-Keyboard.list > /dev/null
+echo "deb [signed-by=/etc/apt/keyrings/packhub.gpg] http://localhost:3000/v1/apt/ubuntu/github/OpenBangla/OpenBangla-Keyboard unstable main" | sudo tee /etc/apt/sources.list.d/OpenBangla-Keyboard.list > /dev/null
 echo 
 echo "Updating package lists..."
 sudo apt-get update

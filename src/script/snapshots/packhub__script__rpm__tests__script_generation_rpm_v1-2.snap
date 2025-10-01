@@ -1,5 +1,5 @@
 ---
-source: src/script.rs
+source: src/script/rpm.rs
 expression: zypp
 ---
 #!/bin/sh

@@ -14,22 +14,28 @@ use crate::{
     error::AppError,
     repository::Repository,
     state::AppState,
-    utils::Arch,
+    utils::{Arch, ReleaseChannel},
 };
 
 #[tracing::instrument(name = "Debian Release File", skip_all, fields(agent = agent.as_str()))]
 async fn release_index(
     State(state): State<AppState>,
-    Path((distro, owner, repo, file)): Path<(String, String, String, String)>,
+    Path((distro, owner, repo, channel, file)): Path<(
+        String,
+        String,
+        String,
+        ReleaseChannel,
+        String,
+    )>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<Vec<u8>, AppError> {
-    let mut repo = Repository::from_github(owner, repo, &state).await;
+    let mut repo = Repository::from_github(&owner, &repo, &channel, &state).await;
     let packages = repo.select_package_apt(&distro, agent.as_str()).await?;
 
     let index = AptIndices::new(&packages)?;
     repo.save_package_metadata().await;
 
-    let release_file = index.get_release_index();
+    let release_file = index.get_release_index(&channel);
 
     match file.as_str() {
         "Release" => Ok(release_file.into_bytes()),
@@ -48,10 +54,17 @@ async fn release_index(
 #[tracing::instrument(name = "Debian Package metadata file", skip_all, fields(agent = agent.as_str()))]
 async fn packages_file(
     State(state): State<AppState>,
-    Path((distro, owner, repo, arch, file)): Path<(String, String, String, String, String)>,
+    Path((distro, owner, repo, channel, arch, file)): Path<(
+        String,
+        String,
+        String,
+        ReleaseChannel,
+        String,
+        String,
+    )>,
     TypedHeader(agent): TypedHeader<UserAgent>,
 ) -> Result<Vec<u8>, AppError> {
-    let mut repo = Repository::from_github(owner, repo, &state).await;
+    let mut repo = Repository::from_github(&owner, &repo, &channel, &state).await;
     let packages = repo.select_package_apt(&distro, agent.as_str()).await?;
 
     let index = AptIndices::new(&packages)?;
@@ -69,7 +82,7 @@ async fn packages_file(
 }
 
 async fn empty_packages_file(
-    Path((_, _, _, file)): Path<(String, String, String, String)>,
+    Path((_, _, _, _, file)): Path<(String, String, String, String, String)>,
 ) -> Result<Vec<u8>, AppError> {
     match file.as_str() {
         "Packages" => Ok(Vec::new()),
@@ -80,7 +93,14 @@ async fn empty_packages_file(
 
 #[tracing::instrument(name = "Debian Package proxy", skip_all)]
 async fn pool(
-    Path((_, owner, repo, ver, file)): Path<(String, String, String, String, String)>,
+    Path((_, owner, repo, _channel, ver, file)): Path<(
+        String,
+        String,
+        String,
+        ReleaseChannel,
+        String,
+        String,
+    )>,
 ) -> Result<impl IntoResponse, AppError> {
     let url = format!("https://github.com/{owner}/{repo}/releases/download/{ver}/{file}");
     tracing::trace!("Proxying package from: {}", url);
@@ -98,19 +118,19 @@ async fn pool(
 pub fn apt_routes() -> Router<AppState> {
     Router::new()
         .route(
-            "/{distro}/github/{owner}/{repo}/dists/stable/{file}",
+            "/{distro}/github/{owner}/{repo}/dists/{channel}/{file}",
             get(release_index),
         )
         .route(
-            "/{distro}/github/{owner}/{repo}/dists/stable/main/binary-{arch}/{index}",
+            "/{distro}/github/{owner}/{repo}/dists/{channel}/main/binary-{arch}/{index}",
             get(packages_file),
         )
         .route(
-            "/{distro}/github/{owner}/{repo}/dists/stable/main/binary-all/{index}",
+            "/{distro}/github/{owner}/{repo}/dists/{channel}/main/binary-all/{index}",
             get(empty_packages_file),
         )
         .route(
-            "/{distro}/github/{owner}/{repo}/pool/stable/{ver}/{file}",
+            "/{distro}/github/{owner}/{repo}/pool/{channel}/{ver}/{file}",
             get(pool),
         )
 }

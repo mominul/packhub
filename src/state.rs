@@ -87,3 +87,42 @@ impl AppState {
         self.state.cert.to_vec().unwrap()
     }
 }
+
+#[cfg(test)]
+static INIT: std::sync::Once = std::sync::Once::new();
+
+#[cfg(test)]
+impl AppState {
+    pub async fn initialize_for_test() -> Self {
+        INIT.call_once(|| {
+            rustls::crypto::aws_lc_rs::default_provider()
+                .install_default()
+                .unwrap();
+        });
+
+        let uri = format!(
+            "mongodb://{}:{}@{}:27017",
+            var("PACKHUB_DB_USER").unwrap(),
+            var("PACKHUB_DB_PASSWORD").unwrap(),
+            var("PACKHUB_DB_HOST").unwrap()
+        );
+
+        let db = Client::with_uri_str(uri).await.unwrap();
+        let passphrase = var("PACKHUB_SIGN_PASSPHRASE").unwrap().into();
+
+        let cert = if std::path::Path::new("key.gpg").exists() {
+            load_cert_from_file().unwrap()
+        } else {
+            generate_and_save_keys(&passphrase).unwrap()
+        };
+
+        Self {
+            state: Arc::new(InnerState {
+                db,
+                cert,
+                github: OctocrabBuilder::default().build().unwrap(),
+                passphrase,
+            }),
+        }
+    }
+}
