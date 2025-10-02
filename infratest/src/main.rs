@@ -66,6 +66,32 @@ async fn main() -> Result<()> {
         None,
     ));
 
+    // Pre-release support tests
+    infra.add_distro(Distro::new(
+        "pre-release-pkg",
+        "ubuntu",
+        "25.04",
+        "check_apt_pre.sh",
+        None,
+    ));
+
+    infra.add_distro(Distro::new(
+        "pre-release-pkg",
+        "fedora",
+        "42",
+        "check_dnf_pre.sh",
+        None,
+    ));
+
+    // Test rpm v1 support
+    infra.add_distro(Distro::new(
+        "v1-rpm",
+        "fedora",
+        "42",
+        "check_dnf_v1.sh",
+        None,
+    ));
+
     infra.run_distros().await?;
 
     Ok(())

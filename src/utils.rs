@@ -3,6 +3,7 @@ use std::{fmt::Display, ops::Add, str::FromStr};
 use anyhow::Result;
 use lenient_semver::parse;
 use semver::Version;
+use serde::Deserialize;
 use sha1::digest::{Digest, OutputSizeUser, generic_array::ArrayLength};
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
@@ -55,7 +56,7 @@ impl Dist {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Hash, Default)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Hash, Default)]
 pub enum Arch {
     #[default]
     Amd64,
@@ -127,6 +128,38 @@ where
     <<T as OutputSizeUser>::OutputSize as Add>::Output: ArrayLength<u8>,
 {
     format!("{:x}", T::digest(data))
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ReleaseChannel {
+    Stable,
+    Unstable,
+}
+
+impl Display for ReleaseChannel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ReleaseChannel::Stable => write!(f, "stable"),
+            ReleaseChannel::Unstable => write!(f, "unstable"),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum AppVersion {
+    V1,
+    V2,
+}
+
+impl Display for AppVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AppVersion::V1 => write!(f, "v1"),
+            AppVersion::V2 => write!(f, "v2"),
+        }
+    }
 }
 
 #[cfg(test)]

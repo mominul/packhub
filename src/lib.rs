@@ -30,6 +30,7 @@ mod utils;
 static REQWEST: LazyLock<reqwest::Client> = LazyLock::new(|| {
     reqwest::ClientBuilder::new()
         .use_rustls_tls()
+        .user_agent("PackHub/1.0 (https://packhub.dev)")
         .build()
         .unwrap()
 });
@@ -37,14 +38,19 @@ static REQWEST: LazyLock<reqwest::Client> = LazyLock::new(|| {
 fn v1() -> Router<AppState> {
     Router::new()
         .nest("/apt", apt::apt_routes())
-        .nest("/rpm", rpm::rpm_routes())
+        .nest("/rpm", rpm::rpm_routes_v1())
         .nest("/keys", pgp::keys())
+}
+
+fn v2() -> Router<AppState> {
+    Router::new().nest("/rpm", rpm::rpm_routes_v2())
 }
 
 pub fn app(state: AppState) -> Router {
     Router::new()
         .route_service("/", ServeFile::new("pages/index.html"))
         .nest("/v1", v1())
+        .nest("/v2", v2())
         .nest("/sh", script::script_routes())
         .nest_service("/assets", ServeDir::new("pages/assets"))
         .with_state(state)

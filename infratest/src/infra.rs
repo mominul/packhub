@@ -1,6 +1,8 @@
 use anyhow::{Result, bail};
-use testcontainers::{ContainerAsync, GenericImage};
-use testcontainers_modules::mongo::Mongo;
+use testcontainers_modules::{
+    mongo::Mongo,
+    testcontainers::{ContainerAsync, GenericImage},
+};
 use tokio::task::{JoinHandle, JoinSet};
 
 use crate::{

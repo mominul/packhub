@@ -6,13 +6,13 @@ edition = "2024"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-axum = { version = "0.8", features = ["macros"] }
+axum = { version = "0.8", features = ["macros", "query"] }
 axum-extra = { version = "0.10", features = ["typed-header"] }
 axum-server = { version = "0.7", features = ["tls-rustls"] }
 askama = "0.13"
 chrono = { version = "0.4.38", features = ["clock"] }
 dotenvy = "0.15"
-octocrab = "0.44"
+octocrab = { version = "0.46", features = ["stream"] }
 regex = "1"
 semver = "1"
 lenient_semver = "0.4"
@@ -36,8 +36,10 @@ bson = { version = "2", features = ["chrono-0_4"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sequoia-openpgp = "2.0.0"
+futures-util = "0.3"
 
 [dev-dependencies]
+axum-test = "18"
 insta = { version = "1", features = ["filters"] }
 testcontainers-modules = { version = "0.11", features = ["mongo"] }
 
