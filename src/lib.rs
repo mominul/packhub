@@ -30,6 +30,7 @@ mod utils;
 static REQWEST: LazyLock<reqwest::Client> = LazyLock::new(|| {
     reqwest::ClientBuilder::new()
         .use_rustls_tls()
+        .user_agent("PackHub/1.0 (https://packhub.dev)")
         .build()
         .unwrap()
 });
