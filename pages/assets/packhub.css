@@ -1,52 +1,82 @@
 :root {
-  --base-color: #ffffff;
-  --item-color: #f9f9f9;
-  --item-text: #555555;
-  --icon-color: #2A2A2A;
-  --heading-color: #000000;
-  --secondary-heading: #515151;
+  --page-background: #ffffff;
+  --card-background: #f9f9f9;
+  --card-text: #555555;
+  --icon-fill: #2a2a2a;
+  --theme-btn-bg: #2a2a2a;
+  --primary-heading: #000000;
+  --body-text: #515151;
 }
 
-.darkmode {
-  --base-color: #2A2A2A;
-  --item-color: #333333;
-  --item-text: #cccccc;
-  --icon-color: #ffffff;
-  --heading-color: #f0f0f0;
-  --secondary-heading: #bbbbbb;
+.light {
+  --page-background: #ffffff;
+  --card-background: #f9f9f9;
+  --card-text: #555555;
+  --icon-fill: #2a2a2a;
+  --theme-btn-bg: #2a2a2a;
+  --primary-heading: #000000;
+  --body-text: #515151;
 }
 
-#theme-switch{
-  border: none;
-  height: 50px;
+.dark {
+  --page-background: #2a2a2a;
+  --card-background: #333333;
+  --card-text: #cccccc;
+  --icon-fill: #ffffff;
+  --theme-btn-bg: #ffffff;
+  --primary-heading: #f0f0f0;
+  --body-text: #bbbbbb;
+}
+
+@media (prefers-color-scheme: light) {
+  .system {
+    --page-background: #ffffff;
+    --card-background: #f9f9f9;
+    --card-text: #555555;
+    --icon-fill: #2a2a2a;
+    --theme-btn-bg: #2a2a2a;
+    --primary-heading: #000000;
+    --body-text: #515151;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .system {
+    --page-background: #2a2a2a;
+    --card-background: #333333;
+    --card-text: #cccccc;
+    --icon-fill: #ffffff;
+    --theme-btn-bg: #ffffff;
+    --primary-heading: #f0f0f0;
+    --body-text: #bbbbbb;
+  }
+}
+
+.theme-btn {
   width: 50px;
-  padding: 0;
+  height: 50px;
+  cursor: pointer;
+  background-color: var(--theme-btn-bg);
+  border: none;
   border-radius: 50%;
-  background-color: var(--icon-color);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  transition: transform 0.3s, background-color 0.3s;
   position: absolute;
   top: 25px;
   right: 25px;
 }
-#theme-switch svg{
-  fill: var(--base-color);
-}
-#theme-switch svg:last-child{
-  display: none;
-}
-.darkmode #theme-switch svg:first-child{
-  display: none;
-}
-.darkmode #theme-switch svg:last-child{
-  display: block;
+
+.theme-btn svg {
+  fill: var(--page-background);
+  transition: fill 0.3s;
 }
 
 body {
   margin-top: 2em;
-  background-color: var(--base-color);
-  color: var(--secondary-heading);
+  background-color: var(--page-background);
+  color: var(--body-text);
   font-family: "Fira Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-weight: 300;
   font-size: 25px;
@@ -87,7 +117,7 @@ pre {
 
 h1 {
   font-family: "Alfa Slab One", serif;
-  color: var(--heading-color);
+  color: var(--primary-heading);
   font-size: 4rem;
   margin-bottom: 0;
   margin-top: 1rem;
@@ -99,7 +129,7 @@ h1 {
 h1 sup {
   font-family: "Fira Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 10px;
-  color: #FFF;
+  color: #fff;
   background-color: #0b7261;
   border-radius: 10px;
   padding: 7px;
@@ -107,15 +137,14 @@ h1 sup {
   margin-bottom: 50px;
 }
 
-
 h2 {
-  color: var(--heading-color);
+  color: var(--primary-heading);
   font-size: 2rem;
   font-weight: 300;
 }
 
 h5 {
-  color: var(--heading-color);
+  color: var(--primary-heading);
   font-size: 1.5rem;
   font-weight: 300;
 }
@@ -195,7 +224,6 @@ hr {
 .command {
   color: black;
   padding: 1rem 1rem 1rem 0;
-  height: auto;
   text-align: center;
   border-radius: 10px 0px 0px 10px;
   box-shadow: inset 0px 0px 20px 0px #f1eeee;
@@ -280,7 +308,7 @@ hr {
 }
 
 .feature-item {
-  background-color: var(--item-color);
+  background-color: var(--card-background);
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 20px;
@@ -289,7 +317,7 @@ hr {
 }
 
 .feature-item svg path {
-  fill: var(--icon-color);
+  fill: var(--icon-fill);
 }
 
 .feature-item h3 {
@@ -300,12 +328,12 @@ hr {
 
 .feature-item p {
   font-size: 1rem;
-  color: var(--item-text);
+  color: var(--card-text);
 }
 
 @media (max-width: 768px) {
   .features-grid {
-    grid-template-columns: 1fr; /* Switch to a single column */
+    grid-template-columns: 1fr;
   }
 
   header h2 {
