@@ -2,11 +2,12 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::{Result, bail};
 use chrono::{DateTime, Utc};
+use tracing::info;
 
 use crate::{
     REQWEST,
     detect::PackageInfo,
-    utils::{Arch, Dist, Type},
+    utils::{Arch, Digest, Dist, Type},
 };
 
 struct InnerPackage {
@@ -15,6 +16,7 @@ struct InnerPackage {
     url: String,
     ver: String,
     data: Mutex<Data>,
+    digest: Option<Digest>,
     created: DateTime<Utc>,
 }
 
@@ -76,6 +78,7 @@ impl Package {
         name: &str,
         ver: String,
         url: String,
+        digest: Option<Digest>,
         created: DateTime<Utc>,
     ) -> Result<Package> {
         // Split the extension first.
@@ -91,6 +94,7 @@ impl Package {
             info,
             url,
             ver,
+            digest,
             data: Mutex::new(Data::None),
             created,
         };
@@ -116,6 +120,7 @@ impl Package {
             .unwrap_or_default()
     }
 
+    /// Type of the package
     pub fn ty(&self) -> &Type {
         &self.inner.tipe
     }
@@ -128,6 +133,11 @@ impl Package {
     /// Version of the package
     pub fn version(&self) -> &str {
         &self.inner.ver
+    }
+
+    /// Return the digest of the package if available.
+    pub fn digest(&self) -> Option<&Digest> {
+        self.inner.digest.as_ref()
     }
 
     pub fn download_url(&self) -> &str {
@@ -150,6 +160,22 @@ impl Package {
             .await?;
         *self.inner.data.lock().unwrap() = Data::Package(data.to_vec());
         Ok(())
+    }
+
+    pub fn verify_digest(&self) -> Result<bool> {
+        let data = &*self.inner.data.lock().unwrap();
+
+        let data = match data {
+            Data::Package(d) => d,
+            _ => bail!("No package data available"),
+        };
+
+        if let Some(digest) = &self.inner.digest {
+            info!("Verifying package digest for {}", self.file_name());
+            Ok(digest.verify(data))
+        } else {
+            bail!("No digest available for verification");
+        }
     }
 
     /// Return the data of the package.
@@ -218,16 +244,28 @@ pub(crate) mod tests {
     ///
     /// For testing purpose.
     pub(crate) fn package(p: &str) -> Package {
-        Package::detect_package(p, String::new(), p.to_owned(), chrono::DateTime::UNIX_EPOCH)
-            .unwrap()
+        Package::detect_package(
+            p,
+            String::new(),
+            p.to_owned(),
+            None,
+            chrono::DateTime::UNIX_EPOCH,
+        )
+        .unwrap()
     }
 
     /// A shorthand for `Package::detect_package()`
     ///
     /// For testing purpose.
     pub(crate) fn package_with_ver(p: &str, v: &str) -> Package {
-        Package::detect_package(p, v.to_owned(), p.to_owned(), chrono::DateTime::UNIX_EPOCH)
-            .unwrap()
+        Package::detect_package(
+            p,
+            v.to_owned(),
+            p.to_owned(),
+            None,
+            chrono::DateTime::UNIX_EPOCH,
+        )
+        .unwrap()
     }
 
     #[test]
@@ -236,6 +274,7 @@ pub(crate) mod tests {
             "OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb",
             "2.0.0".to_owned(),
             String::new(),
+            None,
             DateTime::UNIX_EPOCH,
         )
         .unwrap();
@@ -247,6 +286,7 @@ pub(crate) mod tests {
             "OpenBangla-Keyboard_2.0.0-fedora36.rpm",
             "2.0.0".to_owned(),
             String::new(),
+            None,
             DateTime::UNIX_EPOCH,
         )
         .unwrap();
@@ -258,6 +298,7 @@ pub(crate) mod tests {
             "caprine_2.56.1_amd64.deb",
             "v2.56.1".to_owned(),
             String::new(),
+            None,
             DateTime::UNIX_EPOCH,
         )
         .unwrap();
@@ -269,6 +310,7 @@ pub(crate) mod tests {
             "ibus-openbangla_3.0.0-opensuse-tumbleweed.rpm",
             "3.0.0".to_owned(),
             String::new(),
+            None,
             DateTime::UNIX_EPOCH,
         )
         .unwrap();
@@ -283,6 +325,7 @@ pub(crate) mod tests {
             "OpenBangla-Keyboard_2.0.0-ubuntu22.04.deb",
             "2.0.0".to_owned(),
             String::new(),
+            None,
             DateTime::UNIX_EPOCH,
         )
         .unwrap();

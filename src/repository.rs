@@ -3,7 +3,7 @@ use futures_util::TryStreamExt;
 use mongodb::Collection;
 use octocrab::{Octocrab, models::repos::Release};
 use tokio::{pin, task::JoinSet};
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 
 use crate::{
     db::PackageMetadata,
@@ -11,7 +11,7 @@ use crate::{
     platform::{AptPlatformDetection, detect_rpm_os},
     selector::select_packages,
     state::AppState,
-    utils::ReleaseChannel,
+    utils::{Digest, ReleaseChannel},
 };
 
 pub struct Repository {
@@ -53,12 +53,24 @@ impl Repository {
         };
 
         for asset in release.assets {
+            let digest = if let Some(digest) = asset.digest {
+                if let Some(hash) = digest.strip_prefix("sha256:") {
+                    Some(Digest::Sha256(hash.to_string()))
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+
             let package = Package::detect_package(
                 &asset.name,
                 release.tag_name.clone(),
                 asset.browser_download_url.to_string(),
+                digest,
                 asset.updated_at,
             );
+
             if let Ok(package) = package {
                 if let Some(metadata) = PackageMetadata::retrieve_from(&collection, &package).await
                 {
@@ -154,7 +166,32 @@ impl Repository {
             if !package.is_metadata_available() {
                 runner.spawn(async move {
                     debug!("Downloading package: {:?}", package.file_name());
-                    package.download().await.and_then(|_| Ok(package))
+
+                    if package.download().await.is_err() {
+                        bail!("Failed to download package: {:?}", package.file_name());
+                    }
+
+                    match package.verify_digest() {
+                        Ok(true) => {
+                            info!("Digest verification succeeded for {}", package.file_name());
+                            Ok(package)
+                        },
+                        Ok(false) => {
+                            error!("Digest verification failed for package: {:?}, Trying downloading again...", package.file_name());
+                            package.download().await.and_then(|_| {
+                                if package.verify_digest().unwrap_or(false) {
+                                    Ok(package)
+                                } else {
+                                    error!("Digest verification failed again for package: {:?}, Aborting...", package.file_name());
+                                    bail!("Digest verification failed two times for package: {:?}", package.file_name())
+                                }
+                            })
+                        }
+                        Err(_) => {
+                            info!("No digest available for package: {:?}, Skipping verification.", package.file_name());
+                            Ok(package)
+                        }
+                    }
                 });
             } else {
                 debug!("Package metadata available: {:?}", package.file_name());

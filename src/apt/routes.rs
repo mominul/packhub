@@ -32,7 +32,7 @@ async fn release_index(
     let mut repo = Repository::from_github(&owner, &repo, &channel, &state).await;
     let packages = repo.select_package_apt(&distro, agent.as_str()).await?;
 
-    let index = AptIndices::new(&packages)?;
+    let index = AptIndices::new(&packages, &channel)?;
     repo.save_package_metadata().await;
 
     let release_file = index.get_release_index(&channel);
@@ -67,7 +67,7 @@ async fn packages_file(
     let mut repo = Repository::from_github(&owner, &repo, &channel, &state).await;
     let packages = repo.select_package_apt(&distro, agent.as_str()).await?;
 
-    let index = AptIndices::new(&packages)?;
+    let index = AptIndices::new(&packages, &channel)?;
     repo.save_package_metadata().await;
 
     let Ok(arch) = arch.parse::<Arch>() else {

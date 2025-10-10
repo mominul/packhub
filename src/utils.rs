@@ -4,7 +4,7 @@ use anyhow::Result;
 use lenient_semver::parse;
 use semver::Version;
 use serde::Deserialize;
-use sha1::digest::{Digest, OutputSizeUser, generic_array::ArrayLength};
+use sha1::digest::{Digest as TDigest, OutputSizeUser, generic_array::ArrayLength};
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub enum Dist {
@@ -122,7 +122,7 @@ impl Type {
     }
 }
 
-pub fn hashsum<T: Digest>(data: &[u8]) -> String
+pub fn hashsum<T: TDigest>(data: &[u8]) -> String
 where
     <T as OutputSizeUser>::OutputSize: Add,
     <<T as OutputSizeUser>::OutputSize as Add>::Output: ArrayLength<u8>,
@@ -158,6 +158,22 @@ impl Display for AppVersion {
         match self {
             AppVersion::V1 => write!(f, "v1"),
             AppVersion::V2 => write!(f, "v2"),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum Digest {
+    Sha256(String),
+}
+
+impl Digest {
+    pub fn verify(&self, data: &[u8]) -> bool {
+        match self {
+            Digest::Sha256(expected) => {
+                let hash = hashsum::<sha2::Sha256>(data);
+                &hash == expected
+            }
         }
     }
 }
@@ -200,5 +216,12 @@ mod tests {
         assert!(ver4 > ver3);
         assert!(ver3 > ver0);
         assert!(ver0 < ver3);
+    }
+
+    #[test]
+    fn test_digest() {
+        let sha256 = hashsum::<sha2::Sha256>(b"test");
+        let digest = Digest::Sha256(sha256.clone());
+        assert!(digest.verify(b"test"));
     }
 }

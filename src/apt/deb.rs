@@ -12,7 +12,7 @@ use sha2::{Sha256, Sha512};
 
 use crate::{
     package::{Data, Package},
-    utils::{Arch, hashsum},
+    utils::{Arch, Digest, ReleaseChannel, hashsum},
 };
 
 static ARCH: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"Architecture: (\w+)"#).unwrap());
@@ -33,7 +33,7 @@ impl DebianPackage {
     /// Create a new Debian package from a package.
     ///
     /// Also sets metadata of the package.
-    pub fn from_package(package: &Package) -> Result<Self> {
+    pub fn from_package(package: &Package, channel: &ReleaseChannel) -> Result<Self> {
         // Create the debian package from the metadata if it is present.
         if let Data::Metadata(metadata) = package.data() {
             let package: DebianPackage = from_str(&metadata)?;
@@ -49,12 +49,22 @@ impl DebianPackage {
             .context("Error occurred while parsing the debian control file from package")?
             .trim_end()
             .to_owned();
-        let filename = format!("pool/stable/{}/{}", package.version(), package.file_name());
+        let filename = format!(
+            "pool/{channel}/{}/{}",
+            package.version(),
+            package.file_name()
+        );
 
         let size = data.len();
         let md5 = hashsum::<Md5>(&data);
         let sha1 = hashsum::<Sha1>(&data);
-        let sha256 = hashsum::<Sha256>(&data);
+
+        let sha256 = if let Some(Digest::Sha256(digest)) = package.digest() {
+            digest.clone()
+        } else {
+            hashsum::<Sha256>(&data)
+        };
+
         let sha512 = hashsum::<Sha512>(&data);
 
         let deb = Self {
@@ -135,7 +145,7 @@ mod tests {
         let data = read("data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb").unwrap();
         package.set_package_data(data);
 
-        let deb = DebianPackage::from_package(&package).unwrap();
+        let deb = DebianPackage::from_package(&package, &ReleaseChannel::Stable).unwrap();
         assert_eq!(deb.get_arch(), Some(Arch::Amd64));
     }
 
@@ -144,7 +154,7 @@ mod tests {
     fn test_without_data() {
         let package = package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb");
 
-        let _ = DebianPackage::from_package(&package).unwrap();
+        let _ = DebianPackage::from_package(&package, &ReleaseChannel::Stable).unwrap();
     }
 
     #[test]
@@ -153,11 +163,11 @@ mod tests {
         let data = read("data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb").unwrap();
         package.set_package_data(data);
 
-        let _ = DebianPackage::from_package(&package).unwrap();
+        let _ = DebianPackage::from_package(&package, &ReleaseChannel::Stable).unwrap();
 
         // The package data should have been replaced by the metadata
         assert!(matches!(package.data(), Data::Metadata(_)));
 
-        let _ = DebianPackage::from_package(&package).unwrap();
+        let _ = DebianPackage::from_package(&package, &ReleaseChannel::Stable).unwrap();
     }
 }
