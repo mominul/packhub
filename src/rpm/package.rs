@@ -6,7 +6,7 @@ use sha2::Sha256;
 
 use crate::{
     package::{Data, Package},
-    utils::hashsum,
+    utils::{Digest, hashsum},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -70,7 +70,12 @@ impl RPMPackage {
         let mut data = data.as_slice();
         // Calculate these before the data slice is mutated
         let pkg_size = data.len();
-        let sha256 = hashsum::<Sha256>(data);
+
+        let sha256 = if let Some(Digest::Sha256(digest)) = package.digest() {
+            digest.clone()
+        } else {
+            hashsum::<Sha256>(data)
+        };
 
         let rpm = rpm::Package::parse(&mut data)
             .context("Unable to parse the package using rpm parser crate")?;

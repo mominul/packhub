@@ -54,7 +54,7 @@ mod tests {
         testcontainers::{ContainerAsync, runners::AsyncRunner},
     };
 
-    use crate::apt::DebianPackage;
+    use crate::{apt::DebianPackage, utils::ReleaseChannel};
 
     pub async fn setup_mongodb(container: &ContainerAsync<Mongo>) -> Client {
         let host = container.get_host().await.unwrap();
@@ -70,11 +70,11 @@ mod tests {
         let container = Mongo::default().start().await.unwrap();
         let client = setup_mongodb(&container).await;
 
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), DateTime::parse_from_rfc3339("2024-07-01T00:00:00Z").unwrap().into()).unwrap();
+        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), None, DateTime::parse_from_rfc3339("2024-07-01T00:00:00Z").unwrap().into()).unwrap();
         let data = read("data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb").unwrap();
         package.set_package_data(data);
 
-        let _ = DebianPackage::from_package(&package).unwrap();
+        let _ = DebianPackage::from_package(&package, &ReleaseChannel::Stable).unwrap();
 
         let db = client.database("github");
         let collection = db.collection::<PackageMetadata>("test");
@@ -89,7 +89,7 @@ mod tests {
 
         assert_eq!(metadata, retrieved);
 
-        let non_existent = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), DateTime::parse_from_rfc3339("2024-07-10T00:00:00Z").unwrap().into()).unwrap();
+        let non_existent = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), None, DateTime::parse_from_rfc3339("2024-07-10T00:00:00Z").unwrap().into()).unwrap();
 
         assert_eq!(
             PackageMetadata::retrieve_from(&collection, &non_existent).await,

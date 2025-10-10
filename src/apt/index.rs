@@ -45,7 +45,7 @@ struct Files {
 }
 
 impl AptIndices {
-    pub fn new(packages: &[Package]) -> Result<AptIndices> {
+    pub fn new(packages: &[Package], channel: &ReleaseChannel) -> Result<AptIndices> {
         let mut debian: BTreeMap<Arch, Vec<DebianPackage>> = BTreeMap::new();
         // Find the latest date from the list of packages
         let mut date = DateTime::UNIX_EPOCH;
@@ -54,7 +54,7 @@ impl AptIndices {
                 date = *package.creation_date();
             }
 
-            match DebianPackage::from_package(package) {
+            match DebianPackage::from_package(package, channel) {
                 Ok(deb) => {
                     if let Some(arch) = deb.get_arch() {
                         debian.entry(arch).or_default().push(deb);
@@ -152,13 +152,13 @@ mod tests {
 
     #[test]
     fn test_apt_indices() {
-        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), DateTime::parse_from_rfc2822("Wed, 8 Nov 2023 16:40:12 +0000").unwrap().into()).unwrap();
+        let package = Package::detect_package("OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb", "2.0.0".to_owned(), "https://github.com/OpenBangla/OpenBangla-Keyboard/releases/download/2.0.0/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb".to_owned(), None, DateTime::parse_from_rfc2822("Wed, 8 Nov 2023 16:40:12 +0000").unwrap().into()).unwrap();
         let data = read("data/OpenBangla-Keyboard_2.0.0-ubuntu20.04.deb").unwrap();
         package.set_package_data(data);
 
         let packages = vec![package];
 
-        let indices = AptIndices::new(&packages).unwrap();
+        let indices = AptIndices::new(&packages, &ReleaseChannel::Stable).unwrap();
 
         // Packages
         let packages = indices.get_package_index(&Arch::Amd64);
@@ -181,7 +181,7 @@ mod tests {
 
         let packages = vec![package1, package2];
 
-        let indices = AptIndices::new(&packages).unwrap();
+        let indices = AptIndices::new(&packages, &ReleaseChannel::Stable).unwrap();
 
         // Packages
         let packages = indices.get_package_index(&Arch::Amd64);
@@ -229,7 +229,7 @@ mod tests {
             package1, package2, package3, package4, package5, package6, package7,
         ];
 
-        let indices = AptIndices::new(&packages).unwrap();
+        let indices = AptIndices::new(&packages, &ReleaseChannel::Stable).unwrap();
 
         // Release
         let release = indices.get_release_index(&ReleaseChannel::Stable);
