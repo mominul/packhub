@@ -1,6 +1,7 @@
 # Stage 1: Compute the recipe file
-FROM lukemathwalker/cargo-chef:latest-rust-latest AS chef
+FROM rust:latest AS chef
 WORKDIR /app
+RUN cargo install cargo-chef
 
 FROM chef AS planner
 COPY . .
