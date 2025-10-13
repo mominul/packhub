@@ -1,6 +1,6 @@
 services:
   app:
-    image: mominul/packhub:latest
+    image: mominul/packhub@sha256:a92a7ec201d3f5005c39772dc4fcb440cd0f049f8ab279cae718ae0e9b29a138
     container_name: packhub_app
     depends_on:
       - mongodb
