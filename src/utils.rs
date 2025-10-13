@@ -3,10 +3,10 @@ use std::{fmt::Display, ops::Add, str::FromStr};
 use anyhow::Result;
 use lenient_semver::parse;
 use semver::Version;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sha1::digest::{Digest as TDigest, OutputSizeUser, generic_array::ArrayLength};
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize)]
 pub enum Dist {
     Ubuntu(Option<Version>),
     Debian(Option<Version>),

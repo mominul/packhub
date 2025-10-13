@@ -6,7 +6,7 @@ use tokio::{pin, task::JoinSet};
 use tracing::{debug, error, info};
 
 use crate::{
-    db::PackageMetadata,
+    metadata::PackageMetadata,
     package::Package,
     platform::{AptPlatformDetection, detect_rpm_os},
     selector::select_packages,
@@ -79,8 +79,13 @@ impl Repository {
                 packages.push(package);
             }
         }
+        
+        let apt_collection = state
+            .db()
+            .database("repology")
+            .collection::<AptPlatformDetection>("apt");
 
-        let platform = AptPlatformDetection::initialize().await;
+        let platform = AptPlatformDetection::retrieve(&apt_collection).await.unwrap();
 
         Repository {
             collection,
