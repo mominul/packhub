@@ -14,7 +14,7 @@ use tracing::{Span, debug};
 use crate::state::AppState;
 
 mod apt;
-mod db;
+mod metadata;
 mod detect;
 mod error;
 mod package;
@@ -26,6 +26,7 @@ mod script;
 mod selector;
 pub mod state;
 mod utils;
+pub mod cron;
 
 static REQWEST: LazyLock<reqwest::Client> = LazyLock::new(|| {
     reqwest::ClientBuilder::new()

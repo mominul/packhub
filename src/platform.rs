@@ -1,9 +1,13 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::LazyLock;
 
+use bson::doc;
+use chrono::{DateTime, Utc};
 use lenient_semver::parse;
+use mongodb::Collection;
 use regex::Regex;
 use semver::{Version, VersionReq};
+use serde::{Deserialize, Serialize};
 
 use crate::{REQWEST, utils::Dist};
 
@@ -14,13 +18,21 @@ static FEDORA: LazyLock<Regex> =
 static TUMBLEWEED: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"ZYpp.+"#).unwrap());
 
 /// Detects platform based on the user-agent string of `apt` package manager.
+/// 
+/// This struct fetches data from [repology](https://repology.org) and stores it in a MongoDB collection.
+/// It provides methods to detect the distribution and version based on the `apt` version found in
+/// the user-agent string.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct AptPlatformDetection {
     ubuntu: HashMap<VersionReq, Dist>,
     debian: HashMap<VersionReq, Dist>,
+    #[serde(with = "mongodb::bson::serde_helpers::chrono_datetime_as_bson_datetime")]
+    created_at: DateTime<Utc>,
 }
 
 impl AptPlatformDetection {
-    pub async fn initialize() -> Self {
+    /// Fetches the data from repology and updates the MongoDB collection.
+    pub async fn update(db: &Collection<AptPlatformDetection>) {
         let data = REQWEST
             .get("https://repology.org/api/v1/project/apt")
             .send()
@@ -73,7 +85,14 @@ impl AptPlatformDetection {
             }
         }
 
-        Self { ubuntu, debian }
+        let data = Self { ubuntu, debian, created_at: Utc::now() };
+        
+        db.insert_one(&data).await.unwrap();
+    }
+    
+    /// Retrieves the latest data from the MongoDB collection.
+    pub async fn retrieve(db: &Collection<AptPlatformDetection>) -> Option<Self> {
+        db.find_one(doc!{}).sort(doc! { "created_at": -1 }).await.unwrap()
     }
 
     pub fn detect_ubuntu_for_apt(&self, agent: &str) -> Dist {
@@ -153,10 +172,32 @@ pub fn detect_rpm_os(agent: &str) -> Option<Dist> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    
+    use mongodb::Client;
+    use testcontainers_modules::{
+        mongo::Mongo,
+        testcontainers::{ContainerAsync, runners::AsyncRunner},
+    };
+
+    pub async fn setup_mongodb(container: &ContainerAsync<Mongo>) -> Client {
+        let host = container.get_host().await.unwrap();
+        let port = container.get_host_port_ipv4(27017).await.unwrap();
+
+        mongodb::Client::with_uri_str(&format!("mongodb://{}:{}", host, port))
+            .await
+            .unwrap()
+    }
 
     #[tokio::test]
     async fn test_match_platform() {
-        let platform = AptPlatformDetection::initialize().await;
+        let container = Mongo::default().start().await.unwrap();
+        let client = setup_mongodb(&container).await;
+        let db = client.database("repology");
+        let collection = db.collection::<AptPlatformDetection>("apt");
+        
+        AptPlatformDetection::update(&collection).await;
+        
+        let platform = AptPlatformDetection::retrieve(&collection).await.unwrap();
 
         // Ubuntu
         assert_eq!(
