@@ -1,22 +1,8 @@
 services:
-  app:
-    image: mominul/packhub@sha256:a92a7ec201d3f5005c39772dc4fcb440cd0f049f8ab279cae718ae0e9b29a138
-    container_name: packhub_app
-    depends_on:
-      - mongodb
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./.env:/app/.env
-      - ./key.gpg:/app/key.gpg
-      - ${PACKHUB_DOCKER_CERT_PEM}:/app/fullchain.pem
-      - ${PACKHUB_DOCKER_KEY_PEM}:/app/privkey.pem
-
   mongodb:
-    image: mongo:5.0.6
+    image: mongo:8.0
     container_name: packhub_mongodb
-    restart: always
+    restart: unless-stopped
     ports:
       - "27017:27017"
     environment:
@@ -24,6 +10,38 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${PACKHUB_DB_PASSWORD}
     volumes:
       - mongodb_data:/data/db
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--username",
+          "${PACKHUB_DB_USER}",
+          "--password",
+          "${PACKHUB_DB_PASSWORD}",
+          "--eval",
+          "db.adminCommand('ping')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  app:
+    image: mominul/packhub
+    container_name: packhub_app
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./.env:/app/.env
+      - ./key.gpg:/app/key.gpg
+      - ./${PACKHUB_DOCKER_CERT_PEM}:/app/fullchain.pem
+      - ./${PACKHUB_DOCKER_KEY_PEM}:/app/privkey.pem
 
 volumes:
   mongodb_data:
