@@ -1,5 +1,5 @@
 # Stage 1: Compute the recipe file
-FROM lukemathwalker/cargo-chef:latest-rust-latest AS chef
+FROM lukemathwalker/cargo-chef:latest-rust-trixie AS chef
 WORKDIR /app
 
 FROM chef AS planner
@@ -19,7 +19,7 @@ COPY . .
 RUN cargo build --release
 
 # Stage 3: Minimal final runtime image
-FROM debian:bookworm-slim AS runtime
+FROM debian:trixie-slim AS runtime
 
 RUN apt update && apt install -y libssl-dev ca-certificates clang llvm pkg-config nettle-dev
 RUN update-ca-certificates
