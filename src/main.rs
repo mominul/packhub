@@ -48,7 +48,7 @@ async fn main() {
     let state2 = state.clone();
 
     cron.add(
-        Job::new_async("0 */4 * * * *", move |_uuid, _l| {
+        Job::new_async("1 1 1 * * * *", move |_uuid, _l| {
             let state2 = state2.clone();
             Box::pin(async move {
                 info!("Running cron job: Updating platform detection data");
