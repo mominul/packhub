@@ -81,62 +81,134 @@ function set_up_copy_button_clicks() {
 
 set_up_copy_button_clicks();
 
-function set_ubuntu(owner, repo) {
-    const ubuntu = document.querySelector(".command.ubuntu");
+const platformCommandMap = {
+    ubuntu: '.command.ubuntu',
+    debian: '.command.debian',
+    fedora: '.command.fedora',
+    opensuse: '.command.suse',
+};
 
-    console.log("Setting Ubuntu install command for:", ubuntu);
+let currentEventSource = null;
 
-    ubuntu.textContent = `wget -qO- https://packhub.dev/sh/ubuntu/github/${owner}/${repo} | sh`
+function extractGithubInfo(value) {
+    const githubRegex = /https?:\/\/github\.com\/([^\/]+)\/([^\/]+)/;
+    return value.match(githubRegex);
 }
 
-function set_debian(owner, repo) {
-    const ubuntu = document.querySelector(".command.debian");
+function resetDetection() {
+    // Hide all platform sections
+    document.querySelectorAll('.platform-section').forEach(el => {
+        el.style.display = 'none';
+    });
 
-    console.log("Setting Ubuntu install command for:", ubuntu);
+    // Clear package list
+    const packageList = document.getElementById('package-list');
+    packageList.innerHTML = '';
+    document.getElementById('detected-packages').style.display = 'none';
 
-    ubuntu.textContent = `wget -qO- https://packhub.dev/sh/debian/github/${owner}/${repo} | sh`
+    // Clear status
+    document.getElementById('sse-status').textContent = '';
+    document.getElementById('sse-status').className = '';
 }
 
-function set_fedora(owner, repo) {
-    const rpm = document.querySelector(".command.fedora");
+function startDetection(owner, repo) {
+    if (currentEventSource) {
+        currentEventSource.close();
+        currentEventSource = null;
+    }
 
-    console.log("Setting Fedora install command for:", rpm);
+    resetDetection();
 
-    rpm.textContent = `wget -qO- https://packhub.dev/sh/yum/github/${owner}/${repo} | sh`
+    const status = document.getElementById('sse-status');
+    status.textContent = 'Detecting packages...';
+    status.className = 'sse-status detecting';
+
+    const packageList = document.getElementById('package-list');
+    document.getElementById('detected-packages').style.display = 'block';
+
+    const es = new EventSource(`/sse/detect?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`);
+    currentEventSource = es;
+
+    es.addEventListener('package', (e) => {
+        const data = JSON.parse(e.data);
+        const li = document.createElement('li');
+        let text = data.file_name;
+        if (data.distro) {
+            text += ` (${data.distro})`;
+        }
+        text += ` [${data.architecture}]`;
+        li.textContent = text;
+        packageList.appendChild(li);
+    });
+
+    es.addEventListener('link', (e) => {
+        const data = JSON.parse(e.data);
+        const section = document.querySelector(`.platform-section[data-platform="${data.platform}"]`);
+        if (section) {
+            section.style.display = 'block';
+            const commandSelector = platformCommandMap[data.platform];
+            if (commandSelector) {
+                const command = document.querySelector(commandSelector);
+                if (command) {
+                    command.textContent = `wget -qO- ${data.url} | sh`;
+                }
+            }
+        }
+    });
+
+    es.addEventListener('done', (e) => {
+        status.textContent = 'Detection complete.';
+        status.className = 'sse-status complete';
+        es.close();
+        currentEventSource = null;
+    });
+
+    es.addEventListener('error', (e) => {
+        if (e.data) {
+            const data = JSON.parse(e.data);
+            status.textContent = 'Error: ' + data.message;
+        } else {
+            status.textContent = 'Connection error.';
+        }
+        status.className = 'sse-status error';
+        es.close();
+        currentEventSource = null;
+    });
+
+    es.onerror = () => {
+        if (es.readyState === EventSource.CLOSED) return;
+        status.textContent = 'Connection lost.';
+        status.className = 'sse-status error';
+        es.close();
+        currentEventSource = null;
+    };
 }
 
-function set_suse(owner, repo) {
-    const rpm = document.querySelector(".command.suse");
-
-    console.log("Setting Suse install command for:", rpm);
-
-    rpm.textContent = `wget -qO- https://packhub.dev/sh/zypp/github/${owner}/${repo} | sh`
+function triggerDetection() {
+    const input = document.querySelector('.github-link');
+    const value = input.value || input.placeholder;
+    const match = extractGithubInfo(value);
+    if (match) {
+        startDetection(match[1], match[2]);
+    } else {
+        const status = document.getElementById('sse-status');
+        status.textContent = 'Please enter a valid GitHub repository URL.';
+        status.className = 'sse-status error';
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    const inputElement = document.querySelector(".github-link");
-
-    function extractGithubInfo(value) {
-        const githubRegex = /https?:\/\/github\.com\/([^\/]+)\/([^\/]+)/;
-        const match = value.match(githubRegex);
-        
-        if (match) {
-            set_ubuntu(match[1], match[2]);
-            set_debian(match[1], match[2]);
-            set_fedora(match[1], match[2]);
-            set_suse(match[1], match[2]);
-        } else {
-            console.log("Invalid or missing GitHub URL");
-        }
+    const detectBtn = document.getElementById('detect-btn');
+    if (detectBtn) {
+        detectBtn.addEventListener('click', triggerDetection);
     }
 
+    const inputElement = document.querySelector('.github-link');
     if (inputElement) {
-        // Extract initial value (if present)
-        extractGithubInfo(inputElement.value || inputElement.placeholder);
-        
-        // Listen for changes in the input field
-        inputElement.addEventListener("input", (event) => {
-            extractGithubInfo(inputElement.value || inputElement.placeholder);
+        inputElement.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                triggerDetection();
+            }
         });
     }
 });

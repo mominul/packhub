@@ -236,6 +236,16 @@ hr {
   overflow-x: auto;
 }
 
+.input-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .github-link {
   outline: none;
   border: none;
@@ -246,10 +256,69 @@ hr {
   padding: 1rem 1rem 1rem 1rem;
   overflow: hidden;
   overflow-x: auto;
-  width: 60%;
-  margin-left: 50px;
-  margin-right: 50px;
+  flex: 1;
   text-align: center;
+}
+
+.detect-button {
+  background-color: #0b7261;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  font-size: 0.6em;
+  font-family: "Fira Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+.detect-button:hover {
+  background-color: #0d8b75;
+}
+
+.sse-status {
+  margin-top: 1rem;
+  font-size: 0.8em;
+}
+
+.sse-status.detecting {
+  color: #0b7261;
+}
+
+.sse-status.complete {
+  color: #0b7261;
+}
+
+.sse-status.error {
+  color: #cc3333;
+}
+
+#detected-packages {
+  margin-top: 1rem;
+  text-align: left;
+  width: 80%;
+}
+
+#detected-packages h3 {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+#detected-packages ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#detected-packages li {
+  font-family: "Fira Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.55em;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #eee;
 }
 
 #card div.copy-container {
@@ -364,10 +433,13 @@ hr {
     text-align: justify;
   }
 
+  .input-container {
+    width: 95%;
+    flex-direction: column;
+  }
+
   .github-link {
-    width: 80%;
-    margin-left: 10px;
-    margin-right: 10px;
+    width: 100%;
   }
 
   .platform-header {

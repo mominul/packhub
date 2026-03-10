@@ -24,6 +24,7 @@ mod repository;
 mod rpm;
 mod script;
 mod selector;
+mod sse;
 pub mod state;
 mod utils;
 pub mod cron;
@@ -53,6 +54,7 @@ pub fn app(state: AppState) -> Router {
         .nest("/v1", v1())
         .nest("/v2", v2())
         .nest("/sh", script::script_routes())
+        .nest("/sse", sse::sse_routes())
         .nest_service("/assets", ServeDir::new("pages/assets"))
         .with_state(state)
         .layer(TraceLayer::new_for_http().on_response(

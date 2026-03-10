@@ -204,14 +204,25 @@
         Paste your GitHub repository URL below to get the command to setup
         <span class="text-bold">PackHub</span> repository in your system.
       </p>
-      <input
-        class="github-link"
-        type="text"
-        name=""
-        id=""
-        placeholder="https://github.com/OpenBangla/OpenBangla-Keyboard"
-      />
+      <div class="input-container">
+        <input
+          class="github-link"
+          type="text"
+          name=""
+          id=""
+          placeholder="https://github.com/OpenBangla/OpenBangla-Keyboard"
+        />
+        <button id="detect-btn" class="detect-button" type="button">Detect</button>
+      </div>
 
+      <div id="sse-status"></div>
+
+      <div id="detected-packages" style="display: none;">
+        <h3>Detected Packages</h3>
+        <ul id="package-list"></ul>
+      </div>
+
+      <div class="platform-section" data-platform="ubuntu" style="display: none;">
       <div class="platform-header">
         <img src="./assets/ubuntu.png" width="50px" alt="" />
         <span>Ubuntu Derivatives</span>
@@ -245,7 +256,9 @@
           </div>
         </button>
       </div>
+      </div>
 
+      <div class="platform-section" data-platform="debian" style="display: none;">
       <div class="platform-header">
         <img src="./assets/debian.svg" width="50px" height="50px" alt="" />
         <span>Debian Derivatives</span>
@@ -280,8 +293,9 @@
           </div>
         </button>
       </div>
+      </div>
 
-
+      <div class="platform-section" data-platform="fedora" style="display: none;">
       <div class="platform-header">
         <img src="./assets/fedora.png" width="40px" height="40px" alt="" />
         <span>Fedora</span>
@@ -316,7 +330,9 @@
           </div>
         </button>
       </div>
+      </div>
 
+      <div class="platform-section" data-platform="opensuse" style="display: none;">
       <div class="platform-header">
         <img src="./assets/openSUSE.svg" width="50px" height="50px" alt="" />
         <span>openSUSE</span>
@@ -350,6 +366,7 @@
             Copied!
           </div>
         </button>
+      </div>
       </div>
     </div>
 
