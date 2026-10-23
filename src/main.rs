@@ -2,8 +2,9 @@ use std::{env::args, net::SocketAddr};
 
 use axum_server::tls_rustls::RustlsConfig;
 use dotenvy::{dotenv, var};
+use tokio::signal::unix::{SignalKind, signal};
 use tokio_cron_scheduler::{Job, JobScheduler};
-use tracing::{Level, info};
+use tracing::{Level, info, error};
 use tracing_subscriber::{filter::Targets, prelude::*};
 
 use packhub::{app, cron::run_cron_job, state::AppState};
@@ -74,12 +75,14 @@ async fn main() {
     info!("listening on {}", http_addr);
     info!("listening on {}", https_addr);
 
-    let config = RustlsConfig::from_pem_file(
-        var("PACKHUB_CERT_PEM").unwrap(),
-        var("PACKHUB_KEY_PEM").unwrap(),
-    )
-    .await
-    .unwrap();
+    let cert_path = var("PACKHUB_CERT_PEM").unwrap();
+    let key_path = var("PACKHUB_KEY_PEM").unwrap();
+
+    let config = RustlsConfig::from_pem_file(&cert_path, &key_path)
+        .await
+        .unwrap();
+
+    spawn_sighup_reload(config.clone(), cert_path, key_path);
 
     let http_server = axum_server::bind(http_addr).serve(app(state.clone()).into_make_service());
 
@@ -90,4 +93,26 @@ async fn main() {
     let https = tokio::spawn(async { https_server.await.unwrap() });
 
     _ = tokio::join!(http, https);
+}
+
+fn spawn_sighup_reload(config: RustlsConfig, cert_path: String, key_path: String) {
+    tokio::spawn(async move {
+        let mut sighup = match signal(SignalKind::hangup()) {
+            Ok(sighup) => sighup,
+            Err(err) => {
+                error!(error = %err, "failed to install SIGHUP handler");
+                return;
+            }
+        };
+
+        loop {
+            sighup.recv().await;
+            match config.reload_from_pem_file(&cert_path, &key_path).await {
+                Ok(()) => info!(cert = %cert_path, "reloaded TLS certificate"),
+                Err(err) => {
+                    error!(error = %err, "failed to reload TLS certificate; keeping previous cert");
+                }
+            }
+        }
+    });
 }
